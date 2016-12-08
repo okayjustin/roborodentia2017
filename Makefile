@@ -1,8 +1,8 @@
 BUILDDIR = build
 
-DEVICE = libraries/CMSIS/device/ST/STM32F2xx
+DEVICE = libraries/CMSIS/Device/ST/STM32F4xx
 CMSIS = libraries/CMSIS
-LIBRARIES = libraries/STM32F2xx_HAL_Driver
+LIBRARIES = libraries/STM32F4xx_StdPeriph_Driver
 UTILS = utils
 DRIVERS = drivers
 CONFIG = config
@@ -99,10 +99,10 @@ OBJCOPY = arm-none-eabi-objcopy
 WARNINGS = -Wall -Werror -Wno-unused-function
 	
 CFLAGS  = -O0 -g \
-   -mcpu=cortex-m3 -mthumb \
-   -mfloat-abi=soft \
+   -mcpu=cortex-m4 -mthumb -mlittle-endian \
+   -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
    $(INCLUDES) -DUSE_STDPERIPH_DRIVER \
-   -D STM32F205xx -DUSE_USB_FS \
+   -D STM32F446XX -DUSE_USB_FS \
    $(WARNINGS)
 
 LDSCRIPT = buildTools/stm32_flash.ld
