@@ -1,5 +1,5 @@
 If SWD
-Device STM32F205RG
+Device STM32F446RE
 speed 2000
 r
 h
