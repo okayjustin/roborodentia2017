@@ -105,7 +105,7 @@ CFLAGS  = -O0 -g \
    -D STM32F446XX -DUSE_USB_FS \
    $(WARNINGS)
 
-LDSCRIPT = buildTools/stm32_flash.ld
+LDSCRIPT = buildTools/STM32F446ZE_FLASH.ld
 LDFLAGS += -T$(LDSCRIPT) -mthumb -mcpu=cortex-m3 -nostdlib -LbuildTools
 
 LDLIBS += -lc -lm -lnosys
