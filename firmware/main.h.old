@@ -1,14 +1,14 @@
 /**
   ******************************************************************************
-  * @file    Project/STM32F4xx_StdPeriph_Templates/main.h 
+  * @file    USB_Device/CDC_Standalone/Inc/main.h 
   * @author  MCD Application Team
-  * @version V1.8.0
-  * @date    04-November-2016
+  * @version V1.1.0
+  * @date    09-October-2015
   * @brief   Header for main.c module
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -25,19 +25,33 @@
   ******************************************************************************
   */
   
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MAIN_H
 #define __MAIN_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
+#include "stm32f2xx_hal.h"
+#include "stm32f2xx_hal_conf.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h" 
 
+#define CRITICAL_VAL  static uint8_t criticalSectionSR;
 
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
-void TimingDelay_Decrement(void);
+#define ENTER_CRITICAL()                              \
+  do {                                                \
+    asm (                                             \
+      "MRS    R0, PRIMASK\n\r"                        \
+      "CPSID I\n\t"                                   \
+      "STRB R0, %[output]"                            \
+      : [output] "=m" (criticalSectionSR) :: "r0");   \
+  } while (0)
+
+#define EXIT_CRITICAL()                               \
+  do {                                                \
+    asm (                                             \
+      "ldrb r0, %[input]\n\t"                         \
+      "msr PRIMASK,r0;\n\t"                           \
+      :: [input] "m" (criticalSectionSR) : "r0");     \
+  } while (0)
 
 #endif /* __MAIN_H */
 

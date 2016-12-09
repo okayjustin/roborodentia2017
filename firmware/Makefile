@@ -2,7 +2,7 @@ BUILDDIR = build
 
 DEVICE = libraries/CMSIS/Device/ST/STM32F4xx
 CMSIS = libraries/CMSIS
-LIBRARIES = libraries/STM32F4xx_StdPeriph_Driver
+LIBRARIES = libraries/STM32F4xx_HAL_Driver
 UTILS = utils
 DRIVERS = drivers
 CONFIG = config
@@ -12,24 +12,24 @@ SYSTEM = system
 
 SOURCES += main.c
 
-SOURCES += $(LIBRARIES)/source/stm32f2xx_hal_gpio.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_i2c.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_rcc.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_spi.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_usart.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_uart.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_tim.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_tim_ex.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_dma.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_cortex.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_adc.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_adc_ex.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_dac.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_dac_ex.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_pcd.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal_pcd_ex.c \
-		   $(LIBRARIES)/source/stm32f2xx_ll_usb.c \
-		   $(LIBRARIES)/source/stm32f2xx_hal.c
+SOURCES += $(LIBRARIES)/source/stm32f4xx_hal_adc.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_adc_ex.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_cortex.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_dac.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_dac_ex.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_dma.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_gpio.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_i2c.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_pcd.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_pcd_ex.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_rcc.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_spi.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_tim.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_tim_ex.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_uart.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_usart.c \
+		   $(LIBRARIES)/source/stm32f4xx_ll_usb.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal.c
 
 SOURCES += $(SYSTEM)/startup_stm32f2xx.s \
 		   $(SYSTEM)/stm32f2xx_hal_msp.c \
@@ -131,7 +131,7 @@ $(BUILDDIR)/%.o: %.s
 	$(CC) -c $(CFLAGS) $< -o $@
 
 flash: $(BIN)
-	JLinkExe -Device STM32F205RG -CommanderScript $(FLASH_SCRIPT)
+	JLinkExe -Device STM32F446RE -CommanderScript $(FLASH_SCRIPT)
 
 clean:
 	rm -rf build

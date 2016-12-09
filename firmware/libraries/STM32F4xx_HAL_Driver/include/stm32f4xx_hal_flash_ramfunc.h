@@ -1,10 +1,14 @@
 /**
   ******************************************************************************
-  * @file    stm32f2xx_it.c
-  * @brief   Interrupt Service Routines.
+  * @file    stm32f4xx_hal_flash_ramfunc.h
+  * @author  MCD Application Team
+  * @version V1.6.0
+  * @date    04-November-2016
+  * @brief   Header file of FLASH RAMFUNC driver.
   ******************************************************************************
+  * @attention
   *
-  * COPYRIGHT(c) 2016 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -29,73 +33,65 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
+  */ 
+
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __STM32F4xx_FLASH_RAMFUNC_H
+#define __STM32F4xx_FLASH_RAMFUNC_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+#if defined(STM32F410Tx) || defined(STM32F410Cx) || defined(STM32F410Rx) || defined(STM32F411xE) || defined(STM32F446xx) || defined(STM32F412Zx) ||\
+    defined(STM32F412Vx) || defined(STM32F412Rx) || defined(STM32F412Cx)  
+
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal_def.h"
+
+/** @addtogroup STM32F4xx_HAL_Driver
+  * @{
   */
 
-#include <stdio.h>
-#include "stm32f2xx_hal.h"
-#include "stm32f2xx.h"
-#include "stm32f2xx_it.h"
-#include "usart.h"
-#include "led.h"
+/** @addtogroup FLASH_RAMFUNC
+  * @{
+  */
 
-/* External variables --------------------------------------------------------*/
-extern ADC_HandleTypeDef hadc1;
-extern ADC_HandleTypeDef hadc2;
-extern DMA_HandleTypeDef hdma_usart1_rx;
-extern UART_HandleTypeDef huart1;
-extern PCD_HandleTypeDef hpcd;
+/* Exported types ------------------------------------------------------------*/
+/* Exported macro ------------------------------------------------------------*/
+/* Exported functions --------------------------------------------------------*/
+/** @addtogroup FLASH_RAMFUNC_Exported_Functions
+  * @{
+  */
 
-/******************************************************************************/
-/*            Cortex-M3 Processor Interruption and Exception Handlers         */ 
-/******************************************************************************/
+/** @addtogroup FLASH_RAMFUNC_Exported_Functions_Group1
+  * @{
+  */   
+__RAM_FUNC HAL_FLASHEx_StopFlashInterfaceClk(void);
+__RAM_FUNC HAL_FLASHEx_StartFlashInterfaceClk(void);
+__RAM_FUNC HAL_FLASHEx_EnableFlashSleepMode(void);
+__RAM_FUNC HAL_FLASHEx_DisableFlashSleepMode(void);
+/**
+  * @}
+  */ 
 
 /**
-* @brief This function handles Non maskable interrupt.
-*/
-void NMI_Handler(void)
-{
-    HAL_RCC_NMI_IRQHandler();
-}
+  * @}
+  */
 
 /**
-* @brief This function handles System tick timer.
-*/
-void SysTick_Handler(void)
-{
-    HAL_IncTick();
-    HAL_SYSTICK_IRQHandler();
-}
-
-void HardFault_Handler(void)
-{
-    setLED(10, 1);
-    while(1);
-}
-
-/******************************************************************************/
-/* STM32F2xx Peripheral Interrupt Handlers                                    */
-/* Add here the Interrupt Handlers for the used peripherals.                  */
-/* For the available peripheral interrupt handler names,                      */
-/* please refer to the startup file (startup_stm32f2xx.s).                    */
-/******************************************************************************/
+  * @}
+  */ 
 
 /**
-* @brief This function handles ADC1, ADC2 and ADC3 global interrupts.
-*/
-void ADC_IRQHandler(void)
-{
-    //HAL_ADC_IRQHandler(&hadc1);
-    HAL_ADC_IRQHandler(&hadc2);
-}
+  * @}
+  */
 
-void OTG_FS_IRQHandler(void)
-{
-    HAL_PCD_IRQHandler(&hpcd);
+#endif /* STM32F410xx || STM32F411xE || STM32F446xx || STM32F412Zx || STM32F412Vx || STM32F412Rx || STM32F412Cx */  
+#ifdef __cplusplus
 }
+#endif
 
-void WWDG_IRQHandler(void)
-{
-    while(1);
-}
+
+#endif /* __STM32F4xx_FLASH_RAMFUNC_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
