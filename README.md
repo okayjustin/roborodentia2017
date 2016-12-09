@@ -1,0 +1,22 @@
+# roborodentia2017
+
+To rebuild the newlib libraries (embedded standard C libs):
+	cd [REPOSITORY TOP LEVEL DIRECTORY]
+	mkdir newlib_arm-none-eabi              					// Or whatever folder name you like
+	cd newlib_arm-none-eabi
+	../newlib-cygwin/configure
+         --target=arm-none-eabi \
+         --with-cpu=cortex-m4 \
+         --with-fpu=fpv4-sp-d16 \
+         --with-float=hard \
+         --with-mode=thumb \
+         --enable-interwork \        // Not sure if you need this one
+         --enable-multilib \         // Not sure if you need this one
+         --with-gnu-as \
+         --with-gnu-ld \
+         --disable-nls \
+         --disable-newlib-supplied-syscalls  // Or whatever version of newlib source you have
+    sudo make -j4 all
+
+Then take the libc.a and libm.a from newlib_arm-none-eabi/arm-none-eabi/newlib and place them in buildTools.
+Also take libnosys.a from newlib_arm-none-eabi/arm-none-eabi/thumb/libgloss/libnosys and place it in buildTools.
