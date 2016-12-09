@@ -19,3 +19,4 @@ To rebuild the newlib libraries (embedded standard C libs):
     sudo make -j4 all
 
 Then take the libc.a and libm.a from newlib_arm-none-eabi/arm-none-eabi/newlib and place them in buildTools.
+Also take libnosys.a from newlib_arm-none-eabi/arm-none-eabi/thumb/libgloss/libnosys and place it in buildTools.
