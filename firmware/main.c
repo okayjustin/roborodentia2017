@@ -1,26 +1,37 @@
 /**
   ******************************************************************************
-  * @file    Project/STM32F4xx_StdPeriph_Templates/main.c 
+  * @file    UART/UART_Printf/Src/main.c
   * @author  MCD Application Team
-  * @version V1.8.0
-  * @date    04-November-2016
-  * @brief   Main program body
+  * @version V1.0.2
+  * @date    06-May-2016
+  * @brief   This example shows how to retarget the C library printf function
+  *          to the UART.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
   *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  *   1. Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *   2. Redistributions in binary form must reproduce the above copyright notice,
+  *      this list of conditions and the following disclaimer in the documentation
+  *      and/or other materials provided with the distribution.
+  *   3. Neither the name of STMicroelectronics nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
   *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
   */
@@ -28,19 +39,31 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/** @addtogroup Template_Project
+/** @addtogroup STM32F4xx_HAL_Examples
   * @{
-  */ 
+  */
+
+/** @addtogroup UART_Printf
+  * @{
+  */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static __IO uint32_t uwTimingDelay;
-RCC_ClocksTypeDef RCC_Clocks;
+/* UART handler declaration */
+UART_HandleTypeDef UartHandle;
 
 /* Private function prototypes -----------------------------------------------*/
-static void Delay(__IO uint32_t nTime);
+#ifdef __GNUC__
+/* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+static void SystemClock_Config(void);
+static void Error_Handler(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -51,54 +74,51 @@ static void Delay(__IO uint32_t nTime);
   */
 int main(void)
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
- 
- /*!< At this stage the microcontroller clock setting is already configured, 
-       this is done through SystemInit() function which is called from startup
-       files before to branch to application main.
-       To reconfigure the default setting of SystemInit() function, 
-       refer to system_stm32f4xx.c file */
+  /* STM32F4xx HAL library initialization:
+       - Configure the Flash prefetch
+       - Systick timer is configured by default as source of time base, but user 
+         can eventually implement his proper time base source (a general purpose 
+         timer for example or other time source), keeping in mind that Time base 
+         duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
+         handled in milliseconds basis.
+       - Set NVIC Group Priority to 4
+       - Low Level Initialization
+     */
+  HAL_Init();
 
-  /* SysTick end of count event each 10ms */
-  RCC_GetClocksFreq(&RCC_Clocks);
-  SysTick_Config(RCC_Clocks.HCLK_Frequency / 100);
-  
-  /* Add your application code here */
-  /* Insert 50 ms delay */
-  Delay(5);
-  
-  /* Output HSE clock on MCO1 pin(PA8) ****************************************/ 
-  /* Enable the GPIOA peripheral */ 
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-  
-  /* Configure MCO1 pin(PA8) in alternate function */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;  
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-    
-  /* HSE clock selected to output on MCO1 pin(PA8)*/
-  RCC_MCO1Config(RCC_MCO1Source_HSE, RCC_MCO1Div_1);
-  
-  
-  /* Output SYSCLK/4 clock on MCO2 pin(PC9) ***********************************/ 
-  /* Enable the GPIOACperipheral */ 
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-  
-  /* Configure MCO2 pin(PC9) in alternate function */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;  
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
-    
-  /* SYSCLK/4 clock selected to output on MCO2 pin(PC9)*/
-  RCC_MCO2Config(RCC_MCO2Source_SYSCLK, RCC_MCO2Div_4);
-  
-     
+  /* Configure the system clock to 180 MHz */
+  SystemClock_Config();
+
+  /* Initialize BSP Led for LED2 */
+  BSP_LED_Init(LED2);
+
+  /*##-1- Configure the UART peripheral ######################################*/
+  /* Put the USART peripheral in the Asynchronous mode (UART Mode) */
+  /* UART configured as follows:
+      - Word Length = 8 Bits (7 data bit + 1 parity bit) : 
+	                  BE CAREFUL : Program 7 data bits + 1 parity bit in PC HyperTerminal
+      - Stop Bit    = One Stop bit
+      - Parity      = ODD parity
+      - BaudRate    = 9600 baud
+      - Hardware flow control disabled (RTS and CTS signals) */
+  UartHandle.Instance        = USARTx;
+  UartHandle.Init.BaudRate   = 9600;
+  UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+  UartHandle.Init.StopBits   = UART_STOPBITS_1;
+  UartHandle.Init.Parity     = UART_PARITY_ODD;
+  UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+  UartHandle.Init.Mode       = UART_MODE_TX_RX;
+  UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&UartHandle) != HAL_OK)
+  {
+    /* Initialization Error */
+    Error_Handler();
+  }
+
+  /* Output a message on Hyperterminal using printf function */
+  printf("\n\r UART Printf Example: retarget the C library printf function to the UART\n\r");
+  printf("** Test finished successfully. ** \n\r");
+
   /* Infinite loop */
   while (1)
   {
@@ -106,32 +126,106 @@ int main(void)
 }
 
 /**
-  * @brief  Inserts a delay time.
-  * @param  nTime: specifies the delay time length, in milliseconds.
-  * @retval None
-  */
-void Delay(__IO uint32_t nTime)
-{ 
-  uwTimingDelay = nTime;
-
-  while(uwTimingDelay != 0);
-}
-
-/**
-  * @brief  Decrements the TimingDelay variable.
+  * @brief  Retargets the C library printf function to the USART.
   * @param  None
   * @retval None
   */
-void TimingDelay_Decrement(void)
+PUTCHAR_PROTOTYPE
 {
-  if (uwTimingDelay != 0x00)
-  { 
-    uwTimingDelay--;
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART3 and Loop until the end of transmission */
+  HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, 0xFFFF);
+
+  return ch;
+}
+
+/**
+  * @brief  System Clock Configuration
+  *         The system Clock is configured as follow : 
+  *            System Clock source            = PLL (HSE)
+  *            SYSCLK(Hz)                     = 180000000
+  *            HCLK(Hz)                       = 180000000
+  *            AHB Prescaler                  = 1
+  *            APB1 Prescaler                 = 4
+  *            APB2 Prescaler                 = 2
+  *            HSE Frequency(Hz)              = 8000000
+  *            PLL_M                          = 8
+  *            PLL_N                          = 360
+  *            PLL_P                          = 2
+  *            PLL_Q                          = 7
+  *            PLL_R                          = 2
+  *            VDD(V)                         = 3.3
+  *            Main regulator output voltage  = Scale1 mode
+  *            Flash Latency(WS)              = 5
+  * @param  None
+  * @retval None
+  */
+static void SystemClock_Config(void)
+{
+  RCC_ClkInitTypeDef RCC_ClkInitStruct;
+  RCC_OscInitTypeDef RCC_OscInitStruct;
+  HAL_StatusTypeDef ret = HAL_OK;
+
+  /* Enable Power Control clock */
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  /* The voltage scaling allows optimizing the power consumption when the device is 
+     clocked below the maximum system frequency, to update the voltage scaling value 
+     regarding system frequency refer to product datasheet.  */
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  /* Enable HSE Oscillator and activate PLL with HSE as source */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 360;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
+  RCC_OscInitStruct.PLL.PLLR = 2;
+  
+  ret = HAL_RCC_OscConfig(&RCC_OscInitStruct);
+  if(ret != HAL_OK)
+  {
+    while(1) { ; }
+  }
+  
+  /* Activate the OverDrive to reach the 180 MHz Frequency */  
+  ret = HAL_PWREx_EnableOverDrive();
+  if(ret != HAL_OK)
+  {
+    while(1) { ; }
+  }
+  
+  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 clocks dividers */
+  RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;  
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;  
+  
+  ret = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5);
+  if(ret != HAL_OK)
+  {
+    while(1) { ; }
+  }
+}
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @param  None
+  * @retval None
+  */
+static void Error_Handler(void)
+{
+  /* Turn LED2 on */
+  BSP_LED_On(LED2);
+  while (1)
+  {
   }
 }
 
 #ifdef  USE_FULL_ASSERT
-
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -139,8 +233,8 @@ void TimingDelay_Decrement(void)
   * @param  line: assert_param error line source number
   * @retval None
   */
-void assert_failed(uint8_t* file, uint32_t line)
-{ 
+void assert_failed(uint8_t *file, uint32_t line)
+{
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 
@@ -155,5 +249,8 @@ void assert_failed(uint8_t* file, uint32_t line)
   * @}
   */
 
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

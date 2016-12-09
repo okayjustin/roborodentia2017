@@ -1,43 +1,50 @@
 /**
   ******************************************************************************
-  * @file      startup_stm32f2xx.s
+  * @file      startup_stm32f446xx.s
   * @author    MCD Application Team
-  * @version   V1.1.3
-  * @date      05-March-2012
-  * @brief     STM32F2xx Devices vector table for RIDE7 toolchain. 
+  * @version   V1.0.2
+  * @date      06-May-2016
+  * @brief     STM32F446xx Devices vector table for GCC based toolchains. 
   *            This module performs:
   *                - Set the initial SP
   *                - Set the initial PC == Reset_Handler,
   *                - Set the vector table entries with the exceptions ISR address
-  *                - Configure the system clock and the external SRAM mounted on 
-  *                  STM322xG-EVAL board to be used as data memory (optional, 
-  *                  to be enabled by user)
   *                - Branches to main in the C library (which eventually
   *                  calls main()).
-  *            After Reset the Cortex-M3 processor is in Thread mode,
+  *            After Reset the Cortex-M4 processor is in Thread mode,
   *            priority is Privileged, and the Stack is set to Main.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2016 STMicroelectronics</center></h2>
   *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  *   1. Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *   2. Redistributions in binary form must reproduce the above copyright notice,
+  *      this list of conditions and the following disclaimer in the documentation
+  *      and/or other materials provided with the distribution.
+  *   3. Neither the name of STMicroelectronics nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
   *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
   */
     
   .syntax unified
-  .cpu cortex-m3
+  .cpu cortex-m4
   .fpu softvfp
   .thumb
 
@@ -70,6 +77,7 @@ defined in linker script */
   .weak  Reset_Handler
   .type  Reset_Handler, %function
 Reset_Handler:  
+  ldr   sp, =_estack      /* set stack pointer */
 
 /* Copy the data segment initializers from flash to SRAM */  
   movs  r1, #0
@@ -98,8 +106,11 @@ LoopFillZerobss:
   ldr  r3, = _ebss
   cmp  r2, r3
   bcc  FillZerobss
+
 /* Call the clock system intitialization function.*/
   bl  SystemInit   
+/* Call static constructors */
+    bl __libc_init_array
 /* Call the application's entry point.*/
   bl  main
   bx  lr    
@@ -127,11 +138,12 @@ Infinite_Loop:
    .section  .isr_vector,"a",%progbits
   .type  g_pfnVectors, %object
   .size  g_pfnVectors, .-g_pfnVectors
-    
-    
+   
+   
 g_pfnVectors:
   .word  _estack
   .word  Reset_Handler
+
   .word  NMI_Handler
   .word  HardFault_Handler
   .word  MemManage_Handler
@@ -196,7 +208,7 @@ g_pfnVectors:
   .word     TIM8_TRG_COM_TIM14_IRQHandler     /* TIM8 Trigger and Commutation and TIM14 */
   .word     TIM8_CC_IRQHandler                /* TIM8 Capture Compare         */                          
   .word     DMA1_Stream7_IRQHandler           /* DMA1 Stream7                 */                          
-  .word     FSMC_IRQHandler                   /* FSMC                         */                   
+  .word     FMC_IRQHandler                    /* FMC                          */                   
   .word     SDIO_IRQHandler                   /* SDIO                         */                   
   .word     TIM5_IRQHandler                   /* TIM5                         */                   
   .word     SPI3_IRQHandler                   /* SPI3                         */                   
@@ -209,8 +221,8 @@ g_pfnVectors:
   .word     DMA2_Stream2_IRQHandler           /* DMA2 Stream 2                */                   
   .word     DMA2_Stream3_IRQHandler           /* DMA2 Stream 3                */                   
   .word     DMA2_Stream4_IRQHandler           /* DMA2 Stream 4                */                   
-  .word     ETH_IRQHandler                    /* Ethernet                     */                   
-  .word     ETH_WKUP_IRQHandler               /* Ethernet Wakeup through EXTI line */                     
+  .word     0                                 /* Reserved                     */                   
+  .word     0                                 /* Reserved                     */                     
   .word     CAN2_TX_IRQHandler                /* CAN2 TX                      */                          
   .word     CAN2_RX0_IRQHandler               /* CAN2 RX0                     */                          
   .word     CAN2_RX1_IRQHandler               /* CAN2 RX1                     */                          
@@ -227,10 +239,25 @@ g_pfnVectors:
   .word     OTG_HS_WKUP_IRQHandler            /* USB OTG HS Wakeup through EXTI */                         
   .word     OTG_HS_IRQHandler                 /* USB OTG HS                   */                   
   .word     DCMI_IRQHandler                   /* DCMI                         */                   
-  .word     CRYP_IRQHandler                   /* CRYP crypto                  */                   
-  .word     HASH_RNG_IRQHandler               /* Hash and Rng                 */
-                         
-                         
+  .word     0                                 /* Reserved                     */                   
+  .word     0                                 /* Reserved                     */
+  .word     FPU_IRQHandler                    /* FPU                          */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     SPI4_IRQHandler                   /* SPI4                         */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     SAI1_IRQHandler                   /* SAI1                         */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     0                                 /* Reserved                     */
+  .word     SAI2_IRQHandler                   /* SAI2                         */
+  .word     QUADSPI_IRQHandler                /* QuadSPI                      */
+  .word     CEC_IRQHandler                    /* CEC                          */
+  .word     SPDIF_RX_IRQHandler               /* SPDIF RX                     */
+  .word     FMPI2C1_Event_IRQHandler          /* FMPI2C 1 Event               */
+  .word     FMPI2C1_Error_IRQHandler          /* FMPI2C 1 Error               */
+  
 /*******************************************************************************
 *
 * Provide weak aliases for each Exception handler to the Default_Handler. 
@@ -342,7 +369,7 @@ g_pfnVectors:
             
    .weak      TIM1_UP_TIM10_IRQHandler            
    .thumb_set TIM1_UP_TIM10_IRQHandler,Default_Handler
-      
+
    .weak      TIM1_TRG_COM_TIM11_IRQHandler      
    .thumb_set TIM1_TRG_COM_TIM11_IRQHandler,Default_Handler
       
@@ -409,8 +436,8 @@ g_pfnVectors:
    .weak      DMA1_Stream7_IRQHandler               
    .thumb_set DMA1_Stream7_IRQHandler,Default_Handler
                      
-   .weak      FSMC_IRQHandler            
-   .thumb_set FSMC_IRQHandler,Default_Handler
+   .weak      FMC_IRQHandler            
+   .thumb_set FMC_IRQHandler,Default_Handler
                      
    .weak      SDIO_IRQHandler            
    .thumb_set SDIO_IRQHandler,Default_Handler
@@ -447,13 +474,7 @@ g_pfnVectors:
             
    .weak      DMA2_Stream4_IRQHandler               
    .thumb_set DMA2_Stream4_IRQHandler,Default_Handler
-            
-   .weak      ETH_IRQHandler      
-   .thumb_set ETH_IRQHandler,Default_Handler
-                  
-   .weak      ETH_WKUP_IRQHandler                  
-   .thumb_set ETH_WKUP_IRQHandler,Default_Handler
-            
+
    .weak      CAN2_TX_IRQHandler   
    .thumb_set CAN2_TX_IRQHandler,Default_Handler
                            
@@ -500,13 +521,34 @@ g_pfnVectors:
    .thumb_set OTG_HS_IRQHandler,Default_Handler
                   
    .weak      DCMI_IRQHandler            
-   .thumb_set DCMI_IRQHandler,Default_Handler
-                     
-   .weak      CRYP_IRQHandler            
-   .thumb_set CRYP_IRQHandler,Default_Handler
-               
-   .weak      HASH_RNG_IRQHandler                  
-   .thumb_set HASH_RNG_IRQHandler,Default_Handler   
+   .thumb_set DCMI_IRQHandler,Default_Handler  
 
+   .weak      FPU_IRQHandler                  
+   .thumb_set FPU_IRQHandler,Default_Handler  
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+   .weak      SPI4_IRQHandler            
+   .thumb_set SPI4_IRQHandler,Default_Handler
+
+   .weak      SAI1_IRQHandler            
+   .thumb_set SAI1_IRQHandler,Default_Handler
+
+   .weak      SAI2_IRQHandler            
+   .thumb_set SAI2_IRQHandler,Default_Handler
+   
+   .weak      QUADSPI_IRQHandler            
+   .thumb_set QUADSPI_IRQHandler,Default_Handler
+ 
+   .weak      CEC_IRQHandler            
+   .thumb_set CEC_IRQHandler,Default_Handler
+   
+   .weak      SPDIF_RX_IRQHandler            
+   .thumb_set SPDIF_RX_IRQHandler,Default_Handler 
+ 
+   .weak      FMPI2C1_Event_IRQHandler            
+   .thumb_set FMPI2C1_Event_IRQHandler,Default_Handler
+   
+   .weak      FMPI2C1_Error_IRQHandler            
+   .thumb_set FMPI2C1_Error_IRQHandler,Default_Handler 
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/        
+ 

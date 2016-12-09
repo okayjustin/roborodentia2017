@@ -31,10 +31,10 @@ SOURCES += $(LIBRARIES)/source/stm32f4xx_hal_adc.c \
 		   $(LIBRARIES)/source/stm32f4xx_ll_usb.c \
 		   $(LIBRARIES)/source/stm32f4xx_hal.c
 
-SOURCES += $(SYSTEM)/startup_stm32f2xx.s \
-		   $(SYSTEM)/stm32f2xx_hal_msp.c \
-		   $(SYSTEM)/stm32f2xx_it.c \
-		   $(SYSTEM)/system_stm32f2xx.c
+SOURCES += $(SYSTEM)/startup_stm32f446xx.s \
+		   $(SYSTEM)/stm32f4xx_hal_msp.c \
+		   $(SYSTEM)/stm32f4xx_it.c \
+		   $(SYSTEM)/system_stm32f4xx.c
 
 SOURCES += $(PERIPHERALS)/adc.c \
 		   $(PERIPHERALS)/dac.c \
