@@ -34,7 +34,7 @@ MULTICLEAN = true
 
 SHELL =	/bin/sh
 
-CC = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7-ar/thumb/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7-ar/thumb/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7-ar/thumb/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7-ar/thumb/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/libgloss/arm  -mthumb -march=armv7
+CC = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7-ar/thumb/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7-ar/thumb/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7-ar/thumb/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7-ar/thumb/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/libgloss/arm  -mthumb -march=armv7
 
 AS = arm-none-eabi-as
 AR = arm-none-eabi-ar
@@ -110,7 +110,7 @@ info:
 install-info:
 clean-info:
 
-Makefile: Makefile.in ../config.status /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/libgloss/config/default.mh
+Makefile: Makefile.in ../config.status /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/libgloss/config/default.mh
 	$(SHELL) ../config.status --file cpu-init/Makefile
 
 ../config.status: ../configure

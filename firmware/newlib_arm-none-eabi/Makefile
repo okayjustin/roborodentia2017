@@ -90,7 +90,7 @@ MAINTAINER_MODE_TRUE = #
 # -------------------------------------------------
 
 # The gcc driver likes to know the arguments it was configured with.
-TOPLEVEL_CONFIGURE_ARGUMENTS=../newlib-cygwin/configure --target=arm-none-eabi --with-cpu=cortex-m4 --with-fpu=fpv4-sp-d16 --with-float=hard --with-mode=thumb --with-gnu-as --with-gnu-ld --disable-nls --disable-newlib-supplied-syscalls
+TOPLEVEL_CONFIGURE_ARGUMENTS=../newlib-cygwin/configure --target=arm-none-eabi --with-cpu=cortex-m4 --with-fpu=fpv4-sp-d16 --with-float=hard --with-mode=thumb --enable-interwork --enable-multilib --with-gnu-as --with-gnu-ld --disable-nls --disable-newlib-supplied-syscalls
 
 tooldir = ${exec_prefix}/arm-none-eabi
 build_tooldir = ${exec_prefix}/arm-none-eabi
@@ -108,7 +108,7 @@ GCC_SHLIB_SUBDIR =
 BUILD_SUBDIR = build-x86_64-apple-darwin15.6.0
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the build system.
-BUILD_CONFIGARGS =  --cache-file=./config.cache '--with-cpu=cortex-m4' '--with-fpu=fpv4-sp-d16' '--with-float=hard' '--with-mode=thumb' '--with-gnu-as' '--with-gnu-ld' '--disable-nls' '--disable-newlib-supplied-syscalls' --program-transform-name='s&^&arm-none-eabi-&' --disable-option-checking --with-build-subdir="$(BUILD_SUBDIR)"
+BUILD_CONFIGARGS =  --cache-file=./config.cache '--with-cpu=cortex-m4' '--with-fpu=fpv4-sp-d16' '--with-float=hard' '--with-mode=thumb' '--enable-interwork' '--enable-multilib' '--with-gnu-as' '--with-gnu-ld' '--disable-nls' '--disable-newlib-supplied-syscalls' --program-transform-name='s&^&arm-none-eabi-&' --disable-option-checking --with-build-subdir="$(BUILD_SUBDIR)"
 
 # Linker flags to use on the host, for stage1 or when not
 # bootstrapping.
@@ -171,7 +171,7 @@ SUBDIRS =  etc
 TARGET_CONFIGDIRS = libgloss newlib
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the host system.
-HOST_CONFIGARGS =  --cache-file=./config.cache  --with-system-zlib --with-newlib '--with-cpu=cortex-m4' '--with-fpu=fpv4-sp-d16' '--with-float=hard' '--with-mode=thumb' '--with-gnu-as' '--with-gnu-ld' '--disable-nls' '--disable-newlib-supplied-syscalls' --program-transform-name='s&^&arm-none-eabi-&' --disable-option-checking
+HOST_CONFIGARGS =  --cache-file=./config.cache  --with-system-zlib --with-newlib '--with-cpu=cortex-m4' '--with-fpu=fpv4-sp-d16' '--with-float=hard' '--with-mode=thumb' '--enable-interwork' '--enable-multilib' '--with-gnu-as' '--with-gnu-ld' '--disable-nls' '--disable-newlib-supplied-syscalls' --program-transform-name='s&^&arm-none-eabi-&' --disable-option-checking
 # Host programs are put under this directory, which is . except if building
 # with srcdir=..
 HOST_SUBDIR = .
@@ -244,7 +244,7 @@ POSTSTAGE1_HOST_EXPORTS = \
 TARGET_SUBDIR = arm-none-eabi
 # This is set by the configure script to the arguments to use when configuring
 # directories built for the target.
-TARGET_CONFIGARGS = --cache-file=./config.cache --with-newlib --enable-multilib --with-cross-host=x86_64-apple-darwin15.6.0   '--with-cpu=cortex-m4' '--with-fpu=fpv4-sp-d16' '--with-float=hard' '--with-mode=thumb' '--with-gnu-as' '--with-gnu-ld' '--disable-nls' '--disable-newlib-supplied-syscalls' --program-transform-name='s&^&arm-none-eabi-&' --disable-option-checking --with-target-subdir="$(TARGET_SUBDIR)"
+TARGET_CONFIGARGS = --cache-file=./config.cache --with-newlib --with-cross-host=x86_64-apple-darwin15.6.0   '--with-cpu=cortex-m4' '--with-fpu=fpv4-sp-d16' '--with-float=hard' '--with-mode=thumb' '--enable-interwork' '--enable-multilib' '--with-gnu-as' '--with-gnu-ld' '--disable-nls' '--disable-newlib-supplied-syscalls' --program-transform-name='s&^&arm-none-eabi-&' --disable-option-checking --with-target-subdir="$(TARGET_SUBDIR)"
 # This is the list of variables to export in the environment when
 # configuring subdirectories for the target system.
 BASE_TARGET_EXPORTS = \

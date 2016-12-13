@@ -170,20 +170,20 @@ RUNTEST = `if test -f $(top_srcdir)/../dejagnu/runtest; then \
 	     echo runtest; \
 	   fi`
 DIST_SUBDIRS = libc libm doc . 
-ACLOCAL = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/missing --run aclocal-1.11
 AMTAR = $${TAR-tar}
 AR = arm-none-eabi-ar
 AS = arm-none-eabi-as
-AUTOCONF = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/missing --run autoconf
-AUTOHEADER = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/missing --run autoheader
-AUTOMAKE = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/missing --run automake-1.11
+AUTOCONF = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/missing --run autoconf
+AUTOHEADER = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/missing --run autoheader
+AUTOMAKE = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/missing --run automake-1.11
 AWK = awk
-CC = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/libgloss/arm  -mfloat-abi=hard
-CCAS = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/libgloss/arm  -mfloat-abi=hard
+CC = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/libgloss/arm  -mfloat-abi=hard
+CCAS = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/libgloss/arm  -mfloat-abi=hard
 CCASFLAGS = -g -O2
 CCDEPMODE = depmode=gcc3
 CC_FOR_BUILD = gcc
-CC_FOR_NEWLIB = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/libgloss/arm  -mfloat-abi=hard
+CC_FOR_NEWLIB = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/libgloss/arm  -mfloat-abi=hard
 CFLAGS = -g -O2
 CPP = 
 CPPFLAGS = 
@@ -253,10 +253,10 @@ SYS_MACH_OBJECTLIST =
 SYS_OBJECTLIST = libc/sys/arm/objectlist.awk.in
 UNIX_OBJECTLIST = 
 VERSION = 2.4.0
-abs_builddir = /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib
-abs_srcdir = /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/../../../../newlib-cygwin/newlib
-abs_top_builddir = /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib
-abs_top_srcdir = /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/../../../../newlib-cygwin/newlib
+abs_builddir = /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib
+abs_srcdir = /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/../../../../newlib-cygwin/newlib
+abs_top_builddir = /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib
+abs_top_srcdir = /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/fpu/newlib/../../../../newlib-cygwin/newlib
 ac_ct_CC = 
 ac_ct_DUMPBIN = 
 aext = a
@@ -285,7 +285,7 @@ host_vendor = none
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/install-sh
+install_sh = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/install-sh
 libc_cv_cc_loop_to_function = yes
 libc_cv_initfinit_array = yes
 libdir = ${exec_prefix}/lib

@@ -172,16 +172,16 @@ am__can_run_installinfo = \
 DATA = $(noinst_DATA)
 ETAGS = etags
 CTAGS = ctags
-ACLOCAL = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/missing --run aclocal-1.11
 AMTAR = $${TAR-tar}
 AR = arm-none-eabi-ar
 AS = arm-none-eabi-as
-AUTOCONF = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/missing --run autoconf
-AUTOHEADER = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/missing --run autoheader
-AUTOMAKE = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/missing --run automake-1.11
+AUTOCONF = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/missing --run autoconf
+AUTOHEADER = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/missing --run autoheader
+AUTOMAKE = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/missing --run automake-1.11
 AWK = awk
-CC = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/libgloss/arm  -mthumb -march=armv7e-m
-CCAS = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/libgloss/arm  -mthumb -march=armv7e-m
+CC = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/libgloss/arm  -mthumb -march=armv7e-m
+CCAS = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/libgloss/arm  -mthumb -march=armv7e-m
 CCASFLAGS = -g -O2
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
@@ -240,10 +240,10 @@ SET_MAKE =
 SHELL = /bin/sh
 STRIP = arm-none-eabi-strip
 VERSION = 2.4.0
-abs_builddir = /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/libm/mathfp
-abs_srcdir = /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/libm/../../../../../newlib-cygwin/newlib/libm/mathfp
-abs_top_builddir = /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/libm
-abs_top_srcdir = /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/libm/../../../../../newlib-cygwin/newlib/libm
+abs_builddir = /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/libm/mathfp
+abs_srcdir = /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/libm/../../../../../newlib-cygwin/newlib/libm/mathfp
+abs_top_builddir = /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/libm
+abs_top_srcdir = /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv7e-m/newlib/libm/../../../../../newlib-cygwin/newlib/libm
 ac_ct_CC = 
 ac_ct_DUMPBIN = 
 aext = a
@@ -272,7 +272,7 @@ host_vendor = none
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/install-sh
+install_sh = ${SHELL} /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 libm_machine_dir = arm

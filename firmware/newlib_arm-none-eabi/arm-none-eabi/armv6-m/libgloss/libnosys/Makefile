@@ -41,7 +41,7 @@ INSTALL_DATA = /usr/local/bin/ginstall -c -m 644
 
 SHELL =	/bin/sh
 
-CC = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv6-m/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv6-m/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv6-m/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/newlib_arm-none-eabi/arm-none-eabi/armv6-m/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/newlib-cygwin/libgloss/arm  -mthumb -march=armv6s-m
+CC = arm-none-eabi-gcc -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv6-m/newlib/ -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv6-m/newlib/targ-include -isystem /Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/newlib/libc/include -B/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv6-m/libgloss/arm -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib_arm-none-eabi/arm-none-eabi/armv6-m/libgloss/libnosys -L/Users/justinng/Documents/Github/roborodentia2017/firmware/newlib-cygwin/libgloss/arm  -mthumb -march=armv6s-m
 
 #AS = arm-none-eabi-as
 AS = `if [ -f ${objroot}/../gas/as-new ] ; \

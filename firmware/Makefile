@@ -22,6 +22,7 @@ SOURCES += $(LIBRARIES)/source/stm32f4xx_hal_adc.c \
 		   $(LIBRARIES)/source/stm32f4xx_hal_i2c.c \
 		   $(LIBRARIES)/source/stm32f4xx_hal_pcd.c \
 		   $(LIBRARIES)/source/stm32f4xx_hal_pcd_ex.c \
+		   $(LIBRARIES)/source/stm32f4xx_hal_pwr_ex.c \
 		   $(LIBRARIES)/source/stm32f4xx_hal_rcc.c \
 		   $(LIBRARIES)/source/stm32f4xx_hal_spi.c \
 		   $(LIBRARIES)/source/stm32f4xx_hal_tim.c \
@@ -34,9 +35,11 @@ SOURCES += $(LIBRARIES)/source/stm32f4xx_hal_adc.c \
 SOURCES += $(SYSTEM)/startup_stm32f446xx.s \
 		   $(SYSTEM)/stm32f4xx_hal_msp.c \
 		   $(SYSTEM)/stm32f4xx_it.c \
-		   $(SYSTEM)/system_stm32f4xx.c
+		   $(SYSTEM)/system_stm32f4xx.c \
+		   $(SYSTEM)/stm32f4xx_nucleo_144.c 
 
-SOURCES += $(PERIPHERALS)/adc.c \
+
+#SOURCES += $(PERIPHERALS)/adc.c \
 		   $(PERIPHERALS)/dac.c \
 		   $(PERIPHERALS)/dma.c \
 		   $(PERIPHERALS)/gpio.c \
@@ -46,14 +49,14 @@ SOURCES += $(PERIPHERALS)/adc.c \
 		   $(PERIPHERALS)/usart.c \
 		   $(PERIPHERALS)/usb_otg.c
 
-SOURCES += $(USB)/usbd_cdc.c \
+#SOURCES += $(USB)/usbd_cdc.c \
 		   $(USB)/usbd_conf.c \
 		   $(USB)/usbd_core.c \
 		   $(USB)/usbd_ctlreq.c \
 		   $(USB)/usbd_desc.c \
 		   $(USB)/usbd_ioreq.c
 
-SOURCES += $(DRIVERS)/comms.c \
+#SOURCES += $(DRIVERS)/comms.c \
 		   $(DRIVERS)/console.c \
 		   $(DRIVERS)/fnr. \
 		   $(DRIVERS)/kill.c \
@@ -65,7 +68,7 @@ SOURCES += $(DRIVERS)/comms.c \
 		   $(DRIVERS)/steering.c \
 		   $(DRIVERS)/encoder.c
 
-SOURCES += $(UTILS)/buffer8.c \
+#SOURCES += $(UTILS)/buffer8.c \
 		   $(UTILS)/newlib_hooks.c \
 		   $(UTILS)/timerCallback.c \
 		   $(UTILS)/characterMapping.c \
@@ -97,16 +100,17 @@ AR = arm-none-eabi-ar
 OBJCOPY = arm-none-eabi-objcopy
 
 WARNINGS = -Wall -Werror -Wno-unused-function
-	
+
+# Removed -DUSE_STDPERIPH_DRIVER    
 CFLAGS  = -O0 -g \
    -mcpu=cortex-m4 -mthumb -mlittle-endian \
    -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
-   $(INCLUDES) -DUSE_STDPERIPH_DRIVER \
-   -D STM32F446XX -DUSE_USB_FS \
+   $(INCLUDES) \
+   -DSTM32F446xx -DUSE_USB_FS \
    $(WARNINGS)
 
 LDSCRIPT = buildTools/STM32F446ZE_FLASH.ld
-LDFLAGS += -T$(LDSCRIPT) -mthumb -mcpu=cortex-m3 -nostdlib -LbuildTools
+LDFLAGS += -T$(LDSCRIPT) -mthumb -mcpu=cortex-m4 -nostdlib -LbuildTools
 
 LDLIBS += -lc -lm -lnosys
 
