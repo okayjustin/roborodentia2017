@@ -95,16 +95,22 @@ BIN = $(BUILDDIR)/program.bin
 MAP = $(BUILDDIR)/program.map
 
 CC = arm-none-eabi-gcc
+CXX = arm-none-eabi-g++
 LD = arm-none-eabi-gcc
 AR = arm-none-eabi-ar
+AS = arm-none-eabi-as
 OBJCOPY = arm-none-eabi-objcopy
+OD = arm-none-eabi-objdump
+NM = arm-none-eabi-nm
+SIZE = arm-none-eabi-size
+A2L = arm-none-eabi-addr2line
 
 WARNINGS = -Wall -Werror -Wno-unused-function
 
 # Removed -DUSE_STDPERIPH_DRIVER    
 CFLAGS  = -O0 -g \
    -mcpu=cortex-m4 -mthumb -mlittle-endian \
-   -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
+   -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb-interwork \
    $(INCLUDES) \
    -DSTM32F446xx -DUSE_USB_FS \
    $(WARNINGS)
@@ -115,6 +121,7 @@ LDFLAGS += -T$(LDSCRIPT) -mthumb -mcpu=cortex-m4 -nostdlib -LbuildTools
 LDLIBS += -lc -lm -lnosys
 
 FLASH_SCRIPT = buildTools/flash.jlink
+OPENOCD_SCRIPT = buildTools/st_nucleo_f4.cfg
 
 $(BIN): $(ELF)
 	$(OBJCOPY) -O binary $< $@
@@ -136,6 +143,9 @@ $(BUILDDIR)/%.o: %.s
 
 flash: $(BIN)
 	JLinkExe -Device STM32F446RE -CommanderScript $(FLASH_SCRIPT)
+
+deploy: 
+	openocd -f $(OPENOCD_SCRIPT) -c "program "$(ELF)" verify reset exit"
 
 clean:
 	rm -rf build

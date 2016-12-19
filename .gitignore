@@ -1,0 +1,14 @@
+*.o
+*.d
+*.elf
+*.bin
+*.out
+*.hex
+
+firmware/build/*
+arm/build/*
+arm/orig/*
+arm/src/*
+
+.DS_Store
+*.dSYM
