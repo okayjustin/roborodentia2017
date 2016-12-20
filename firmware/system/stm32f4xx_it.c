@@ -1,11 +1,11 @@
-/**
+/** 
   ******************************************************************************
-  * @file    HAL/HAL_TimeBase/Src/stm32f4xx_it.c
+  * @file    GPIO/GPIO_IOToggle/Src/stm32f4xx_it.c
   * @author  MCD Application Team
   * @version V1.0.2
   * @date    06-May-2016
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
+  *          This file provides template for all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
@@ -45,7 +45,7 @@
   * @{
   */
 
-/** @addtogroup HAL_TimeBase
+/** @addtogroup GPIO_IOToggle
   * @{
   */
 
@@ -53,6 +53,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -61,7 +62,7 @@
 /******************************************************************************/
 
 /**
-  * @brief   This function handles NMI exception.
+  * @brief  This function handles NMI exception.
   * @param  None
   * @retval None
   */
@@ -77,6 +78,45 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* Go to infinite loop when Hard Fault exception occurs */
+  while (1)
+  {
+  }
+}
+
+/**
+  * @brief  This function handles Memory Manage exception.
+  * @param  None
+  * @retval None
+  */
+void MemManage_Handler(void)
+{
+  /* Go to infinite loop when Memory Manage exception occurs */
+  while (1)
+  {
+  }
+}
+
+/**
+  * @brief  This function handles Bus Fault exception.
+  * @param  None
+  * @retval None
+  */
+void BusFault_Handler(void)
+{
+  /* Go to infinite loop when Bus Fault exception occurs */
+  while (1)
+  {
+  }
+}
+
+/**
+  * @brief  This function handles Usage Fault exception.
+  * @param  None
+  * @retval None
+  */
+void UsageFault_Handler(void)
+{
+  /* Go to infinite loop when Usage Fault exception occurs */
   while (1)
   {
   }
@@ -116,6 +156,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+  HAL_IncTick();
 }
 
 /******************************************************************************/
@@ -124,16 +165,6 @@ void SysTick_Handler(void)
 /*  available peripheral interrupt handler's name please refer to the startup */
 /*  file (startup_stm32f4xx.s).                                               */
 /******************************************************************************/
-
-/**
-  * @brief  This function handles External EXTI_Line15_10 interrupt request.
-  * @param  None
-  * @retval None
-  */
-void EXTI15_10_IRQHandler(void)
-{
-  HAL_GPIO_EXTI_IRQHandler(USER_BUTTON_PIN);
-}
 
 /**
   * @brief  This function handles PPP interrupt request.
@@ -147,7 +178,7 @@ void EXTI15_10_IRQHandler(void)
 
 /**
   * @}
-  */ 
+  */
 
 /**
   * @}

@@ -33,11 +33,11 @@ SOURCES += $(LIBRARIES)/source/stm32f4xx_hal_adc.c \
 		   $(LIBRARIES)/source/stm32f4xx_hal.c
 
 SOURCES += $(SYSTEM)/startup_stm32f446xx.s \
-		   $(SYSTEM)/stm32f4xx_hal_msp.c \
 		   $(SYSTEM)/stm32f4xx_it.c \
 		   $(SYSTEM)/system_stm32f4xx.c \
 		   $(SYSTEM)/stm32f4xx_nucleo_144.c 
 
+#		   $(SYSTEM)/stm32f4xx_hal_msp.c \
 
 #SOURCES += $(PERIPHERALS)/adc.c \
 		   $(PERIPHERALS)/dac.c \

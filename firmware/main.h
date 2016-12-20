@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    UART/UART_Printf/Inc/main.h
+  * @file    GPIO/GPIO_IOToggle/Inc/main.h
   * @author  MCD Application Team
   * @version V1.0.2
   * @date    06-May-2016
@@ -42,30 +42,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_nucleo_144.h"
+<<<<<<< HEAD
+=======
 #include "stdio.h"
-#include "stm32f4xx_hal_gpio.h"
+>>>>>>> parent of a1f940f... Deleted .DS_Store.
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-/* User can use this section to tailor USARTx/UARTx instance used and associated
-   resources */
-/* Definition for USARTx clock resources */
-#define USARTx                           USART3
-#define USARTx_CLK_ENABLE()              __HAL_RCC_USART3_CLK_ENABLE();
-#define USARTx_RX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOD_CLK_ENABLE()
-#define USARTx_TX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOD_CLK_ENABLE()
-
-#define USARTx_FORCE_RESET()             __HAL_RCC_USART3_FORCE_RESET()
-#define USARTx_RELEASE_RESET()           __HAL_RCC_USART3_RELEASE_RESET()
-
-/* Definition for USARTx Pins */
-#define USARTx_TX_PIN                    GPIO_PIN_8
-#define USARTx_TX_GPIO_PORT              GPIOD
-#define USARTx_TX_AF                     GPIO_AF7_USART3
-#define USARTx_RX_PIN                    GPIO_PIN_9
-#define USARTx_RX_GPIO_PORT              GPIOD
-#define USARTx_RX_AF                     GPIO_AF7_USART3
-
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 

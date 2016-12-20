@@ -1,9 +1,9 @@
 *.o
 *.d
-*.elf
-*.bin
 *.out
 *.hex
+
+tags
 
 firmware/build/*
 arm/build/*
