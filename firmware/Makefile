@@ -94,16 +94,16 @@ HEX = $(BUILDDIR)/program.hex
 BIN = $(BUILDDIR)/program.bin
 MAP = $(BUILDDIR)/program.map
 
-CC = arm-none-eabi-gcc
-CXX = arm-none-eabi-g++
-LD = arm-none-eabi-gcc
-AR = arm-none-eabi-ar
-AS = arm-none-eabi-as
-OBJCOPY = arm-none-eabi-objcopy
-OD = arm-none-eabi-objdump
-NM = arm-none-eabi-nm
-SIZE = arm-none-eabi-size
-A2L = arm-none-eabi-addr2line
+CC = ../arm/bin/arm-none-eabi-gcc
+CXX = ../arm/bin/arm-none-eabi-g++
+LD = ../arm/bin/arm-none-eabi-gcc
+AR = ../arm/bin/arm-none-eabi-ar
+AS = ../arm/bin/arm-none-eabi-as
+OBJCOPY = ../arm/bin/arm-none-eabi-objcopy
+OD = ../arm/bin/arm-none-eabi-objdump
+NM = ../arm/bin/arm-none-eabi-nm
+SIZE = ../arm/bin/arm-none-eabi-size
+A2L = ../arm/bin/arm-none-eabi-addr2line
 
 WARNINGS = -Wall -Werror -Wno-unused-function
 
