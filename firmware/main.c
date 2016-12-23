@@ -16,6 +16,7 @@ void _init(void) {return;}
 
 int main(void)
 {
+    // Initialize all clocks so we don't run into weird clock problems...
     RCC->AHB1ENR |= 0xFFFFFFFF;
     RCC->AHB2ENR |= 0xFFFFFFFF;
     RCC->AHB3ENR |= 0xFFFFFFFF;
@@ -28,7 +29,7 @@ int main(void)
     SystemClock_Config();
 
     /* -1- Enable GPIO Clock (to be able to program the configuration registers) */
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    //__HAL_RCC_GPIOA_CLK_ENABLE();
 
     /* -2- Configure IO in output push-pull mode to drive external LEDs */
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
