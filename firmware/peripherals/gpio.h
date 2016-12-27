@@ -38,9 +38,10 @@
  extern "C" {
 #endif
 
-#include "stm32f2xx_hal.h"
+#include "stm32f4xx_hal.h"
 
-void MX_GPIO_Init(void);
+void Setup_GPIO(GPIO_TypeDef *port, uint32_t pin, uint32_t mode, uint32_t pull, uint32_t speed); 
+void Board_GPIO_Init(void);
 
 #ifdef __cplusplus
 }

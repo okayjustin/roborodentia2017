@@ -1,11 +1,12 @@
 
 #include "main.h"
+#include "gpio.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static GPIO_InitTypeDef  GPIO_InitStruct;
+//static GPIO_InitTypeDef  GPIO_InitStruct;
 
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
@@ -23,28 +24,18 @@ int main(void)
     RCC->APB1ENR |= 0xFFFFFFFF;
     RCC->APB2ENR |= 0xFFFFFFFF;
 
-    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    // Reset of all peripherals, Initializes the Flash interface and the Systick
     HAL_Init();
-    /* Configure the system clock to 180 MHz */
+    // Configure the system clock to 180 MHz
     SystemClock_Config();
+    // Initialize all the board IO
+    Board_GPIO_Init();
 
-    /* -1- Enable GPIO Clock (to be able to program the configuration registers) */
-    //__HAL_RCC_GPIOA_CLK_ENABLE();
-
-    /* -2- Configure IO in output push-pull mode to drive external LEDs */
-    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull  = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-
-    GPIO_InitStruct.Pin = GPIO_PIN_5;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    /* -3- Toggle IO in an infinite loop */
+    // Main loop
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        /* Insert delay 100 ms */
-        HAL_Delay(500);
+        HAL_Delay(1000);
     }
 }
 
