@@ -25,3 +25,26 @@ void Board_GPIO_Init(void)
     Setup_GPIO(ONBOARD_LED, ONBOARD_LED_INIT);
     #endif
 }
+
+void MX_GPIO_Init(void)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  /*Configure GPIO pin : BOARD_BUTTON_Pin */
+  GPIO_InitStruct.Pin = BOARD_BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(BOARD_BUTTON_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : BOARD_LED_Pin */
+  GPIO_InitStruct.Pin = BOARD_LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(BOARD_LED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(BOARD_LED_GPIO_Port, BOARD_LED_Pin, GPIO_PIN_RESET);
+
+}
