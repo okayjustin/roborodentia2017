@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
-  * File Name          : stm32f4xx_hal_msp.c
-  * Description        : This file provides code for the MSP Initialization 
-  *                      and de-Initialization codes.
+  * File Name          : TIM.h
+  * Description        : This file provides code for the configuration
+  *                      of the TIM instances.
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * COPYRIGHT(c) 2016 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -31,55 +31,42 @@
   *
   ******************************************************************************
   */
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
 
-extern void Error_Handler(void);
-/* USER CODE BEGIN 0 */
+#ifndef __tim_H
+#define __tim_H
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
-/* USER CODE END 0 */
-/**
-  * Initializes the Global MSP.
-  */
-void HAL_MspInit(void)
-{
-  /* USER CODE BEGIN MspInit 0 */
+#include "stm32f2xx_hal.h"
 
-  /* USER CODE END MspInit 0 */
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim5;
+extern TIM_HandleTypeDef htim8;
+extern TIM_HandleTypeDef htim9;
+extern TIM_HandleTypeDef htim10;
+extern TIM_HandleTypeDef htim12;
+extern TIM_HandleTypeDef htim13;
+extern TIM_HandleTypeDef htim14;
 
-  HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_0);
+void MX_TIM1_Init(void);
+void MX_TIM2_Init(void);
+void MX_TIM3_Init(void);
+void MX_TIM4_Init(void);
+void MX_TIM5_Init(void);
+void MX_TIM8_Init(void);
+void MX_TIM9_Init(void);
+void MX_TIM10_Init(void);
+void MX_TIM12_Init(void);
+void MX_TIM13_Init(void);
+void MX_TIM14_Init(void);
 
-  /* System interrupt init*/
-  /* MemoryManagement_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(MemoryManagement_IRQn, 0, 0);
-  /* BusFault_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(BusFault_IRQn, 0, 0);
-  /* UsageFault_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(UsageFault_IRQn, 0, 0);
-  /* SVCall_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SVCall_IRQn, 0, 0);
-  /* DebugMonitor_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DebugMonitor_IRQn, 0, 0);
-  /* PendSV_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(PendSV_IRQn, 0, 0);
-  /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
-
-  /* USER CODE BEGIN MspInit 1 */
-
-  /* USER CODE END MspInit 1 */
+#ifdef __cplusplus
 }
-
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
+#endif
+#endif /*__ tim_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

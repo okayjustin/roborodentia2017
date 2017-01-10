@@ -5,7 +5,7 @@
   *                      of the TIM instances.
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2016 STMicroelectronics
+  * COPYRIGHT(c) 2017 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -31,42 +31,55 @@
   *
   ******************************************************************************
   */
-
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __tim_H
 #define __tim_H
 #ifdef __cplusplus
  extern "C" {
 #endif
 
-#include "stm32f2xx_hal.h"
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal.h"
+#include "main.h"
+
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
 
 extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim4;
-extern TIM_HandleTypeDef htim5;
-extern TIM_HandleTypeDef htim8;
-extern TIM_HandleTypeDef htim9;
 extern TIM_HandleTypeDef htim10;
-extern TIM_HandleTypeDef htim12;
-extern TIM_HandleTypeDef htim13;
-extern TIM_HandleTypeDef htim14;
+extern TIM_HandleTypeDef htim11;
+
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
+
+extern void Error_Handler(void);
 
 void MX_TIM1_Init(void);
-void MX_TIM2_Init(void);
 void MX_TIM3_Init(void);
-void MX_TIM4_Init(void);
-void MX_TIM5_Init(void);
-void MX_TIM8_Init(void);
-void MX_TIM9_Init(void);
 void MX_TIM10_Init(void);
-void MX_TIM12_Init(void);
-void MX_TIM13_Init(void);
-void MX_TIM14_Init(void);
+void MX_TIM11_Init(void);
+                    
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+                                                                
+
+/* USER CODE BEGIN Prototypes */
+
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
 #endif /*__ tim_H */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

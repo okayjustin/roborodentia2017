@@ -34,18 +34,17 @@ SOURCES += $(LIBRARIES)/source/stm32f4xx_hal_adc.c \
 
 SOURCES += $(SYSTEM)/startup_stm32f446xx.s \
 		   $(SYSTEM)/stm32f4xx_it.c \
-		   $(SYSTEM)/system_stm32f4xx.c
+		   $(SYSTEM)/system_stm32f4xx.c \
+		   $(SYSTEM)/stm32f4xx_hal_msp.c
 
-#		   $(SYSTEM)/stm32f4xx_hal_msp.c \
-
-SOURCES += $(PERIPHERALS)/gpio.c 
-#$(PERIPHERALS)/adc.c \
-		   $(PERIPHERALS)/dac.c \
+SOURCES += $(PERIPHERALS)/gpio.c \
 		   $(PERIPHERALS)/dma.c \
 		   $(PERIPHERALS)/i2c.c \
-		   $(PERIPHERALS)/spi.c \
 		   $(PERIPHERALS)/tim.c \
-		   $(PERIPHERALS)/usart.c \
+		   $(PERIPHERALS)/usart.c
+#$(PERIPHERALS)/adc.c \
+		   $(PERIPHERALS)/dac.c \
+		   $(PERIPHERALS)/spi.c \
 		   $(PERIPHERALS)/usb_otg.c
 
 #SOURCES += $(USB)/usbd_cdc.c \

@@ -5,7 +5,7 @@
   *                      the dma.c file
   ******************************************************************************
   *
-  * COPYRIGHT(c) 2016 STMicroelectronics
+  * COPYRIGHT(c) 2017 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -31,7 +31,7 @@
   *
   ******************************************************************************
   */
-
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __dma_H
 #define __dma_H
 
@@ -39,14 +39,35 @@
  extern "C" {
 #endif
 
-#include "stm32f2xx_hal.h"
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal.h"
+#include "main.h"
+
+/* DMA memory to memory transfer handles -------------------------------------*/
+extern void Error_Handler(void);
+
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* USER CODE BEGIN Private defines */
+
+/* USER CODE END Private defines */
 
 void MX_DMA_Init(void);
+
+/* USER CODE BEGIN Prototypes */
+
+/* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __dma_H */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
