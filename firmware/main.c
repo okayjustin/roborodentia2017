@@ -55,6 +55,12 @@ int main(void)
     }
 }
 
+// Execute a command from the console
+void consoleCommand(char *ptr, int len)
+{
+    return 1;
+}
+
 // Redirect printf to UART
 int _write (int fd, char *ptr, int len) 
 { 

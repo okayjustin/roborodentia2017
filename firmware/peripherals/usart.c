@@ -40,7 +40,6 @@
 #define RX_BUFFER_MAX_LENGTH 16 
 uint8_t rxBuffer = '\000';
 uint8_t stringBuffer[RX_BUFFER_MAX_LENGTH];
-uint8_t transfer_complete;
 uint8_t stringBufferIndex;
 
 UART_HandleTypeDef huart2;
@@ -135,7 +134,7 @@ void serviceUART(void)
     HAL_UART_Receive_DMA(&huart2, &rxBuffer, 1);
 }
 
-// Transmit one character over UART
+// Transmit characters over UART
 void transmitUART(char *ptr, int len)
 {
     HAL_UART_Transmit(&huart2, (uint8_t *) ptr, len, 0xFFFF);
@@ -159,7 +158,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         HAL_UART_Transmit(&huart2, (uint8_t *)&stringBuffer, stringBufferIndex, 0xFFFF);
         printf("\r\n");
         stringBufferIndex = 0;
-        transfer_complete = 1;  //transfer complete, data is ready to read
+        consoleCommand(stringBuffer);
     }
 
     HAL_UART_Transmit(&huart2, (uint8_t *)&rxBuffer, 1, 1);
