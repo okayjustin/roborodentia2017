@@ -35,7 +35,8 @@ SOURCES += $(LIBRARIES)/source/stm32f4xx_hal_adc.c \
 SOURCES += $(SYSTEM)/startup_stm32f446xx.s \
 		   $(SYSTEM)/stm32f4xx_it.c \
 		   $(SYSTEM)/system_stm32f4xx.c \
-		   $(SYSTEM)/stm32f4xx_hal_msp.c
+		   $(SYSTEM)/stm32f4xx_hal_msp.c 
+		   #$(SYSTEM)/syscalls.c
 
 SOURCES += $(PERIPHERALS)/gpio.c \
 		   $(PERIPHERALS)/dma.c \

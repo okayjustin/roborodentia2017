@@ -4,6 +4,8 @@
 #define __MAIN_H
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32f4xx_hal.h"
+#include "stdio.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -43,5 +45,7 @@
 #define MOTOR_VERT_PWM_GPIO_Port GPIOB
 #define MOTOR_EXTRA_PWM_Pin GPIO_PIN_9
 #define MOTOR_EXTRA_PWM_GPIO_Port GPIOB
+
+int _write (int fd, char *ptr, int len); 
 
 #endif

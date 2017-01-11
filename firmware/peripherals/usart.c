@@ -34,13 +34,14 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
-
 #include "gpio.h"
 #include "dma.h"
 
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
+#define RX_BUFFER_MAX_LENGTH 16 
+uint8_t rxBuffer = '\000';
+uint8_t stringBuffer[RX_BUFFER_MAX_LENGTH];
+uint8_t transfer_complete;
+uint8_t stringBufferIndex;
 
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
@@ -49,7 +50,6 @@ DMA_HandleTypeDef hdma_usart2_rx;
 
 void MX_USART2_UART_Init(void)
 {
-
   huart2.Instance = USART2;
   huart2.Init.BaudRate = 115200;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
@@ -62,7 +62,6 @@ void MX_USART2_UART_Init(void)
   {
     Error_Handler();
   }
-
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
@@ -106,10 +105,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     }
 
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart2_rx);
-
-  /* USER CODE BEGIN USART2_MspInit 1 */
-
-  /* USER CODE END USART2_MspInit 1 */
   }
 }
 
@@ -133,21 +128,39 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     /* Peripheral DMA DeInit*/
     HAL_DMA_DeInit(uartHandle->hdmarx);
   }
-  /* USER CODE BEGIN USART2_MspDeInit 1 */
-
-  /* USER CODE END USART2_MspDeInit 1 */
 } 
 
-/* USER CODE BEGIN 1 */
+void serviceUART(void)
+{
+    HAL_UART_Receive_DMA(&huart2, &rxBuffer, 1);
+}
 
-/* USER CODE END 1 */
+// Transmit one character over UART
+void transmitUART(char *ptr, int len)
+{
+    HAL_UART_Transmit(&huart2, (uint8_t *) ptr, len, 0xFFFF);
+}
 
-/**
-  * @}
-  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    uint8_t i;
 
-/**
-  * @}
-  */
+    // Clear buffer
+    if (stringBufferIndex == 0) {for (i = 0; i < RX_BUFFER_MAX_LENGTH; i++) stringBuffer[i] = 0;}	
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+    if ((rxBuffer != 10) && (rxBuffer != 13))	//if received data different from ascii 13 (enter)
+    {
+        if (stringBufferIndex < RX_BUFFER_MAX_LENGTH){
+            stringBuffer[stringBufferIndex++] = rxBuffer; //add data to stringBuffer
+        }
+    }
+    else // If received data = 13
+    {
+        HAL_UART_Transmit(&huart2, (uint8_t *)&stringBuffer, stringBufferIndex, 0xFFFF);
+        printf("\r\n");
+        stringBufferIndex = 0;
+        transfer_complete = 1;  //transfer complete, data is ready to read
+    }
+
+    HAL_UART_Transmit(&huart2, (uint8_t *)&rxBuffer, 1, 1);
+}

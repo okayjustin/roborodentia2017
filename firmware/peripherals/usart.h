@@ -57,6 +57,9 @@ extern void Error_Handler(void);
 void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+void serviceUART(void);
+void transmitUART(char *ptr, int len);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
 /* USER CODE END Prototypes */
 

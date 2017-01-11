@@ -1,7 +1,5 @@
 
 #include "main.h"
-#include "stm32f4xx_hal.h"
-#include "stdio.h"
 #include "dma.h"
 #include "i2c.h"
 #include "tim.h"
@@ -47,11 +45,21 @@ int main(void)
     MX_TIM11_Init();
 
     // Main loop
+    serviceUART();
+    printf("Hello.\r\n");
+
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         HAL_Delay(100);
     }
+}
+
+// Redirect printf to UART
+int _write (int fd, char *ptr, int len) 
+{ 
+    transmitUART(ptr, len);
+    return len; 
 }
 
 /**
