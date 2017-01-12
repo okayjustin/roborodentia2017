@@ -61,6 +61,8 @@ void serviceUART(void);
 void transmitUART(char *ptr, int len);
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
+extern void consoleCommand(uint8_t *ptr, int len);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

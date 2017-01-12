@@ -44,10 +44,15 @@ int main(void)
     MX_TIM10_Init();
     MX_TIM11_Init();
 
-    // Main loop
     serviceUART();
     printf("Hello.\r\n");
 
+    uint8_t data[1];
+    data[0] = 0xFF;
+    I2C_Read(0, 0x3D, data, 1);
+    printf("%c\r\n", data[0]);
+
+    // Main loop
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
@@ -56,9 +61,8 @@ int main(void)
 }
 
 // Execute a command from the console
-void consoleCommand(char *ptr, int len)
+void consoleCommand(uint8_t *ptr, int len)
 {
-    return 1;
 }
 
 // Redirect printf to UART
@@ -156,12 +160,13 @@ static void SystemClock_Config(void)
   */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler */
-  /* User can add his own implementation to report the HAL error return state */
-  while(1) 
-  {
-  }
-  /* USER CODE END Error_Handler */ 
+    /* USER CODE BEGIN Error_Handler */
+    /* User can add his own implementation to report the HAL error return state */
+    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+    while(1) 
+    {
+    }
+    /* USER CODE END Error_Handler */ 
 }
 
 #ifdef  USE_FULL_ASSERT

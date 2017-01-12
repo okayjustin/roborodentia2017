@@ -34,7 +34,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "i2c.h"
-
 #include "gpio.h"
 #include "dma.h"
 
@@ -254,7 +253,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
     __HAL_RCC_I2C2_CLK_DISABLE();
   
     /**I2C2 GPIO Configuration    
-    PB10     ------> I2C2_SCL
+    PB10     ------> I2C2_SCL                                             
     PC12     ------> I2C2_SDA 
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_10);
@@ -270,16 +269,47 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
   }
 } 
 
-/* USER CODE BEGIN 1 */
+// Start I2C read
+void I2C_Read (uint8_t interface, uint16_t addr, uint8_t *data, uint16_t size)
+{
+    if ( HAL_I2C_IsDeviceReady(&hi2c1, addr, 1, 15) != HAL_OK){
+        Error_Handler();
+    }
 
-/* USER CODE END 1 */
+    while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY)
+    {
+    }
 
-/**
-  * @}
-  */
+    while (1)
+    {
+    if ( HAL_I2C_Master_Transmit_DMA(&hi2c1, addr,(uint8_t *)data, size) != HAL_OK){
+        Error_Handler();
+    }
 
-/**
-  * @}
-  */
+    while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY)
+    {
+    }
+    printf("hiya bobby\r\n");
+    }
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+    printf("hiya bob\r\n");
+
+    uint32_t errorcode = HAL_I2C_GetState(&hi2c1);
+    if (errorcode == HAL_DMA_ERROR_NONE){
+        printf("no error\r\n");
+    }
+    else {
+        printf("error\r\n");
+    }
+}
+
+void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c)
+{
+    printf("hey there.\r\n");
+}
+
+void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c)
+{
+    printf("hey there2.\r\n");
+}
+

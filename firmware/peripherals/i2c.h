@@ -58,9 +58,7 @@ extern void Error_Handler(void);
 void MX_I2C1_Init(void);
 void MX_I2C2_Init(void);
 
-/* USER CODE BEGIN Prototypes */
-
-/* USER CODE END Prototypes */
+void I2C_Read (uint8_t interface, uint16_t addr, uint8_t *data, uint16_t size);
 
 #ifdef __cplusplus
 }

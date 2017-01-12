@@ -158,7 +158,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
         HAL_UART_Transmit(&huart2, (uint8_t *)&stringBuffer, stringBufferIndex, 0xFFFF);
         printf("\r\n");
         stringBufferIndex = 0;
-        consoleCommand(stringBuffer);
+        consoleCommand((uint8_t *)&stringBuffer, stringBufferIndex);
     }
 
     HAL_UART_Transmit(&huart2, (uint8_t *)&rxBuffer, 1, 1);
