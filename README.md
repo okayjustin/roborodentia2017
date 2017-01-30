@@ -25,3 +25,9 @@ Also take libnosys.a from newlib_arm-none-eabi/arm-none-eabi/thumb/libgloss/libn
 
 Then take the libc.a and libm.a from newlib_arm-none-eabi/arm-none-eabi/fpu/newlib and place them in buildTools.
 Also take libnosys.a from newlib_arm-none-eabi/arm-none-eabi/fpu/libgloss/libnosys and place it in buildTools.
+
+Debugging tips:
+> openocd -f firmware/buildTools/st_nucleo_f4.cfg
+> arm-none-eabi-gdb firmware/build/program.elf
+(gdb) target remote localhost:3333
+(gdb) monitor reset halt
