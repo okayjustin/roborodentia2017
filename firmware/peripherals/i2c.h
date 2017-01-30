@@ -49,9 +49,18 @@
 extern I2C_HandleTypeDef hi2c1;
 extern I2C_HandleTypeDef hi2c2;
 
-/* USER CODE BEGIN Private defines */
+typedef enum {
+    I2C_ACK = 0,
+    I2C_NACK,
+    I2C_ERR
+} I2CStatus;
 
-/* USER CODE END Private defines */
+typedef void (*i2cTxCallback)(void*, I2CStatus);
+typedef void (*i2cRxCallback)(void*, uint8_t*, uint32_t, I2CStatus);
+
+uint8_t i2cAddRxTransaction(uint8_t addr, uint32_t numBytes, i2cRxCallback callback, void* parameters);
+uint8_t i2cAddTxTransaction(uint8_t addr, uint8_t* txData, uint32_t numBytes, i2cTxCallback callback, void* parameters);
+void serviceI2C(void);
 
 extern void Error_Handler(void);
 

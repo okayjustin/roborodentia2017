@@ -34,6 +34,7 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
+#include "config.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -78,7 +79,7 @@ void SysTick_Handler(void)
 void I2C1_DMA_RX_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
-
+  printf("I2C1_DMA_RX_IRQHandler\r\n");
   /* USER CODE END DMA1_Stream0_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c1_rx);
   /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
@@ -92,7 +93,7 @@ void I2C1_DMA_RX_IRQHandler(void)
 void I2C2_DMA_RX_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream2_IRQn 0 */
-
+  printf("I2C1_DMA_RX_IRQHandler\r\n");
   /* USER CODE END DMA1_Stream2_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c2_rx);
   /* USER CODE BEGIN DMA1_Stream2_IRQn 1 */
@@ -106,7 +107,7 @@ void I2C2_DMA_RX_IRQHandler(void)
 void DMA1_Stream5_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream5_IRQn 0 */
-
+  printf("DMA1_Sream5_IRQHandler\r\n");
   /* USER CODE END DMA1_Stream5_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart2_rx);
   /* USER CODE BEGIN DMA1_Stream5_IRQn 1 */
@@ -120,7 +121,7 @@ void DMA1_Stream5_IRQHandler(void)
 void I2C1_DMA_TX_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream6_IRQn 0 */
-
+  printf("I2C1_DMA_TX_IRQHandler\r\n");
   /* USER CODE END DMA1_Stream6_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c1_tx);
   /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */
@@ -134,7 +135,7 @@ void I2C1_DMA_TX_IRQHandler(void)
 void I2C2_DMA_TX_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream7_IRQn 0 */
-
+  printf("I2C2_DMA_TX_IRQHandler\r\n");
   /* USER CODE END DMA1_Stream7_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c2_tx);
   /* USER CODE BEGIN DMA1_Stream7_IRQn 1 */

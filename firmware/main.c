@@ -43,7 +43,7 @@ int main(void)
     MX_TIM11_Init();
 
     serviceUART();
-    printf("Hello. Rev 2\r\n");
+    printf("Hello. Rev 3\r\n");
 
     MX_I2C1_Init();
 //    MX_I2C2_Init();

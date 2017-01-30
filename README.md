@@ -31,3 +31,6 @@ Debugging tips:
     > arm-none-eabi-gdb firmware/build/program.elf
     (gdb) target remote localhost:3333
     (gdb) monitor reset halt
+    (gdb) b main.c:50
+    (gdb) p data[0]
+    (gdb) x/1hx 0x40005400

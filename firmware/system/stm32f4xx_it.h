@@ -34,6 +34,7 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32F4xx_IT_H
 #define __STM32F4xx_IT_H
+#include "config.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -46,11 +47,11 @@
 /* Exported functions ------------------------------------------------------- */
 
 void SysTick_Handler(void);
-void DMA1_Stream0_IRQHandler(void);
+void I2C1_DMA_RX_IRQHandler(void);
+void I2C2_DMA_RX_IRQHandler(void);
 void DMA1_Stream2_IRQHandler(void);
-void DMA1_Stream5_IRQHandler(void);
-void DMA1_Stream6_IRQHandler(void);
-void DMA1_Stream7_IRQHandler(void);
+void I2C1_DMA_TX_IRQHandler(void);
+void I2C2_DMA_TX_IRQHandler(void);
 
 #ifdef __cplusplus
 }
