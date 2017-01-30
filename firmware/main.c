@@ -36,19 +36,21 @@ int main(void)
     //Board_GPIO_Init();
     MX_GPIO_Init();
     MX_DMA_Init();
-    MX_I2C1_Init();
     MX_USART2_UART_Init();
-    MX_I2C2_Init();
     MX_TIM1_Init();
     MX_TIM3_Init();
     MX_TIM10_Init();
     MX_TIM11_Init();
 
     serviceUART();
-    printf("Hello.\r\n");
+    printf("Hello. Rev 2\r\n");
 
-    uint8_t data[1];
+    MX_I2C1_Init();
+//    MX_I2C2_Init();
+
+    uint8_t data[16];
     data[0] = 0xFF;
+    printf("Starting the read.\r\n");
     I2C_Read(0, 0x3D, data, 1);
     printf("%c\r\n", data[0]);
 
@@ -162,6 +164,7 @@ void Error_Handler(void)
 {
     /* USER CODE BEGIN Error_Handler */
     /* User can add his own implementation to report the HAL error return state */
+    printf("Entered error handler.\r\n");
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     while(1) 
     {
