@@ -121,7 +121,7 @@ void DMA1_Stream5_IRQHandler(void)
 void I2C1_DMA_TX_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream6_IRQn 0 */
-  printf("I2C1_DMA_TX_IRQHandler\r\n");
+  //printf("I2C1_DMA_TX_IRQHandler\r\n");
   /* USER CODE END DMA1_Stream6_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c1_tx);
   /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */

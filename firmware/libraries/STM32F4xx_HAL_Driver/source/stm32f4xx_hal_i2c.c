@@ -1968,6 +1968,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint16_t 
     {
       /* Set the I2C DMA transfer complete callback */
       hi2c->hdmatx->XferCpltCallback = I2C_DMAXferCplt;
+      //hi2c->hdmatx->XferCpltCallback = I2C_DMAMasterTransmitCplt;
 
       /* Set the DMA error callback */      
       hi2c->hdmatx->XferErrorCallback = I2C_DMAError;
@@ -1981,11 +1982,33 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint16_t 
       /* Enable the DMA Stream */
       HAL_DMA_Start_IT(hi2c->hdmatx, (uint32_t)hi2c->pBuffPtr, (uint32_t)&hi2c->Instance->DR, hi2c->XferSize);
 
-      /* Enable Acknowledge */
-      hi2c->Instance->CR1 |= I2C_CR1_ACK;
+//      /* Enable Acknowledge */
+//      hi2c->Instance->CR1 |= I2C_CR1_ACK;
+//
+//      /* Generate Start */
+//      hi2c->Instance->CR1 |= I2C_CR1_START;
 
-      /* Generate Start */
-      hi2c->Instance->CR1 |= I2C_CR1_START;
+      /* Send Slave Address */
+      if(I2C_MasterRequestWrite(hi2c, DevAddress, I2C_TIMEOUT_FLAG, HAL_GetTick()) != HAL_OK)
+      {
+        if(hi2c->ErrorCode == HAL_I2C_ERROR_AF)
+        {
+          /* Process Unlocked */
+          __HAL_UNLOCK(hi2c);
+          return HAL_ERROR;
+        }
+        else
+        {
+          /* Process Unlocked */
+          __HAL_UNLOCK(hi2c);
+          return HAL_TIMEOUT;
+        }
+      }
+       /* Enable DMA Request */
+      hi2c->Instance->CR2 |= I2C_CR2_DMAEN;
+
+      /* Clear ADDR flag */
+      __HAL_I2C_CLEAR_ADDRFLAG(hi2c);
 
       /* Process Unlocked */
       __HAL_UNLOCK(hi2c);
@@ -1998,7 +2021,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint16_t 
       __HAL_I2C_ENABLE_IT(hi2c, I2C_IT_EVT | I2C_IT_ERR);
 
       /* Enable DMA Request */
-      hi2c->Instance->CR2 |= I2C_CR2_DMAEN;
+      //hi2c->Instance->CR2 |= I2C_CR2_DMAEN;
     }
     else
     {
