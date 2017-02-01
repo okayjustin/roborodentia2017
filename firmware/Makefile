@@ -55,7 +55,8 @@ SOURCES += $(PERIPHERALS)/gpio.c \
 		   $(USB)/usbd_desc.c \
 		   $(USB)/usbd_ioreq.c
 
-#SOURCES += $(DRIVERS)/comms.c \
+SOURCES += $(DRIVERS)/lsm303.c \
+#		   $(DRIVERS)/comms.c \
 		   $(DRIVERS)/console.c \
 		   $(DRIVERS)/fnr. \
 		   $(DRIVERS)/kill.c \

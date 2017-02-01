@@ -2,9 +2,10 @@
 #ifndef __LSM303_H__
 #define __LSM303_H__
 
-#define LSM303_ADDRESS_ACCEL          (0x32 >> 1)         // 0011001x
-#define LSM303_ADDRESS_MAG            (0x3C >> 1)         // 0011110x
-#define LSM303_ID                     (0b11010100)
+#define LSM303_I2C_INTERFACE          &hi2c1
+#define LSM303_ADDRESS_ACCEL          (0x19)         // 0011 001x
+#define LSM303_ADDRESS_MAG            (0x1E)         // 0011 110x
+#define LSM303_ID                     (0b11010100)             
 
 typedef enum
 {                                                     // DEFAULT    TYPE
@@ -79,20 +80,17 @@ typedef struct lsm303AccelData_s
 
 typedef struct lsm303MagData_s
 {
-    float x;
-    float y;
-    float z;
-    float orientation;
+    uint16_t x;
+    uint16_t y;
+    uint16_t z;
+    uint16_t orientation;
 } lsm303MagData;
 
-bool begin (void);
-void read (void);
-void setMagGain (lsm303MagGain gain);
+void LSM303_begin (void);
+void LSM303_read (void);
+void LSM303_setMagGain (lsm303MagGain gain);
 
 lsm303AccelData accelData;    // Last read accelerometer data will be available here
 lsm303MagData magData;        // Last read magnetometer data will be available here
-
-void write8(uint8_t address, uint8_t reg, uint8_t value);
-uint8_t read8(uint8_t address, uint8_t reg);
 
 #endif

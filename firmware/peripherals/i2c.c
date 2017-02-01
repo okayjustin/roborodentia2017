@@ -68,9 +68,6 @@ static volatile uint8_t shouldServiceI2C;
 // Status of the current transaction
 static volatile uint8_t i2cStatus;
 
-// Number of bytes left in the current transaction
-static volatile uint8_t i2cBytesLeft;
-
 // Theory of Operation
 //
 // This file control the I2C peripheral which talks to
@@ -127,8 +124,8 @@ static volatile uint8_t i2cBytesLeft;
 void MX_I2C1_Init(void)
 {
     hi2c1.Instance = I2C1;
-    hi2c1.Init.ClockSpeed = 100000;
-    hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+    hi2c1.Init.ClockSpeed = 400000;
+    hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_16_9; //I2C_DUTYCYCLE_2;
     hi2c1.Init.OwnAddress1 = 0x10;
     hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
     hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -363,14 +360,13 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
         /* USER CODE END I2C2_MspDeInit 1 */
     }
 } 
-uint8_t aTxBuffer[] = {0,0,0,0};
 
 // I2C read command(I2C handle, 7-bit address, data array, number of data bytes) 
 void I2C_Read (I2C_HandleTypeDef *hi2c, uint16_t addr, uint8_t *data, uint16_t size)
 {
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    while ( HAL_I2C_Master_Receive_DMA(&hi2c1, addr << 1 | 0 , (uint8_t*)data, size) != HAL_OK){
+    while ( HAL_I2C_Master_Receive_DMA(&hi2c1, addr << 1 | 1 , (uint8_t*)data, size) != HAL_OK){
         if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF){
             Error_Handler();
         }

@@ -6,6 +6,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "config.h"
+#include "lsm303.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -48,20 +49,15 @@ int main(void)
     MX_I2C1_Init();
 //    MX_I2C2_Init();
 
-    uint8_t data[16];
-    data[0] = 0x20;
-    data[1] = 0x0F;
-    printf("0x%X\r\n", data[0]);
-    printf("0x%X\r\n", data[1]);
-    printf("Starting the read.\r\n");
-    I2C_Read(&hi2c1, 0x1E, data, 2);
-    HAL_Delay(100);
-    printf("0x%X\r\n", data[0]);
-    printf("0x%X\r\n", data[1]);
+    printf("Enabling magnetometer.\r\n");
+    LSM303_begin();
+    printf("Reading magnetometer.\r\n");
 
     // Main loop
     while (1)
     {
+        LSM303_read();
+        printf("X: %d.  Y: %d.  Z: %d.\r\n", magData.x, magData.y, magData.z);
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         HAL_Delay(100);
     }
@@ -170,9 +166,10 @@ void Error_Handler(void)
     /* USER CODE BEGIN Error_Handler */
     /* User can add his own implementation to report the HAL error return state */
     printf("Entered error handler.\r\n");
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     while(1) 
     {
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        HAL_Delay(500);
     }
     /* USER CODE END Error_Handler */ 
 }
