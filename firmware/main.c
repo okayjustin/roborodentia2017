@@ -49,10 +49,15 @@ int main(void)
 //    MX_I2C2_Init();
 
     uint8_t data[16];
-    data[0] = 0xFF;
+    data[0] = 0x20;
+    data[1] = 0x0F;
+    printf("0x%X\r\n", data[0]);
+    printf("0x%X\r\n", data[1]);
     printf("Starting the read.\r\n");
-    I2C_Read(0, 0x3D, data, 1);
-    printf("%c\r\n", data[0]);
+    I2C_Read(&hi2c1, 0x1E, data, 2);
+    HAL_Delay(100);
+    printf("0x%X\r\n", data[0]);
+    printf("0x%X\r\n", data[1]);
 
     // Main loop
     while (1)
