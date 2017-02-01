@@ -6,7 +6,7 @@
 #define LSM303_ADDRESS_ACCEL          (0x19)         // 0011 001x
 #define LSM303_ADDRESS_MAG            (0x1E)         // 0011 110x
 #define LSM303_ID                     (0b11010100)             
-
+#define SENSORS_GAUSS_TO_MICROTESLA   100
 typedef enum
 {                                                     // DEFAULT    TYPE
     LSM303_REGISTER_ACCEL_CTRL_REG1_A         = 0x20,   // 00000111   rw
@@ -80,15 +80,14 @@ typedef struct lsm303AccelData_s
 
 typedef struct lsm303MagData_s
 {
-    uint16_t x;
-    uint16_t y;
-    uint16_t z;
-    uint16_t orientation;
+    int16_t x_raw;
+    int16_t y_raw;
+    int16_t z_raw;
+    int16_t orientation;   // In units of tenths of a degree
 } lsm303MagData;
 
 void LSM303_begin (void);
 void LSM303_read (void);
-void LSM303_setMagGain (lsm303MagGain gain);
 
 lsm303AccelData accelData;    // Last read accelerometer data will be available here
 lsm303MagData magData;        // Last read magnetometer data will be available here

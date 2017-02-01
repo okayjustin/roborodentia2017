@@ -116,7 +116,7 @@ CFLAGS  = -O0 -g \
    $(WARNINGS)
 
 LDSCRIPT = buildTools/STM32F446ZE_FLASH.ld
-LDFLAGS += -T$(LDSCRIPT) -mthumb -mcpu=cortex-m4 -nostdlib -LbuildTools
+LDFLAGS += -T$(LDSCRIPT) -mthumb -mcpu=cortex-m4 -nostdlib -LbuildTools -u _printf_float
 
 LDLIBS += -lc -lm -lnosys
 

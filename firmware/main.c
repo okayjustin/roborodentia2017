@@ -57,7 +57,9 @@ int main(void)
     while (1)
     {
         LSM303_read();
-        printf("X: %d.  Y: %d.  Z: %d.\r\n", magData.x, magData.y, magData.z);
+        printf("X: %+d.  Y: %+d.  Z: %+d.  Orient:%d.%d\r\n", 
+                magData.x_raw, magData.y_raw, magData.z_raw, 
+                magData.orientation / 10, magData.orientation % 10);
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         HAL_Delay(100);
     }
