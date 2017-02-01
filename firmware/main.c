@@ -47,7 +47,7 @@ int main(void)
     printf("Hello. Rev 3\r\n");
 
     MX_I2C1_Init();
-//    MX_I2C2_Init();
+    MX_I2C2_Init();
 
     printf("Enabling magnetometer.\r\n");
     LSM303_begin();
@@ -57,11 +57,9 @@ int main(void)
     while (1)
     {
         LSM303_read();
-        printf("X: %+d.  Y: %+d.  Z: %+d.  Orient:%d.%d\r\n", 
-                magData.x_raw, magData.y_raw, magData.z_raw, 
-                magData.orientation / 10, magData.orientation % 10);
+        printf("Orient:%d\r\n", magData.orientation);
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        HAL_Delay(100);
+        HAL_Delay(50);
     }
 }
 

@@ -2,7 +2,7 @@
 #ifndef __LSM303_H__
 #define __LSM303_H__
 
-#define LSM303_I2C_INTERFACE          &hi2c1
+#define LSM303_I2C_INTERFACE          &hi2c2
 #define LSM303_ADDRESS_ACCEL          (0x19)         // 0011 001x
 #define LSM303_ADDRESS_MAG            (0x1E)         // 0011 110x
 #define LSM303_ID                     (0b11010100)             
@@ -83,13 +83,13 @@ typedef struct lsm303MagData_s
     int16_t x_raw;
     int16_t y_raw;
     int16_t z_raw;
-    int16_t orientation;   // In units of tenths of a degree
+    int16_t orientation;   // In units of degrees
 } lsm303MagData;
 
 void LSM303_begin (void);
 void LSM303_read (void);
 
-lsm303AccelData accelData;    // Last read accelerometer data will be available here
+//lsm303AccelData accelData;    // Last read accelerometer data will be available here
 lsm303MagData magData;        // Last read magnetometer data will be available here
 
 #endif

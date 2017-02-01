@@ -366,8 +366,8 @@ void I2C_Read (I2C_HandleTypeDef *hi2c, uint16_t addr, uint8_t *data, uint16_t s
 {
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    while ( HAL_I2C_Master_Receive_DMA(&hi2c1, addr << 1 | 1 , (uint8_t*)data, size) != HAL_OK){
-        if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF){
+    while ( HAL_I2C_Master_Receive_DMA(hi2c, addr << 1 | 1 , (uint8_t*)data, size) != HAL_OK){
+        if (HAL_I2C_GetError(hi2c) != HAL_I2C_ERROR_AF){
             Error_Handler();
         }
     }
@@ -380,8 +380,8 @@ void I2C_Write (I2C_HandleTypeDef *hi2c, uint16_t addr, uint8_t *data, uint16_t 
 {
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    while ( HAL_I2C_Master_Transmit_DMA(&hi2c1, addr << 1 | 0 , (uint8_t*)data, size) != HAL_OK){
-        if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF){
+    while ( HAL_I2C_Master_Transmit_DMA(hi2c, addr << 1 | 0 , (uint8_t*)data, size) != HAL_OK){
+        if (HAL_I2C_GetError(hi2c) != HAL_I2C_ERROR_AF){
             Error_Handler();
         }
     }
