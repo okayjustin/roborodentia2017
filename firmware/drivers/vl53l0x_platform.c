@@ -2,7 +2,9 @@
 #include "vl53l0x_platform.h"
 #include "vl53l0x_api.h"
 
-#include "stm32xxx_hal.h"
+// OLD
+//#include "stm32xxx_hal.h"
+#include "stm32f4xx_hal.h"
 #include <string.h>
 
 #define I2C_TIME_OUT_BASE   10

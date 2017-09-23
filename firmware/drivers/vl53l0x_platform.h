@@ -40,7 +40,7 @@ extern "C" {
 // OLD:
 //#include "stm32xxx_hal.h"
 // NEW:
-#include "stm324xx_hal.h"
+#include "stm32f4xx_hal.h"
 
 
 #if TRACE_UART
