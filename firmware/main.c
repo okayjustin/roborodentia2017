@@ -1,4 +1,6 @@
 
+#include <string.h>
+#include <limits.h>
 #include "main.h"
 #include "dma.h"
 #include "i2c.h"
@@ -14,11 +16,92 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
+/**
+ * Global ranging struct
+ */
+VL53L0X_RangingMeasurementData_t RangingMeasurementData;
+
+enum XNUCLEO53L0A1_dev_e{
+    XNUCLEO53L0A1_DEV_LEFT =  0,    //!< left satellite device P21 header : 'l'
+    XNUCLEO53L0A1_DEV_CENTER  =  1, //!< center (built-in) vl053 device : 'c"
+    XNUCLEO53L0A1_DEV_RIGHT=  2     //!< Right satellite device P22 header : 'r'
+};
+
+/** leaky factor for filtered range
+ *
+ * r(n) = averaged_r(n-1)*leaky +r(n)(1-leaky)
+ *
+ * */
+int LeakyFactorFix8 = (int)( 0.0 *256); //(int)( 0.6 *256);
+/** How many device detect set by @a DetectSensors()*/
+int nDevPresent=0;
+/** bit is index in VL53L0XDevs that is not necessary the dev id of the BSP */
+int nDevMask;
+
+I2C_HandleTypeDef  XNUCLEO53L0A1_hi2c;
+
+VL53L0X_Dev_t VL53L0XDevs[]={
+        {.Id=XNUCLEO53L0A1_DEV_LEFT, .DevLetter='l', .I2cHandle=&hi2c2, .I2cDevAddr=0x52},
+        {.Id=XNUCLEO53L0A1_DEV_CENTER, .DevLetter='c', .I2cHandle=&hi2c2, .I2cDevAddr=0x52},
+        {.Id=XNUCLEO53L0A1_DEV_RIGHT, .DevLetter='r', .I2cHandle=&hi2c2, .I2cDevAddr=0x52},
+};
+
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 void Error_Handler(void);
 
 /* Private functions ---------------------------------------------------------*/
+
+/**
+ * cache the full set of expanded GPIO values to avoid i2c reading
+ */
+//static union CurIOVal_u {
+//    uint8_t bytes[4];   /*!<  4 bytes array i/o view */
+//    uint32_t u32;       /*!<  single dword i/o view */
+//}
+///** cache the extended IO values */
+//CurIOVal;
+
+//int XNUCLEO53L0A1_ResetId(int DevNo, int state) {
+//    int status;
+//    switch( DevNo ){
+//    case XNUCLEO53L0A1_DEV_CENTER :
+//    case 'c' :
+//        CurIOVal.bytes[3]&=~0x80; /* bit 15 expender 1  => byte #3 */
+//        if( state )
+//            CurIOVal.bytes[3]|=0x80; /* bit 15 expender 1  => byte #3 */
+//        status= _ExpanderWR(I2cExpAddr1, GPSR+1, &CurIOVal.bytes[3], 1);
+//        break;
+//    case XNUCLEO53L0A1_DEV_LEFT :
+//    case 'l' :
+//        CurIOVal.bytes[1]&=~0x40; /* bit 14 expender 0 => byte #1*/
+//        if( state )
+//            CurIOVal.bytes[1]|=0x40; /* bit 14 expender 0 => byte #1*/
+//        status= _ExpanderWR(I2cExpAddr0, GPSR+1, &CurIOVal.bytes[1], 1);
+//        break;
+//    case 'r' :
+//    case XNUCLEO53L0A1_DEV_RIGHT :
+//        CurIOVal.bytes[1]&=~0x80; /* bit 15 expender 0  => byte #1 */
+//        if( state )
+//            CurIOVal.bytes[1]|=0x80; /* bit 15 expender 0 => byte #1*/
+//        status= _ExpanderWR(I2cExpAddr0, GPSR+1, &CurIOVal.bytes[1], 1);
+//        break;
+//    default:
+//        XNUCLEO53L0A1_ErrLog("Invalid DevNo %d",DevNo);
+//        status = -1;
+//        goto done;
+//    }
+////error with valid id
+//    if( status ){
+//        XNUCLEO53L0A1_ErrLog("expander i/o error for DevNo %d state %d ",DevNo, state);
+//    }
+//done:
+//    return status;
+//}
+//
+
+
+
 void _init(void) {return;}
 
 int main(void)
@@ -50,10 +133,57 @@ int main(void)
     MX_I2C1_Init();
     MX_I2C2_Init();
 
+    int i = 0;
+    uint16_t Id;
+    int status;
+    int FinalAddress;
+    VL53L0X_Dev_t *pDev;
+    pDev = &VL53L0XDevs[i];
+    pDev->I2cDevAddr = 0x52;
+    pDev->Present = 0;
+    //status = XNUCLEO53L0A1_ResetId( pDev->Id, 1);
+    FinalAddress=0x52+(i+1)*2;
+    do {
+        status = VL53L0X_RdWord(pDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
+        if (status == VL53L0X_ERROR_CONTROL_INTERFACE){
+            printf("blerh\n");
+        }
+        if (status) {
+            printf("#%d Read id fail\n", i);
+            break;
+        }
+        if (Id == 0xEEAA) {
+            /* Sensor is found => Change its I2C address to final one */
+            status = VL53L0X_SetDeviceAddress(pDev,FinalAddress);
+            if (status != 0) {
+                printf("VL53L0X_SetDeviceAddress fail\n");
+                break;
+            }
+            pDev->I2cDevAddr = FinalAddress;
+            /* Check all is OK with the new I2C address and initialize the sensor */
+            status = VL53L0X_RdWord(pDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
+            status = VL53L0X_DataInit(pDev);
+            if( status == 0 ){
+                pDev->Present = 1;
+            }
+            else{
+                printf("VL53L0X_DataInit %d fail\n", i);
+                break;
+            }
+            printf("VL53L0X %d Present and initiated to final 0x%x\n", i, pDev->I2cDevAddr);
+            nDevPresent++;
+            nDevMask |= 1 << i;
+            pDev->Present = 1;
+        }
+        else {
+            printf("#%d unknown ID %x\n", i, Id);
+            status = 1;
+        }
+    } while (0);
+
 //    printf("Enabling magnetometer.\r\n");
 //    LSM303_begin();
 //    printf("Reading magnetometer.\r\n");
-
 
     // Main loop
     while (1)
