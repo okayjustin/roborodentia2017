@@ -6,7 +6,8 @@
 #include "usart.h"
 #include "gpio.h"
 #include "config.h"
-#include "lsm303.h"
+//#include "lsm303.h"
+#include "vl53l0x_api.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -49,15 +50,17 @@ int main(void)
     MX_I2C1_Init();
     MX_I2C2_Init();
 
-    printf("Enabling magnetometer.\r\n");
-    LSM303_begin();
-    printf("Reading magnetometer.\r\n");
+//    printf("Enabling magnetometer.\r\n");
+//    LSM303_begin();
+//    printf("Reading magnetometer.\r\n");
+
 
     // Main loop
     while (1)
     {
-        LSM303_read();
-        printf("Orient:%d\r\n", magData.orientation);
+//        LSM303_read();
+//        printf("Orient:%d\r\n", magData.orientation);
+
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         HAL_Delay(50);
     }
