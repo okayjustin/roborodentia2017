@@ -252,7 +252,7 @@ int main(void)
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        HAL_Delay(1000);
+//        HAL_Delay(1000);
 
 //        LSM303_read();
 //        printf("Orient:%d\r\n", magData.orientation);
@@ -279,7 +279,10 @@ int main(void)
           printf("VL53L0X_GetRangingMeasurementData failed on device %d",i);
         }
         /* Data logging */
-        printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
+ //       printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
+        if (RangingMeasurementData.RangeStatus == 0){ 
+            printf("%d\r\n", RangingMeasurementData.RangeMilliMeter);
+        }
         Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
 
     }
