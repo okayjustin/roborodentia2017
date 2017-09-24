@@ -52,53 +52,110 @@ void Error_Handler(void);
 
 /* Private functions ---------------------------------------------------------*/
 
-/**
- * cache the full set of expanded GPIO values to avoid i2c reading
- */
-//static union CurIOVal_u {
-//    uint8_t bytes[4];   /*!<  4 bytes array i/o view */
-//    uint32_t u32;       /*!<  single dword i/o view */
-//}
-///** cache the extended IO values */
-//CurIOVal;
+/* Store new ranging data into the device structure, apply leaky integrator if needed */
+void Sensor_SetNewRange(VL53L0X_Dev_t *pDev, VL53L0X_RangingMeasurementData_t *pRange){
+    if( pRange->RangeStatus == 0 ){
+    	pDev->RangeStatus = 0;
+        if( pDev->LeakyFirst ){
+            pDev->LeakyFirst = 0;
+            pDev->LeakyRange = pRange->RangeMilliMeter;
+        }
+        else{
+            pDev->LeakyRange = (pDev->LeakyRange*LeakyFactorFix8 + (256-LeakyFactorFix8)*pRange->RangeMilliMeter)>>8;
+        }
+    }
+    else{
+    	pDev->RangeStatus = pRange->RangeStatus;
+    	pDev->LeakyFirst = 1;
+    }
+}
 
-//int XNUCLEO53L0A1_ResetId(int DevNo, int state) {
-//    int status;
-//    switch( DevNo ){
-//    case XNUCLEO53L0A1_DEV_CENTER :
-//    case 'c' :
-//        CurIOVal.bytes[3]&=~0x80; /* bit 15 expender 1  => byte #3 */
-//        if( state )
-//            CurIOVal.bytes[3]|=0x80; /* bit 15 expender 1  => byte #3 */
-//        status= _ExpanderWR(I2cExpAddr1, GPSR+1, &CurIOVal.bytes[3], 1);
-//        break;
-//    case XNUCLEO53L0A1_DEV_LEFT :
-//    case 'l' :
-//        CurIOVal.bytes[1]&=~0x40; /* bit 14 expender 0 => byte #1*/
-//        if( state )
-//            CurIOVal.bytes[1]|=0x40; /* bit 14 expender 0 => byte #1*/
-//        status= _ExpanderWR(I2cExpAddr0, GPSR+1, &CurIOVal.bytes[1], 1);
-//        break;
-//    case 'r' :
-//    case XNUCLEO53L0A1_DEV_RIGHT :
-//        CurIOVal.bytes[1]&=~0x80; /* bit 15 expender 0  => byte #1 */
-//        if( state )
-//            CurIOVal.bytes[1]|=0x80; /* bit 15 expender 0 => byte #1*/
-//        status= _ExpanderWR(I2cExpAddr0, GPSR+1, &CurIOVal.bytes[1], 1);
-//        break;
-//    default:
-//        XNUCLEO53L0A1_ErrLog("Invalid DevNo %d",DevNo);
-//        status = -1;
-//        goto done;
-//    }
-////error with valid id
-//    if( status ){
-//        XNUCLEO53L0A1_ErrLog("expander i/o error for DevNo %d state %d ",DevNo, state);
-//    }
-//done:
-//    return status;
-//}
-//
+/** Timer
+ *
+ * Used get timestamp for UART logging
+ */
+TIM_HandleTypeDef htim5;
+
+/* TIM5 init function */
+void MX_TIM5_Init(void)
+{
+
+  TIM_MasterConfigTypeDef sMasterConfig;
+  TIM_OC_InitTypeDef sConfigOC;
+
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 83;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 0xFFFFFFFF;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  HAL_TIM_OC_Init(&htim5);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig);
+
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  HAL_TIM_OC_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_1);
+
+}
+
+void TimeStamp_Init(){
+    MX_TIM5_Init();
+}
+
+void TimeStamp_Reset(){
+    HAL_TIM_Base_Start(&htim5);
+    htim5.Instance->CNT=0;
+}
+
+uint32_t TimeStamp_Get(){
+    return htim5.Instance->CNT;
+}
+
+/**
+ *  Setup all sensors for single shot mode
+ */
+void SetupSingleShot(){
+    int i;
+    int status;
+    uint8_t VhvSettings;
+    uint8_t PhaseCal;
+    uint32_t refSpadCount;
+    uint8_t isApertureSpads;
+
+    for( i=0; i<3; i++){
+        if( VL53L0XDevs[i].Present){
+            status=VL53L0X_StaticInit(&VL53L0XDevs[i]);
+            if( status ){
+                printf("VL53L0X_StaticInit %d fail",i);
+            }
+
+            status = VL53L0X_PerformRefCalibration(&VL53L0XDevs[i], &VhvSettings, &PhaseCal);
+			if( status ){
+			   printf("VL53L0X_PerformRefCalibration");
+			}
+
+			status = VL53L0X_PerformRefSpadManagement(&VL53L0XDevs[i], &refSpadCount, &isApertureSpads);
+			if( status ){
+			   printf("VL53L0X_PerformRefSpadManagement");
+			}
+
+            status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
+            if( status ){
+               printf("VL53L0X_SetDeviceMode");
+            }
+
+            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i],  20*1000);
+            if( status ){
+               printf("VL53L0X_SetMeasurementTimingBudgetMicroSeconds");
+            }
+            VL53L0XDevs[i].LeakyFirst=1;
+        }
+    }
+}
 
 
 
@@ -132,8 +189,12 @@ int main(void)
 
     MX_I2C1_Init();
     MX_I2C2_Init();
+    /* Initialize and start timestamping for UART logging */
+    TimeStamp_Init();
+    TimeStamp_Reset();
 
     int i = 0;
+    uint8_t NewDataReady=0;
     uint16_t Id;
     int status;
     int FinalAddress;
@@ -141,12 +202,12 @@ int main(void)
     pDev = &VL53L0XDevs[i];
     pDev->I2cDevAddr = 0x52;
     pDev->Present = 0;
-    //status = XNUCLEO53L0A1_ResetId( pDev->Id, 1);
-    FinalAddress=0x52+(i+1)*2;
+//    status = XNUCLEO53L0A1_ResetId( pDev->Id, 1);
+    FinalAddress=0x52; //+(i+1)*2;
     do {
         status = VL53L0X_RdWord(pDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
         if (status == VL53L0X_ERROR_CONTROL_INTERFACE){
-            printf("blerh\n");
+            printf("Control interface error.\n");
         }
         if (status) {
             printf("#%d Read id fail\n", i);
@@ -181,6 +242,8 @@ int main(void)
         }
     } while (0);
 
+    SetupSingleShot();
+
 //    printf("Enabling magnetometer.\r\n");
 //    LSM303_begin();
 //    printf("Reading magnetometer.\r\n");
@@ -188,11 +251,37 @@ int main(void)
     // Main loop
     while (1)
     {
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        HAL_Delay(1000);
+
 //        LSM303_read();
 //        printf("Orient:%d\r\n", magData.orientation);
+        status = VL53L0X_StartMeasurement(&VL53L0XDevs[i]);
+        if( status ){
+            printf("VL53L0X_StartMeasurement failed on device %d",i);
+        }
 
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        HAL_Delay(50);
+        /* Is new sample ready ? */
+        status = VL53L0X_GetMeasurementDataReady(&VL53L0XDevs[i], &NewDataReady);
+        if( status ){
+          printf("VL53L0X_GetMeasurementDataReady failed on device %d",i);
+        }
+        /* Skip if new sample not ready */
+        if (NewDataReady == 0)
+          continue;
+
+        /* Clear Interrupt */
+        status = VL53L0X_ClearInterruptMask(&VL53L0XDevs[i], 0);
+
+        /* Otherwise, get new sample data and store */
+        status = VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[i], &RangingMeasurementData);
+        if( status ){
+          printf("VL53L0X_GetRangingMeasurementData failed on device %d",i);
+        }
+        /* Data logging */
+//        printf("%d,%u,%d,%d,%d\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps);
+        Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
+
     }
 }
 
