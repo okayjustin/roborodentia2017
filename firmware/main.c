@@ -207,17 +207,17 @@ int main(void)
     do {
         status = VL53L0X_RdWord(pDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
         if (status == VL53L0X_ERROR_CONTROL_INTERFACE){
-            printf("Control interface error.\n");
+            printf("Control interface error.\r\n");
         }
         if (status) {
-            printf("#%d Read id fail\n", i);
+            printf("#%d Read id fail\r\n", i);
             break;
         }
         if (Id == 0xEEAA) {
             /* Sensor is found => Change its I2C address to final one */
             status = VL53L0X_SetDeviceAddress(pDev,FinalAddress);
             if (status != 0) {
-                printf("VL53L0X_SetDeviceAddress fail\n");
+                printf("VL53L0X_SetDeviceAddress fail\r\n");
                 break;
             }
             pDev->I2cDevAddr = FinalAddress;
@@ -228,16 +228,16 @@ int main(void)
                 pDev->Present = 1;
             }
             else{
-                printf("VL53L0X_DataInit %d fail\n", i);
+                printf("VL53L0X_DataInit %d fail\r\n", i);
                 break;
             }
-            printf("VL53L0X %d Present and initiated to final 0x%x\n", i, pDev->I2cDevAddr);
+            printf("VL53L0X %d Present and initiated to final 0x%x\r\n", i, pDev->I2cDevAddr);
             nDevPresent++;
             nDevMask |= 1 << i;
             pDev->Present = 1;
         }
         else {
-            printf("#%d unknown ID %x\n", i, Id);
+            printf("#%d unknown ID %x\r\n", i, Id);
             status = 1;
         }
     } while (0);
@@ -279,7 +279,7 @@ int main(void)
           printf("VL53L0X_GetRangingMeasurementData failed on device %d",i);
         }
         /* Data logging */
-//        printf("%d,%u,%d,%d,%d\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps);
+        printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
         Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
 
     }
