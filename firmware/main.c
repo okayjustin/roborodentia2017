@@ -32,7 +32,7 @@ enum XNUCLEO53L0A1_dev_e{
  * r(n) = averaged_r(n-1)*leaky +r(n)(1-leaky)
  *
  * */
-int LeakyFactorFix8 = (int)( 0.0 *256); //(int)( 0.6 *256);
+int LeakyFactorFix8 = (int)( 0.6 *256); //(int)( 0.6 *256);
 /** How many device detect set by @a DetectSensors()*/
 int nDevPresent=0;
 /** bit is index in VL53L0XDevs that is not necessary the dev id of the BSP */
@@ -148,7 +148,7 @@ void SetupSingleShot(){
                printf("VL53L0X_SetDeviceMode");
             }
 
-            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i],  20*1000);
+            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i],  200*1000);
             if( status ){
                printf("VL53L0X_SetMeasurementTimingBudgetMicroSeconds");
             }
@@ -279,9 +279,15 @@ int main(void)
           printf("VL53L0X_GetRangingMeasurementData failed on device %d",i);
         }
         /* Data logging */
- //       printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
+       printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
         if (RangingMeasurementData.RangeStatus == 0){ 
-            printf("%d\r\n", RangingMeasurementData.RangeMilliMeter);
+//            char myStr[] = "";
+            size_t ii = 0;
+            for (ii = 0; ii < RangingMeasurementData.RangeMilliMeter / 10; ++ii ){
+                putchar('#');
+            }
+            printf("\r\n");
+//            printf("%d\r\n", RangingMeasurementData.RangeMilliMeter);
         }
         Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
 
