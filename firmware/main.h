@@ -9,16 +9,52 @@
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+#define RANGE_I2C_ADDR_INITIAL 0x52
+
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-#define BOARD_BUTTON_Pin GPIO_PIN_13
-#define BOARD_BUTTON_GPIO_Port GPIOC
+// Reserved GPIO
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
+
+#define I2C1_SDA_Pin GPIO_PIN_7
+#define I2C1_SDA_GPIO_Port GPIOB
+#define I2C1_SCL_Pin GPIO_PIN_6
+#define I2C1_SCL_GPIO_Port GPIOB
+
+#define I2C2_SDA_Pin GPIO_PIN_12
+#define I2C2_SDA_GPIO_Port GPIOC
+#define I2C2_SCL_Pin GPIO_PIN_10
+#define I2C2_SCL_GPIO_Port GPIOB
+
+#define TMS_Pin GPIO_PIN_13
+#define TMS_GPIO_Port GPIOA
+#define TCK_Pin GPIO_PIN_14
+#define TCK_GPIO_Port GPIOA
+#define SWO_Pin GPIO_PIN_3
+#define SWO_GPIO_Port GPIOB
+
+
+// Used GPIO
+#define BOARD_BUTTON_Pin GPIO_PIN_13
+#define BOARD_BUTTON_GPIO_Port GPIOC
 #define BOARD_LED_Pin GPIO_PIN_5
 #define BOARD_LED_GPIO_Port GPIOA
+
+#define RANGEX_XSHUT_Pin GPIO_PIN_0
+#define RANGEX_XSHUT_GPIO_Port GPIOA
+#define RANGEX_INT_Pin GPIO_PIN_15
+#define RANGEX_INT_GPIO_Port GPIOC
+
+#define RANGEY_XSHUT_Pin GPIO_PIN_2
+#define RANGEY_XSHUT_GPIO_Port GPIOC
+#define RANGEY_INT_Pin GPIO_PIN_3
+#define RANGEY_INT_GPIO_Port GPIOC
+
+
+// Planned GPIO
 #define SERVO_ARM_Pin GPIO_PIN_6
 #define SERVO_ARM_GPIO_Port GPIOA
 #define SERVO_DELIVER_Pin GPIO_PIN_7
@@ -35,12 +71,6 @@
 #define MOTOR_W_PWM_GPIO_Port GPIOA
 #define MOTOR_E_PWM_Pin GPIO_PIN_11
 #define MOTOR_E_PWM_GPIO_Port GPIOA
-#define TMS_Pin GPIO_PIN_13
-#define TMS_GPIO_Port GPIOA
-#define TCK_Pin GPIO_PIN_14
-#define TCK_GPIO_Port GPIOA
-#define SWO_Pin GPIO_PIN_3
-#define SWO_GPIO_Port GPIOB
 #define MOTOR_VERT_PWM_Pin GPIO_PIN_8
 #define MOTOR_VERT_PWM_GPIO_Port GPIOB
 #define MOTOR_EXTRA_PWM_Pin GPIO_PIN_9

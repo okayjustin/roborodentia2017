@@ -21,29 +21,14 @@
  */
 VL53L0X_RangingMeasurementData_t RangingMeasurementData;
 
-enum XNUCLEO53L0A1_dev_e{
-    XNUCLEO53L0A1_DEV_LEFT =  0,    //!< left satellite device P21 header : 'l'
-    XNUCLEO53L0A1_DEV_CENTER  =  1, //!< center (built-in) vl053 device : 'c"
-    XNUCLEO53L0A1_DEV_RIGHT=  2     //!< Right satellite device P22 header : 'r'
-};
-
 /** leaky factor for filtered range
- *
  * r(n) = averaged_r(n-1)*leaky +r(n)(1-leaky)
- *
  * */
 int LeakyFactorFix8 = (int)( 0.6 *256); //(int)( 0.6 *256);
-/** How many device detect set by @a DetectSensors()*/
-int nDevPresent=0;
-/** bit is index in VL53L0XDevs that is not necessary the dev id of the BSP */
-int nDevMask;
-
-I2C_HandleTypeDef  XNUCLEO53L0A1_hi2c;
 
 VL53L0X_Dev_t VL53L0XDevs[]={
-        {.Id=XNUCLEO53L0A1_DEV_LEFT, .DevLetter='l', .I2cHandle=&hi2c2, .I2cDevAddr=0x52},
-        {.Id=XNUCLEO53L0A1_DEV_CENTER, .DevLetter='c', .I2cHandle=&hi2c2, .I2cDevAddr=0x52},
-        {.Id=XNUCLEO53L0A1_DEV_RIGHT, .DevLetter='r', .I2cHandle=&hi2c2, .I2cDevAddr=0x52},
+        {.Id=0, .DevLetter='l', .I2cHandle=&hi2c2, .I2cDevAddr=0x52},
+        {.Id=1, .DevLetter='c', .I2cHandle=&hi2c2, .I2cDevAddr=0x52},
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,8 +111,9 @@ void SetupSingleShot(){
     uint32_t refSpadCount;
     uint8_t isApertureSpads;
 
-    for( i=0; i<3; i++){
+    for( i=0; i<2; i++){
         if( VL53L0XDevs[i].Present){
+            printf("Initializing device #%d\r\n", i);
             status=VL53L0X_StaticInit(&VL53L0XDevs[i]);
             if( status ){
                 printf("VL53L0X_StaticInit %d fail",i);
@@ -143,7 +129,8 @@ void SetupSingleShot(){
 			   printf("VL53L0X_PerformRefSpadManagement");
 			}
 
-            status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
+            //status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
+            status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_CONTINUOUS_RANGING); // Setup in continuous ranging mode
             if( status ){
                printf("VL53L0X_SetDeviceMode");
             }
@@ -187,110 +174,132 @@ int main(void)
     serviceUART();
     printf("Hello. Rev 3\r\n");
 
-    MX_I2C1_Init();
+    //MX_I2C1_Init();
     MX_I2C2_Init();
     /* Initialize and start timestamping for UART logging */
     TimeStamp_Init();
     TimeStamp_Reset();
 
-    int i = 0;
-    uint8_t NewDataReady=0;
-    uint16_t Id;
     int status;
-    int FinalAddress;
     VL53L0X_Dev_t *pDev;
-    pDev = &VL53L0XDevs[i];
-    pDev->I2cDevAddr = 0x52;
-    pDev->Present = 0;
-//    status = XNUCLEO53L0A1_ResetId( pDev->Id, 1);
-    FinalAddress=0x52; //+(i+1)*2;
-    do {
-        status = VL53L0X_RdWord(pDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
-        if (status == VL53L0X_ERROR_CONTROL_INTERFACE){
-            printf("Control interface error.\r\n");
-        }
-        if (status) {
-            printf("#%d Read id fail\r\n", i);
+    int i;
+    for (i = 0; i < 2; i++) {
+        printf("Attempting to find rangefinder #%d...\r\n", i);
+        uint16_t Id;
+        pDev = &VL53L0XDevs[i];
+        pDev->I2cDevAddr = RANGE_I2C_ADDR_INITIAL;
+        pDev->Present = 0;
+        int FinalAddress = RANGE_I2C_ADDR_INITIAL + (2 * (i + 1));
+
+        // Enable the device by setting XSHUT pin high
+        switch (pDev->Id){
+        case 0:
+            HAL_GPIO_WritePin(RANGEX_XSHUT_GPIO_Port, RANGEX_XSHUT_Pin, GPIO_PIN_SET);
             break;
+        case 1:
+            HAL_GPIO_WritePin(RANGEY_XSHUT_GPIO_Port, RANGEY_XSHUT_Pin, GPIO_PIN_SET);
+            break;
+        default:
+            printf("Error: unknown device ID\r\n");
         }
-        if (Id == 0xEEAA) {
-            /* Sensor is found => Change its I2C address to final one */
-            status = VL53L0X_SetDeviceAddress(pDev,FinalAddress);
-            if (status != 0) {
-                printf("VL53L0X_SetDeviceAddress fail\r\n");
+        HAL_Delay(2); // MUST HAVE THIS OR ELSE 2ND SENSOR WONT WORK
+
+        /* Set I2C standard mode (400 KHz) before doing the first register access */
+        status = VL53L0X_WrByte(pDev, 0x88, 0x00);
+
+        do{
+            status = VL53L0X_RdWord(pDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
+            if (status == VL53L0X_ERROR_CONTROL_INTERFACE){
+                printf("Control interface error.\r\n");
+            }
+            if (status) {
+                printf("#%d Read id fail\r\n", i);
                 break;
             }
-            pDev->I2cDevAddr = FinalAddress;
-            /* Check all is OK with the new I2C address and initialize the sensor */
-            status = VL53L0X_RdWord(pDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
-            status = VL53L0X_DataInit(pDev);
-            if( status == 0 ){
+            if (Id == 0xEEAA) {
+                /* Sensor is found => Change its I2C address to final one */
+                status = VL53L0X_SetDeviceAddress(pDev,FinalAddress);
+                if (status != 0) {
+                    printf("VL53L0X_SetDeviceAddress fail\r\n");
+                    break;
+                }
+                pDev->I2cDevAddr = FinalAddress;
+                /* Check all is OK with the new I2C address and initialize the sensor */
+                status = VL53L0X_RdWord(pDev, VL53L0X_REG_IDENTIFICATION_MODEL_ID, &Id);
+                status = VL53L0X_DataInit(pDev);
+                if( status == 0 ){
+                    pDev->Present = 1;
+                }
+                else{
+                    printf("VL53L0X_DataInit %d fail\r\n", i);
+                    break;
+                }
+                printf("VL53L0X %d Present and initiated to final 0x%x\r\n", i, pDev->I2cDevAddr);
                 pDev->Present = 1;
             }
-            else{
-                printf("VL53L0X_DataInit %d fail\r\n", i);
-                break;
+            else {
+                printf("#%d unknown ID %x\r\n", i, Id);
+                status = 1;
             }
-            printf("VL53L0X %d Present and initiated to final 0x%x\r\n", i, pDev->I2cDevAddr);
-            nDevPresent++;
-            nDevMask |= 1 << i;
-            pDev->Present = 1;
-        }
-        else {
-            printf("#%d unknown ID %x\r\n", i, Id);
-            status = 1;
-        }
-    } while (0);
+        } while(0);
+    }
 
+    printf("Initializing devices\r\n");
     SetupSingleShot();
 
 //    printf("Enabling magnetometer.\r\n");
 //    LSM303_begin();
 //    printf("Reading magnetometer.\r\n");
+//
+    /* kick off measure on enabled devices */
+    for( i=0; i < 2; i++){
+        if(! VL53L0XDevs[i].Present){
+            printf("Missing range finder #%d\r\n.", i);
+            Error_Handler();
+        }
+        status = VL53L0X_StartMeasurement(&VL53L0XDevs[i]);
+        if( status ){
+            printf("VL53L0X_StartMeasurement failed on device %d\r\n",i);
+        }
+        VL53L0XDevs[i].Ready=0;
+    }
 
     // Main loop
+    printf("Starting main loop.\r\n");
+    uint8_t NewDataReady=0;
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-//        HAL_Delay(1000);
 
 //        LSM303_read();
 //        printf("Orient:%d\r\n", magData.orientation);
-        status = VL53L0X_StartMeasurement(&VL53L0XDevs[i]);
-        if( status ){
-            printf("VL53L0X_StartMeasurement failed on device %d",i);
-        }
 
-        /* Is new sample ready ? */
-        status = VL53L0X_GetMeasurementDataReady(&VL53L0XDevs[i], &NewDataReady);
-        if( status ){
-          printf("VL53L0X_GetMeasurementDataReady failed on device %d",i);
-        }
-        /* Skip if new sample not ready */
-        if (NewDataReady == 0)
-          continue;
-
-        /* Clear Interrupt */
-        status = VL53L0X_ClearInterruptMask(&VL53L0XDevs[i], 0);
-
-        /* Otherwise, get new sample data and store */
-        status = VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[i], &RangingMeasurementData);
-        if( status ){
-          printf("VL53L0X_GetRangingMeasurementData failed on device %d",i);
-        }
-        /* Data logging */
-       printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
-        if (RangingMeasurementData.RangeStatus == 0){ 
-//            char myStr[] = "";
-            size_t ii = 0;
-            for (ii = 0; ii < RangingMeasurementData.RangeMilliMeter / 10; ++ii ){
-                putchar('#');
+        for( i=0; i < 2; i++){
+            /* Is new sample ready ? */
+            status = VL53L0X_GetMeasurementDataReady(&VL53L0XDevs[i], &NewDataReady);
+            if( status ){
+              printf("VL53L0X_GetMeasurementDataReady failed on device %d\r\n",i);
             }
-            printf("\r\n");
-//            printf("%d\r\n", RangingMeasurementData.RangeMilliMeter);
-        }
-        Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
+            /* Skip if new sample not ready */
+            if (NewDataReady == 0){
+                continue;
+            }
 
+            /* Clear Interrupt */
+            status = VL53L0X_ClearInterruptMask(&VL53L0XDevs[i], 0);
+
+            /* Otherwise, get new sample data and store */
+            status = VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[i], &RangingMeasurementData);
+            if( status ){
+              printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n",i);
+            }
+            /* Data logging */
+//            printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
+            if (RangingMeasurementData.RangeStatus == 0){ 
+                printf("%d,%d\r\n", VL53L0XDevs[i].Id, RangingMeasurementData.RangeMilliMeter);
+                Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
+            }
+        }
     }
 }
 
