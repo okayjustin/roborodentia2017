@@ -279,9 +279,14 @@ int main(void)
         NewXDataReady = HAL_GPIO_ReadPin(RANGEX_INT_GPIO_Port, RANGEX_INT_Pin);
         NewYDataReady = HAL_GPIO_ReadPin(RANGEY_INT_GPIO_Port, RANGEY_INT_Pin);
 
-        /* Skip if new sample not ready */
-        if (NewXDataReady == GPIO_PIN_RESET){
-            i = 0;
+        while ((NewXDataReady == GPIO_PIN_RESET) || (NewYDataReady == GPIO_PIN_RESET)){
+            if (NewXDataReady == GPIO_PIN_RESET){
+                i = 0;
+                NewXDataReady = GPIO_PIN_SET;
+            } else if (NewYDataReady == GPIO_PIN_RESET){
+                i = 1;
+                NewYDataReady = GPIO_PIN_SET;
+            }
 
             /* Clear Interrupt */
             status = VL53L0X_ClearInterruptMask(&VL53L0XDevs[i], 0);
@@ -294,24 +299,6 @@ int main(void)
 //   printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
             if (RangingMeasurementData.RangeStatus == 0){ 
                 printf("%d,%d\r\n", VL53L0XDevs[i].Id, RangingMeasurementData.RangeMilliMeter);
-                Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
-            }
-        }
-
-        if (NewYDataReady == GPIO_PIN_RESET){
-            i = 1;
-
-            /* Clear Interrupt */
-            status = VL53L0X_ClearInterruptMask(&VL53L0XDevs[i], 0);
-
-            /* Get new sample data and store */
-            status = VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[i], &RangingMeasurementData);
-            if( status ){
-              printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n",i);
-            }
-//   printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
-            if (RangingMeasurementData.RangeStatus == 0){ 
-                printf("%d,%d\n", VL53L0XDevs[i].Id, RangingMeasurementData.RangeMilliMeter);
                 Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
             }
         }
