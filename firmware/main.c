@@ -135,7 +135,7 @@ void SetupSingleShot(){
                printf("VL53L0X_SetDeviceMode");
             }
 
-            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i],  200*1000);
+            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i],  33*1000);
             if( status ){
                printf("VL53L0X_SetMeasurementTimingBudgetMicroSeconds");
             }
@@ -266,37 +266,52 @@ int main(void)
 
     // Main loop
     printf("Starting main loop.\r\n");
-    uint8_t NewDataReady=0;
+    uint8_t NewXDataReady=0;
+    uint8_t NewYDataReady=0;
+
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-
 //        LSM303_read();
 //        printf("Orient:%d\r\n", magData.orientation);
 
-        for( i=0; i < 2; i++){
-            /* Is new sample ready ? */
-            status = VL53L0X_GetMeasurementDataReady(&VL53L0XDevs[i], &NewDataReady);
-            if( status ){
-              printf("VL53L0X_GetMeasurementDataReady failed on device %d\r\n",i);
-            }
-            /* Skip if new sample not ready */
-            if (NewDataReady == 0){
-                continue;
-            }
+        /* Is new sample ready ? */
+        NewXDataReady = HAL_GPIO_ReadPin(RANGEX_INT_GPIO_Port, RANGEX_INT_Pin);
+        NewYDataReady = HAL_GPIO_ReadPin(RANGEY_INT_GPIO_Port, RANGEY_INT_Pin);
+
+        /* Skip if new sample not ready */
+        if (NewXDataReady == GPIO_PIN_RESET){
+            i = 0;
 
             /* Clear Interrupt */
             status = VL53L0X_ClearInterruptMask(&VL53L0XDevs[i], 0);
 
-            /* Otherwise, get new sample data and store */
+            /* Get new sample data and store */
             status = VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[i], &RangingMeasurementData);
             if( status ){
               printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n",i);
             }
-            /* Data logging */
-//            printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
+//   printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
             if (RangingMeasurementData.RangeStatus == 0){ 
                 printf("%d,%d\r\n", VL53L0XDevs[i].Id, RangingMeasurementData.RangeMilliMeter);
+                Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
+            }
+        }
+
+        if (NewYDataReady == GPIO_PIN_RESET){
+            i = 1;
+
+            /* Clear Interrupt */
+            status = VL53L0X_ClearInterruptMask(&VL53L0XDevs[i], 0);
+
+            /* Get new sample data and store */
+            status = VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[i], &RangingMeasurementData);
+            if( status ){
+              printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n",i);
+            }
+//   printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
+            if (RangingMeasurementData.RangeStatus == 0){ 
+                printf("%d,%d\n", VL53L0XDevs[i].Id, RangingMeasurementData.RangeMilliMeter);
                 Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
             }
         }
