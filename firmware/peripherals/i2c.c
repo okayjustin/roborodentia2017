@@ -362,37 +362,36 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 } 
 
 // I2C read command(I2C handle, 7-bit address, data array, number of data bytes) 
-void I2C_Read (I2C_HandleTypeDef *hi2c, uint16_t addr, uint8_t *data, uint16_t size)
+//int _I2CRead(VL53L0X_DEV Dev, uint8_t *pdata, uint16_t count) {
+void I2C_Read (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t size)
 {
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    while ( HAL_I2C_Master_Receive_DMA(hi2c, addr << 1 | 1 , (uint8_t*)data, size) != HAL_OK){
-        if (HAL_I2C_GetError(hi2c) != HAL_I2C_ERROR_AF){
-            Error_Handler();
-        }
-    }
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+    int i2c_time_out = 10 + size * 1;
+    HAL_I2C_Master_Receive(hi2c, addr << 1 | 1, data, size, i2c_time_out);
+
+//    while ( HAL_I2C_Master_Receive_DMA(hi2c, addr << 1 | 1 , (uint8_t*)data, size) != HAL_OK){
+//        if (HAL_I2C_GetError(hi2c) != HAL_I2C_ERROR_AF){
+//            printf("Error in I2C_Read\r\n");
+//            Error_Handler();
+//        }
+//    }
 }
 
 // I2C write command(I2C handle, 7-bit address, data array, number of data bytes) 
-void I2C_Write (I2C_HandleTypeDef *hi2c, uint16_t addr, uint8_t *data, uint16_t size)
+void I2C_Write (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t size)
 {
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    while ( HAL_I2C_Master_Transmit_DMA(hi2c, addr << 1 | 0 , (uint8_t*)data, size) != HAL_OK){
-        if (HAL_I2C_GetError(hi2c) != HAL_I2C_ERROR_AF){
-            Error_Handler();
-        }
-    }
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+    int i2c_time_out = 10 + size * 1;
+    HAL_I2C_Master_Transmit(hi2c, addr << 1 | 0, data, size, i2c_time_out);
+
+//    while ( HAL_I2C_Master_Transmit_DMA(hi2c, addr << 1 | 0 , (uint8_t*)data, size) != HAL_OK){
+//        if (HAL_I2C_GetError(hi2c) != HAL_I2C_ERROR_AF){
+//            printf("Error in I2C_Write\r\n");
+//            Error_Handler();
+//        }
+//    }
 }
 
 void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c)
 {
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 }
 
 void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c)
@@ -401,8 +400,6 @@ void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c)
 //    data[0] = 0x20;
 //    data[1] = 0x0F;
 //    I2C_Write(&hi2c1, 0x1E, data, 2);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 }
 
 void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c)
@@ -424,6 +421,7 @@ void I2C1_EV_IRQHandler()
 // Interrupt handler for errors
 void I2C1_ER_IRQHandler()
 {
+    printf("Error in I2C1_ER_IRQHandler\r\n");
     HAL_I2C_ER_IRQHandler(&hi2c1);
 }
 
@@ -436,6 +434,7 @@ void I2C2_EV_IRQHandler()
 // Interrupt handler for errors
 void I2C2_ER_IRQHandler()
 {
+    printf("Error in I2C2_ER_IRQHandler\r\n");
     HAL_I2C_ER_IRQHandler(&hi2c2);
 }
 

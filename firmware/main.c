@@ -8,7 +8,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "config.h"
-//#include "lsm303.h"
+#include "lsm303.h"
 #include "vl53l0x_api.h"
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,7 +113,7 @@ void SetupSingleShot(){
 
     for( i=0; i<2; i++){
         if( VL53L0XDevs[i].Present){
-            printf("Initializing device #%d\r\n", i);
+            //printf("Initializing device #%d\r\n", i);
             status=VL53L0X_StaticInit(&VL53L0XDevs[i]);
             if( status ){
                 printf("VL53L0X_StaticInit %d fail",i);
@@ -176,6 +176,11 @@ int main(void)
 
     //MX_I2C1_Init();
     MX_I2C2_Init();
+
+    printf("Enabling magnetometer...\r\n");
+    LSM303_begin();
+    HAL_Delay(100);
+
     /* Initialize and start timestamping for UART logging */
     TimeStamp_Init();
     TimeStamp_Reset();
@@ -244,13 +249,11 @@ int main(void)
         } while(0);
     }
 
-    printf("Initializing devices\r\n");
+    printf("Initializing rangefinders...\r\n");
     SetupSingleShot();
+    printf("Done.\r\n");
 
-//    printf("Enabling magnetometer.\r\n");
-//    LSM303_begin();
-//    printf("Reading magnetometer.\r\n");
-//
+
     /* kick off measure on enabled devices */
     for( i=0; i < 2; i++){
         if(! VL53L0XDevs[i].Present){
@@ -272,8 +275,10 @@ int main(void)
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-//        LSM303_read();
-//        printf("Orient:%d\r\n", magData.orientation);
+        LSM303_read();
+        if (magData.orientation != magData.orientation_prev){
+            printf("2,%d\r\n", magData.orientation);
+        }
 
         /* Is new sample ready ? */
         NewXDataReady = HAL_GPIO_ReadPin(RANGEX_INT_GPIO_Port, RANGEX_INT_Pin);

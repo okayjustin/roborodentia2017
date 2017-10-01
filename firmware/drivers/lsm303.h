@@ -84,6 +84,7 @@ typedef struct lsm303MagData_s
     int16_t y_raw;
     int16_t z_raw;
     int16_t orientation;   // In units of degrees
+    int16_t orientation_prev;   // In units of degrees
 } lsm303MagData;
 
 void LSM303_begin (void);

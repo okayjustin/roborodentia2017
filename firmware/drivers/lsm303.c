@@ -45,11 +45,9 @@ void LSM303_read() {
     // Read the magnetometer
     uint8_t write_data[1] = {LSM303_REGISTER_MAG_OUT_X_H_M};
     I2C_Write(LSM303_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data, 1); 
-    HAL_Delay(1);
 
     uint8_t read_data[6];
-    I2C_Read (LSM303_I2C_INTERFACE, LSM303_ADDRESS_MAG, read_data, 6); 
-    HAL_Delay(1);
+    I2C_Read(LSM303_I2C_INTERFACE, LSM303_ADDRESS_MAG, read_data, 6); 
 
     // Shift values to create properly formed integer (low uint8_t first)
     magData.x_raw = (int16_t)(read_data[1] | ((int16_t)read_data[0] << 8));
@@ -61,6 +59,7 @@ void LSM303_read() {
 //    float z_uT = (float)(magData.z_raw);
 
     // Calculate orientation
+    magData.orientation_prev = magData.orientation;
     if (y_uT > 0){
         magData.orientation = (int16_t)(90.0 - atanf(x_uT / y_uT) * 180.0 / M_PI);
     }

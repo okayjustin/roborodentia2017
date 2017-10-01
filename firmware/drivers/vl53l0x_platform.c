@@ -1,6 +1,7 @@
 //?????#include "hal.h"
 #include "vl53l0x_platform.h"
 #include "vl53l0x_api.h"
+#include "i2c.h"
 
 // OLD
 //#include "stm32xxx_hal.h"
@@ -38,8 +39,9 @@
 
 uint8_t _I2CBuffer[64];
 
-int _I2CWrite(VL53L0X_DEV Dev, uint8_t *pdata, uint32_t count) {
-    int status;
+int _I2CWrite(VL53L0X_DEV Dev, uint8_t *pdata, uint16_t count) {
+//    I2C_Write(Dev->I2cHandle, Dev->I2cDevAddr >> 1, pdata, count); 
+    int status = 0;
     int i2c_time_out = I2C_TIME_OUT_BASE+ count* I2C_TIME_OUT_BYTE;
 
     status = HAL_I2C_Master_Transmit(Dev->I2cHandle, Dev->I2cDevAddr, pdata, count, i2c_time_out);
@@ -50,10 +52,12 @@ int _I2CWrite(VL53L0X_DEV Dev, uint8_t *pdata, uint32_t count) {
     return status;
 }
 
-int _I2CRead(VL53L0X_DEV Dev, uint8_t *pdata, uint32_t count) {
-    int status;
+int _I2CRead(VL53L0X_DEV Dev, uint8_t *pdata, uint16_t count) {
+    int status = 0;
     int i2c_time_out = I2C_TIME_OUT_BASE+ count* I2C_TIME_OUT_BYTE;
 
+//    I2C_Read(Dev->I2cHandle, Dev->I2cDevAddr >> 1, pdata, count); 
+//    HAL_Delay(1);
     status = HAL_I2C_Master_Receive(Dev->I2cHandle, Dev->I2cDevAddr|1, pdata, count, i2c_time_out);
     if (status) {
         //VL6180x_ErrLog("I2C error 0x%x %d len", dev->I2cAddr, len);
@@ -63,7 +67,7 @@ int _I2CRead(VL53L0X_DEV Dev, uint8_t *pdata, uint32_t count) {
 }
 
 // the ranging_sensor_comms.dll will take care of the page selection
-VL53L0X_Error VL53L0X_WriteMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata, uint32_t count) {
+VL53L0X_Error VL53L0X_WriteMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata, uint16_t count) {
     int status_int;
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     if (count > sizeof(_I2CBuffer) - 1) {
@@ -81,7 +85,7 @@ VL53L0X_Error VL53L0X_WriteMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata,
 }
 
 // the ranging_sensor_comms.dll will take care of the page selection
-VL53L0X_Error VL53L0X_ReadMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata, uint32_t count) {
+VL53L0X_Error VL53L0X_ReadMulti(VL53L0X_DEV Dev, uint8_t index, uint8_t *pdata, uint16_t count) {
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
     int32_t status_int;
     VL53L0X_GetI2cBus();
@@ -107,6 +111,7 @@ VL53L0X_Error VL53L0X_WrByte(VL53L0X_DEV Dev, uint8_t index, uint8_t data) {
     _I2CBuffer[1] = data;
 
     VL53L0X_GetI2cBus();
+
     status_int = _I2CWrite(Dev, _I2CBuffer, 2);
     if (status_int != 0) {
         Status = VL53L0X_ERROR_CONTROL_INTERFACE;
