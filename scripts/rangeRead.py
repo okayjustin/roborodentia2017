@@ -1,14 +1,72 @@
+#!/usr/local/bin/python3
+
 from __future__ import print_function
 import sys
 import time
 #import timeit
 import serial
 import numpy as np
-from pyqtgraph.Qt import QtCore, QtGui
+#from PyQt5.QtGui import *
+import PyQt5.QtGui as QtGui
+import PyQt5.QtCore as QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+#from PyQt5.QtCore import *
+#from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 from collections import deque
 
+AXIS_PLOT_SIZE = 200
+AXIS_PLOT_CORRECTION = 15
 MAX_HIST_LEN = 100
+
+class XYWidget(pg.GraphicsLayoutWidget):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+
+    def resizeEvent(self, resizeEvent):
+        if self.closed:
+            return
+        if self.autoPixelRange:
+            try:
+                ideal_height = self.parent().height() - 234
+                ideal_width = self.parent().width() - 249
+                if (ideal_height > ideal_width):
+                    self.range = QtCore.QRectF(0, 0, ideal_width, ideal_width)
+                else:
+                    self.range = QtCore.QRectF(0, 0, ideal_height, ideal_height)
+            except:
+                pass
+        super().setRange(self.range, padding=0, lockAspect=True, disableAutoPixel=False)
+        self.updateMatrix()
+
+    def sizeHint(self):
+        return QSize(10000, 10000)
+
+class XWidget(pg.GraphicsLayoutWidget):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+
+    def resizeEvent(self, resizeEvent):
+        if self.closed:
+            return
+        if self.autoPixelRange:
+            try:
+                ideal_height = self.parent().height() - 234
+                ideal_width = self.parent().width() - 249
+                if (ideal_height > ideal_width):
+                    self.range = QtCore.QRectF(0, 0, ideal_width, self.size().height())
+                else:
+                    self.range = QtCore.QRectF(0, 0, ideal_height, self.size().height())
+            except:
+                pass
+        super().setRange(self.range, padding=0, lockAspect=True, disableAutoPixel=False)
+        self.updateMatrix()
+
+    def sizeHint(self):
+        return QSize(10000, 10000)
+
 
 class App(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -17,26 +75,37 @@ class App(QtGui.QMainWindow):
         #### Create Gui Elements ###########
         self.mainbox = QtGui.QWidget()
         self.setCentralWidget(self.mainbox)
-        self.mainbox.setLayout(QtGui.QGridLayout())
 
-        self.canvas_x = pg.GraphicsLayoutWidget()
+        # Define layouts
+        self.mainbox.setLayout(QtGui.QBoxLayout(QBoxLayout.TopToBottom))
+        self.toprow = QHBoxLayout()
+        self.bottomrow = QHBoxLayout()
+
+        # Define widgets
+        self.canvas_x = XWidget()
+        self.canvas_x.setAlignment(Qt.AlignLeft)
+        self.canvas_x.setFixedHeight(AXIS_PLOT_SIZE)
         self.canvas_y = pg.GraphicsLayoutWidget()
-        self.canvas_xy = pg.GraphicsLayoutWidget()
-        self.mainbox.layout().addWidget(self.canvas_x, 1, 1, 1, 1)
-        self.mainbox.layout().addWidget(self.canvas_y, 0, 0, 1, 1)
-        self.mainbox.layout().addWidget(self.canvas_xy, 0, 1, 1, 1)
-        self.mainbox.layout().setColumnStretch(0, 1)
-        self.mainbox.layout().setColumnStretch(1, 4)
-        self.mainbox.layout().setRowStretch(0, 2)
-        self.mainbox.layout().setRowStretch(1, 1)
-
+        self.canvas_y.setFixedWidth(AXIS_PLOT_SIZE + AXIS_PLOT_CORRECTION)
+        self.canvas_xy = XYWidget()
+        self.canvas_xy.setAlignment(Qt.AlignLeft)
         self.label = QtGui.QLabel()
-        self.mainbox.layout().addWidget(self.label)
+        self.label.setFixedWidth(AXIS_PLOT_SIZE + AXIS_PLOT_CORRECTION)
 
+        # Add widgets/layouts to the layouts
+        self.toprow.addWidget(self.canvas_y, 0)
+        self.toprow.addWidget(self.canvas_xy, 1, Qt.AlignLeft)
+        self.bottomrow.addWidget(self.label, 0, Qt.AlignCenter)
+        self.bottomrow.addWidget(self.canvas_x, 1)
+        self.mainbox.layout().addLayout(self.toprow, 0)
+        self.mainbox.layout().addLayout(self.bottomrow, 1)
+
+        # Add things to the widgets
         self.plot_x = self.canvas_x.addPlot()
         self.plot_y = self.canvas_y.addPlot()
-        self.plot_xy = self.canvas_xy.addPlot(pen = None, symbol = 'o')
+        self.plot_xy = self.canvas_xy.addPlot(pen = None, symbol = 'o', setAspectLocked = True)
         self.plot_x.invertY()
+        self.plot_x.setRange(yRange=[0, MAX_HIST_LEN])
         self.plot_x.setRange(xRange=[0, 1000], yRange=[0, MAX_HIST_LEN])
         self.plot_y.invertX()
         self.plot_y.setRange(xRange=[0, MAX_HIST_LEN], yRange=[0, 1000])
@@ -48,13 +117,13 @@ class App(QtGui.QMainWindow):
 
         #### Set Data  #####################
         self.x = np.linspace(0, MAX_HIST_LEN + 1, num = MAX_HIST_LEN)
+        self.leak_factor = 0.01
 
         self.counter = 0
         self.fps = 0.
         self.lastupdate = time.time()
 
-        self.leak_factor = 0.01
-
+        self.ser_available = False
         self.ser = serial.Serial()
         self.ser.port = '/dev/tty.usbmodem1423'
         self.ser.baudrate = 115200
@@ -69,20 +138,20 @@ class App(QtGui.QMainWindow):
 
         try:
             self.ser.open()
+            self.ser_available = True
         except serial.serialutil.SerialException:
             print("Could not open port.")
-            quit()
 
         self.sensor_x = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
         self.sensor_y = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
 
         #### Start  #####################
-        self.ser.reset_input_buffer()
+        if (self.ser_available): self.ser.reset_input_buffer()
         self._update()
 
     def _update(self):
-        self.updateSensorValue()
-        self.updateSensorValue()
+        if (self.ser_available): self.updateSensorValue()
+        if (self.ser_available): self.updateSensorValue()
 
         self.hplot_x.setData(self.sensor_x, self.x)
         self.hplot_y.setData(self.sensor_y)
@@ -107,7 +176,6 @@ class App(QtGui.QMainWindow):
             readback_split = readback.decode().split(',')
             try:
                 if (len(readback_split) != 2):
-                    print(readback)
                     return
                 sensor_num = readback_split[0]
                 range_val_raw = int(readback_split[1])
