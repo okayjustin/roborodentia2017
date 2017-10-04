@@ -16,7 +16,6 @@ import pyqtgraph as pg
 from collections import deque
 
 AXIS_PLOT_SIZE = 250
-AXIS_PLOT_CORRECTION = 15
 MAX_HIST_LEN = 100
 LEAK_FACTOR_RANGEFINDER = 0.01  # Set from 0 to <1 for leaky integrator
 LEAK_FACTOR_MAG = 0.01    # Set from 0 to <1 for leaky integrator
@@ -87,7 +86,7 @@ class App(QtGui.QMainWindow):
         self.pgcanvas.ci.layout.setRowMaximumHeight(1, AXIS_PLOT_SIZE)
         self.positionlabel = QtGui.QLabel()
         self.fpslabel = QtGui.QLabel()
-        self.fpslabel.setFixedWidth(200)
+    #    self.fpslabel.setFixedWidth(200)
 
         # Add widgets/layouts to the layouts
         self.vlayout.addWidget(self.positionlabel)
@@ -98,11 +97,12 @@ class App(QtGui.QMainWindow):
 
         # XY plot
         self.plot_xy = self.pgcanvas.addPlot(0,1,labels={'bottom':'X distance (mm)','left':'Y distance(mm)'})
-        self.plot_xy.setAspectLocked(1)
+#        self.plot_xy.setAspectLocked(1)
         self.plot_xy.showGrid(1,1,255)
         self.plot_xy.getAxis('left').setTickSpacing(100, 50)
         self.plot_xy.getAxis('bottom').setTickSpacing(100, 50)
-        self.plot_xy.setRange(xRange=[0, 1000], yRange=[0, 1000])
+        self.plot_xy.setXRange(0, 1000, padding=0)
+        self.plot_xy.setYRange(0, 1000, padding=0)
 
         # Y range plot
         self.plot_y = self.pgcanvas.addPlot(0,0,labels={'bottom':'Latest sample #','left':'Y distance(mm)'})
@@ -110,7 +110,7 @@ class App(QtGui.QMainWindow):
         self.plot_y.getAxis('left').setTickSpacing(100, 50)
         self.plot_y.setYLink(self.plot_xy)
         self.plot_y.invertX()
-        self.plot_y.setRange(xRange=[0, MAX_HIST_LEN])
+        self.plot_y.setXRange(0, MAX_HIST_LEN, padding=0)
         self.hplot_y = self.plot_y.plot(pen='y')
 
         # X range plot
@@ -119,7 +119,7 @@ class App(QtGui.QMainWindow):
         self.plot_x.getAxis('bottom').setTickSpacing(100, 50)
         self.plot_x.setXLink(self.plot_xy)
         self.plot_x.invertY()
-        self.plot_x.setRange(yRange=[0, MAX_HIST_LEN])
+        self.plot_x.setYRange(0, MAX_HIST_LEN, padding=0)
         self.hplot_x = self.plot_x.plot(pen='y')
 
         # Position arrow
