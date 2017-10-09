@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import *
 import pyqtgraph as pg
 from collections import deque
 
-AXIS_PLOT_SIZE = 250
+AXIS_PLOT_SIZE = 400
 MAX_HIST_LEN = 100
 LEAK_FACTOR_RANGEFINDER = 0.01  # Set from 0 to <1 for leaky integrator
 LEAK_FACTOR_MAG = 0.01    # Set from 0 to <1 for leaky integrator
@@ -82,11 +82,11 @@ class App(QtGui.QMainWindow):
 
         # Define widgets
         self.pgcanvas = pg.GraphicsLayoutWidget()
-        self.pgcanvas.ci.layout.setColumnMaximumWidth(0, AXIS_PLOT_SIZE)
-        self.pgcanvas.ci.layout.setRowMaximumHeight(1, AXIS_PLOT_SIZE)
+#        self.pgcanvas.ci.layout.setColumnMaximumWidth(0, AXIS_PLOT_SIZE)
+#        self.pgcanvas.ci.layout.setRowMaximumHeight(1, AXIS_PLOT_SIZE)
         self.positionlabel = QtGui.QLabel()
         self.fpslabel = QtGui.QLabel()
-    #    self.fpslabel.setFixedWidth(200)
+        self.fpslabel.setFixedWidth(200)
 
         # Add widgets/layouts to the layouts
         self.vlayout.addWidget(self.positionlabel)
@@ -122,6 +122,14 @@ class App(QtGui.QMainWindow):
         self.plot_x.setYRange(0, MAX_HIST_LEN, padding=0)
         self.hplot_x = self.plot_x.plot(pen='y')
 
+        # Histogram plot
+        self.plot_hist = self.pgcanvas.addPlot(2,0,1,2,labels={'left':'Count','bottom':'Distance (mm)'}, symbol='o', symbolSize=5, symbolPen=(255,255,255,200), symbolBrush=(0,0,255,150))
+        self.plot_hist.showGrid(1,1,255)
+        self.plot_hist.getAxis('bottom').setTickSpacing(100, 50)
+        self.plot_hist.setXRange(0, 1000, padding=0)
+        self.plot_hist.setYRange(0, MAX_HIST_LEN, padding=0)
+        self.hplot_hist = self.plot_hist.plot( stepMode=True, fillLevel=0, brush=(0,0,255,150))
+
         # Position arrow
         self.abs_position_arrow = pg.ArrowItem(angle=0, tipAngle=45, headLen=15, tailLen=15, tailWidth=3, brush='y')
         self.abs_position_arrow.rotate(90)
@@ -129,6 +137,7 @@ class App(QtGui.QMainWindow):
 
         #### Set Data  #####################
         self.x = np.linspace(0, MAX_HIST_LEN + 1, num = MAX_HIST_LEN)
+        self.histbins = bins=np.linspace(0, 1000, 1000)
         self.fps = 0.
         self.lastupdate = time.time()
         self.sensor_x = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
@@ -154,12 +163,21 @@ class App(QtGui.QMainWindow):
     def _update(self):
         if (self.ser_available):
             self.updateSensorValue()
+            # Convert deques to lists for easier processing
+            sensor_x_list = list(self.sensor_x)
+            sensor_y_list = list(self.sensor_y)
+
+            # Calculate some stuff
+            y,x = np.histogram(sensor_x_list + sensor_y_list, self.histbins)
+            self.sensor_x_median = statistics.median(sensor_x_list[:MEDIAN_LENGTH])
+            self.sensor_y_median = statistics.median(sensor_y_list[:MEDIAN_LENGTH])
+            self.sensor_mag_homed = self.sensor_mag[0] - self.sensor_mag_ref
+
+            # Update plots
             self.hplot_x.setData(self.sensor_x, self.x)
             self.hplot_y.setData(self.sensor_y)
-            self.sensor_x_median = statistics.median(list(itertools.islice(self.sensor_x, 0, MEDIAN_LENGTH)))
-            self.sensor_y_median = statistics.median(list(itertools.islice(self.sensor_y, 0, MEDIAN_LENGTH)))
+            self.hplot_hist.setData(x,y)
             self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
-            self.sensor_mag_homed = self.sensor_mag[0] - self.sensor_mag_ref
             self.setArrowAngle(self.sensor_mag_homed)
 
         now = time.time()
@@ -208,7 +226,7 @@ class App(QtGui.QMainWindow):
     def openSerial(self):
         self.ser_available = False
         self.ser = serial.Serial()
-        self.ser.port = '/dev/tty.usbmodem1413'
+        self.ser.port = '/dev/tty.usbmodem1423'
         self.ser.baudrate = 115200
         self.ser.bytesize = serial.EIGHTBITS #number of bits per bytes
         self.ser.parity = serial.PARITY_NONE #set parity check: no parity
