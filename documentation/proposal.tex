@@ -87,6 +87,28 @@ Artificial neural networks (ANNs) are highly-capable alternatives to traditional
 
 
 \chapter{Introduction}
+\section{Kalman Filters}
+The system relies on several different sensors to determine where it is within the environment, a problem commonly referred to as robot localization. The \textit{Kalman Filter} (KF), an optimal state estimator, performs noise filtering and sensor fusion, the process of combining measurements from multiple sensors. 
+
+\subsection{Algorithm}
+The Kalman Filter algorithm and equations are reproduced here from Roger Labbe's excellent interactive, online book \autocite{labbe_2017}.
+\subsubsection*{Initialization}
+Before the first run of the filter, initialize the estimated state (\textbf{x}, also called the prior) and estimated state covariance matrix (\textbf{P}).
+\subsubsection*{Predict}
+During the predict phase, the process model is used to predict the future state (\textbf{\=x}, prior) after one time step by summing the current estimated state (\textbf{x}) multiplied by the \textit{state transition function} (\textbf{F}) with the xxxxxxx (\textbf{B}) multiplied by the xxxxxx(\textbf{u}). The covariance of prior (\textbf{\=P}) is larger than the estimated state covariance (\textbf{P}) due to uncertainty in the process model (\textbf{Q}).
+\begin{align*}
+\bar{\textbf{x}} &= \textbf{Fx} + \textbf{Bu}\\
+\bar{\textbf{P}} &= \textbf{FPF}^T + \textbf{Q}\\
+\end{align*}
+
+\subsubsection*{Update}
+Make measurements (\textbf{z}, measurement mean) and determine their accuracy (\textbf{R}, measurement noise covariance). Calculate the residual (\textbf{y}) between the measurement and the product of the measurement function (\textbf{H}) and the predicted state from the previous phase. Calculate the scaling factor (\textbf{K}, Kalman gain) based on whether the measurement or predicted state is more accurate. Set the next estimated state, \textbf{x}, between the measurement and predicted state based on \textbf{K}. Finally, update the estimated state covariance, \textbf{P}, based on the certainty in the measurement.
+\begin{align*}
+\textbf{y} &= \textbf{z} - \textbf{H}\bar{\textbf{x}}\\
+\textbf{K} &= \bar{\textbf{P}}\textbf{H}^T(\textbf{H}\bar{\textbf{P}}\textbf{H}^T+\textbf{R})^{-1}\\
+\textbf{x} &= \bar{\textbf{x}} + \textbf{Ky}\\
+\textbf{P} &= (\textbf{I}-\textbf{KH})\bar{\textbf{P}}\\
+\end{align*}
 
 \pagenumbering{arabic}
 \chapter{Project Plan (draft)}
@@ -171,6 +193,7 @@ Random citation \autocite{nguyen_widrow_1990} embeddeed in text.
 Random citation \autocite{DUMMY:1} embeddeed in text.
 
 Random citation \autocite{nguyen_widrow_1990} embeddeed in text.
+\autocite{negenborn_2003} \autocite{labbe_2017}
 
 \section{Accents}
 
