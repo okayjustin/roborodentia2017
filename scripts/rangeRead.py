@@ -20,7 +20,7 @@ from collections import deque
 
 LINK_PLOTS = False
 AXIS_PLOT_SIZE = 400
-MAX_HIST_LEN = 200
+MAX_HIST_LEN = 1000
 LEAK_FACTOR_RANGEFINDER = 0.01  # Set from 0 to <1 for leaky integrator
 LEAK_FACTOR_MAG = 0.01    # Set from 0 to <1 for leaky integrator
 MEDIAN_LENGTH = 10
@@ -111,14 +111,15 @@ class App(QtGui.QMainWindow):
         self.plot_xy.setYRange(0, 1000, padding=0)
 
         # Y range plot
-        self.plot_y = self.pgcanvas.addPlot(0,0,labels={'bottom':'Latest sample #','left':'Y distance(mm)'})
+        self.plot_y = self.pgcanvas.addPlot(0,0,labels={'left':'Latest sample #','bottom':'Y distance(mm)'})
         self.plot_y.showGrid(1,1,255)
         if (LINK_PLOTS):
             self.plot_y.getAxis('left').setTickSpacing(100, 50)
             self.plot_y.setYLink(self.plot_xy)
-        self.plot_y.invertX()
-        self.plot_y.setXRange(0, MAX_HIST_LEN, padding=0)
+        self.plot_y.invertY()
+        self.plot_y.setYRange(0, MAX_HIST_LEN, padding=0)
         self.plot_y_raw = self.plot_y.plot(pen='y')
+        self.plot_y_hist = self.plot_y.plot( stepMode=True, fillLevel=0, brush=(0,0,255,150))
 
         # X range plot
         self.plot_x = self.pgcanvas.addPlot(1,1,labels={'left':'Latest sample #','bottom':'X distance(mm)'})
@@ -130,14 +131,7 @@ class App(QtGui.QMainWindow):
         self.plot_x.setYRange(0, MAX_HIST_LEN, padding=0)
         self.plot_x_raw = self.plot_x.plot(pen='y')
         self.plot_x_kalman = self.plot_x.plot(pen='r')
-
-        # Histogram plot
-        self.plot_hist = self.pgcanvas.addPlot(2,0,1,2,labels={'left':'Count','bottom':'Distance (mm)'}, symbol='o', symbolSize=5, symbolPen=(255,255,255,200), symbolBrush=(0,0,255,150))
-        self.plot_hist.showGrid(1,1,255)
-        self.plot_hist.getAxis('bottom').setTickSpacing(100, 50)
-        self.plot_hist.setXRange(0, 1000, padding=0)
-        self.plot_hist.setYRange(0, MAX_HIST_LEN, padding=0)
-        self.plot_hist_data = self.plot_hist.plot( stepMode=True, fillLevel=0, brush=(0,0,255,150))
+        self.plot_x_hist = self.plot_x.plot( stepMode=True, fillLevel=0, brush=(0,0,255,150))
 
         # Position arrow
         self.abs_position_arrow = pg.ArrowItem(angle=0, tipAngle=45, headLen=15, tailLen=15, tailWidth=3, brush='y')
@@ -152,8 +146,11 @@ class App(QtGui.QMainWindow):
         self.sensor_x = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
         self.sensor_x_kalman = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
         self.sensor_x_median = 0
+        self.sensor_x_var = 0
+        self.sensor_x_kal_var = 0
         self.sensor_y = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
         self.sensor_y_median = 0
+        self.sensor_y_var = 0
         self.sensor_mag = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
         self.sensor_mag_ref = 0  # Stores the true compass home position angle
         self.sensor_mag_homed = 0    # Calculated angle relative to starting angle
@@ -169,6 +166,14 @@ class App(QtGui.QMainWindow):
         #### Start  #####################
         self._update()
 
+    # Gets the histogram but without empty bins
+    def reducedHistogram(self, data_list, bins):
+        y,x = np.histogram(data_list, bins)
+        nonzero_indices = np.nonzero(y)
+        y_reduced = y[nonzero_indices[0][0]:nonzero_indices[0][-1] + 1]
+        x_reduced = x[nonzero_indices[0][0]:nonzero_indices[0][-1] + 2]
+        return y_reduced, x_reduced
+
     def _update(self):
         if (self.ser_available):
             self.updateSensorValue()
@@ -179,21 +184,43 @@ class App(QtGui.QMainWindow):
             sensor_y_list = list(self.sensor_y)
 
             # Calculate some stuff
-            y,x = np.histogram(sensor_x_list + sensor_y_list, self.histbins)
+            plot_x_y,plot_x_x = self.reducedHistogram(sensor_x_list, self.histbins)
+            plot_y_y,plot_y_x = self.reducedHistogram(sensor_y_list, self.histbins)
             self.sensor_x_median = statistics.median(sensor_x_list[:MEDIAN_LENGTH])
+            self.sensor_x_var = np.var(sensor_x_list)
+            self.sensor_x_kal_var = np.var(sensor_x_kalman_list)
             self.sensor_y_median = statistics.median(sensor_y_list[:MEDIAN_LENGTH])
+            self.sensor_y_var = np.var(sensor_y_list)
             self.sensor_mag_homed = self.sensor_mag[0] - self.sensor_mag_ref
 
             # Update plots
             self.plot_x_raw.setData(self.sensor_x, self.x)
             self.plot_x_kalman.setData(self.sensor_x_kalman, self.x)
-            self.plot_y_raw.setData(self.sensor_y)
-            self.plot_hist_data.setData(x,y)
+            self.plot_y_raw.setData(self.sensor_y, self.x)
+            self.plot_x_hist.setData(plot_x_x,plot_x_y)
+            self.plot_y_hist.setData(plot_y_x,plot_y_y)
             self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
-            self.setArrowAngle(self.sensor_mag_homed / 10)
+            self.setArrowAngle(self.sensor_mag_homed / 10.0)
         else:
             # If no serial available, try to open a new one
             self.openSerial()
+
+        # Update the labels on the side
+        x_pos_str =     '    Median X: %3d mm\n' % self.sensor_x_median
+        x_var_str =     '    Var X: %0.2f mm\n' % self.sensor_x_var
+        x_kal_var_str = '    Var Kal X: %0.2f mm\n' % self.sensor_x_kal_var
+        x_var_ratio_str = '    Var ratio X: 0\n'
+        try:
+            x_var_ratio_str = '    Var ratio X: %0.2f\n' % (self.sensor_x_kal_var / self.sensor_x_var)
+        except:
+            pass
+        y_pos_str =     '    Median Y: %3d mm\n' % self.sensor_y_median
+        y_var_str =     '    Var y: %0.2f mm\n' % self.sensor_y_var
+        angle_str =     '    Angle: %0.1f deg\n' % (self.sensor_mag_homed / 10.0)
+        raw_angle_str = '    Raw angle: %0.1f deg\n' % (self.sensor_mag[0] / 10.0)
+        ref_angle_str = '    Ref angle: %0.1f deg\n' % (self.sensor_mag_ref / 10.0)
+        positionlabel_str = 'Position: \n' + x_pos_str+x_var_str+x_kal_var_str+x_var_ratio_str+y_pos_str+y_var_str+angle_str+raw_angle_str+ref_angle_str
+        self.positionlabel.setText(positionlabel_str)
 
         now = time.time()
         dt = (now-self.lastupdate)
@@ -202,10 +229,7 @@ class App(QtGui.QMainWindow):
         fps2 = 1.0 / dt
         self.lastupdate = now
         self.fps = self.fps * 0.9 + fps2 * 0.1
-        tx = 'Mean Frame Rate:  {fps:0.0f} FPS'.format(fps=self.fps )
-        pos_str = 'Position: \n    X: %3d mm\n    Y: %3d mm\n    Angle: %3d deg\n    Raw angle: %3d deg\n    Ref angle: %3d deg' % (self.sensor_x_median, self.sensor_y_median, self.sensor_mag_homed, self.sensor_mag[0], self.sensor_mag_ref)
-        self.positionlabel.setText(pos_str)
-        self.fpslabel.setText(tx)
+        self.fpslabel.setText('Mean Frame Rate:  {fps:0.0f} FPS'.format(fps=self.fps))
         QtCore.QTimer.singleShot(1, self._update)
 
     def updateSensorValue(self):
