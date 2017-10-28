@@ -20,7 +20,7 @@ from collections import deque
 
 LINK_PLOTS = False
 AXIS_PLOT_SIZE = 400
-MAX_HIST_LEN = 100
+MAX_HIST_LEN = 200
 LEAK_FACTOR_RANGEFINDER = 0.01  # Set from 0 to <1 for leaky integrator
 LEAK_FACTOR_MAG = 0.01    # Set from 0 to <1 for leaky integrator
 MEDIAN_LENGTH = 10
@@ -190,7 +190,7 @@ class App(QtGui.QMainWindow):
             self.plot_y_raw.setData(self.sensor_y)
             self.plot_hist_data.setData(x,y)
             self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
-            self.setArrowAngle(self.sensor_mag_homed)
+            self.setArrowAngle(self.sensor_mag_homed / 10)
         else:
             # If no serial available, try to open a new one
             self.openSerial()
@@ -219,9 +219,9 @@ class App(QtGui.QMainWindow):
                             print(len(readback_split))
                             return
                         timestamp = readback_split[0]
-                        mag_val_raw = int (readback_split[1])
-                        rangeX_val_raw = int(readback_split[2])
-                        rangeY_val_raw = int(readback_split[3])
+                        mag_val_raw = int (readback_split[1])  # units of 0.1 degree
+                        rangeX_val_raw = int(readback_split[2])  # units of mm
+                        rangeY_val_raw = int(readback_split[3])  # units of mm
                     except ValueError:
                         print("Readback error: ",end='')
                         print(readback)

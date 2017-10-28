@@ -310,7 +310,7 @@ int main(void)
         rangefinderRead(0);
         rangefinderRead(1);
         printf("%lu,%d,%d,%d\r\n", TimeStamp_Get(), magData.orientation, rangeMillimeterX, rangeMillimeterY);
-        HAL_Delay(30);
+        HAL_Delay(10);
     }
 }
 
