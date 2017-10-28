@@ -19,7 +19,10 @@
 /**
  * Global ranging struct
  */
-VL53L0X_RangingMeasurementData_t RangingMeasurementData;
+VL53L0X_RangingMeasurementData_t RangingMeasurementDataX;
+VL53L0X_RangingMeasurementData_t RangingMeasurementDataY;
+uint16_t rangeMillimeterX = 0;
+uint16_t rangeMillimeterY = 0;
 
 /** leaky factor for filtered range
  * r(n) = averaged_r(n-1)*leaky +r(n)(1-leaky)
@@ -222,6 +225,36 @@ void VL53L0X_SetupSingleShot(){
     }
 }
 
+// Updates the range measurement of a particular rangefinder
+void rangefinderRead(int id){
+    if (id == 0){
+        if (HAL_GPIO_ReadPin(RANGEX_INT_GPIO_Port, RANGEX_INT_Pin)){
+            return; // New data not ready
+        }
+        VL53L0X_ClearInterruptMask(&VL53L0XDevs[0], 0);
+        if (VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[0], &RangingMeasurementDataX)){
+            printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n", id);
+        }
+        if (RangingMeasurementDataX.RangeStatus == 0){ 
+            Sensor_SetNewRange(&VL53L0XDevs[0],&RangingMeasurementDataX);
+            rangeMillimeterX = RangingMeasurementDataX.RangeMilliMeter;
+        }
+    } else {
+        if (HAL_GPIO_ReadPin(RANGEY_INT_GPIO_Port, RANGEY_INT_Pin)){
+            return; // New data not ready
+        }
+        VL53L0X_ClearInterruptMask(&VL53L0XDevs[1], 0);
+        if (VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[1], &RangingMeasurementDataY)){
+            printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n", id);
+        }
+        if (RangingMeasurementDataY.RangeStatus == 0){ 
+            Sensor_SetNewRange(&VL53L0XDevs[1],&RangingMeasurementDataY);
+            rangeMillimeterY = RangingMeasurementDataY.RangeMilliMeter;
+        }
+    }
+//    printf("%d,%d\r\n", VL53L0XDevs[i].Id, RangingMeasurementData.RangeMilliMeter);
+//   printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
+}
 
 
 void _init(void) {return;}
@@ -267,62 +300,20 @@ int main(void)
     printf("Initializing rangefinders...\r\n");
     VL53L0X_begin();
     VL53L0X_SetupSingleShot();
-
-//    /* kick off measure on enabled devices */
-//    for( i=0; i < 2; i++){
-//        status = VL53L0X_StartMeasurement(&VL53L0XDevs[i]);
-//        if( status ){
-//            printf("VL53L0X_StartMeasurement failed on device %d\r\n",i);
-//        }
-//        VL53L0XDevs[i].Ready=0;
-//    }
     printf("Done initializing rangefinders.\r\n");
 
     // Main loop
-    printf("Starting main loop.\r\n");
-    uint8_t NewXDataReady=0;
-    uint8_t NewYDataReady=0;
-
     while (1)
     {
-        int i = 0;
-        int status;
-
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         LSM303_read();
-        if (magData.orientation != magData.orientation_prev){
-            printf("2,%d\r\n", magData.orientation);
-        }
-
-        /* Is new sample ready ? */
-        NewXDataReady = HAL_GPIO_ReadPin(RANGEX_INT_GPIO_Port, RANGEX_INT_Pin);
-        NewYDataReady = HAL_GPIO_ReadPin(RANGEY_INT_GPIO_Port, RANGEY_INT_Pin);
-
-        while ((NewXDataReady == GPIO_PIN_RESET) || (NewYDataReady == GPIO_PIN_RESET)){
-            if (NewXDataReady == GPIO_PIN_RESET){
-                i = 0;
-                NewXDataReady = GPIO_PIN_SET;
-            } else if (NewYDataReady == GPIO_PIN_RESET){
-                i = 1;
-                NewYDataReady = GPIO_PIN_SET;
-            }
-
-            /* Clear Interrupt */
-            status = VL53L0X_ClearInterruptMask(&VL53L0XDevs[i], 0);
-
-            /* Get new sample data and store */
-            status = VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[i], &RangingMeasurementData);
-            if( status ){
-              printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n",i);
-            }
-//   printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
-            if (RangingMeasurementData.RangeStatus == 0){ 
-                printf("%d,%d\r\n", VL53L0XDevs[i].Id, RangingMeasurementData.RangeMilliMeter);
-                Sensor_SetNewRange(&VL53L0XDevs[i],&RangingMeasurementData);
-            }
-        }
+        rangefinderRead(0);
+        rangefinderRead(1);
+        printf("%lu,%d,%d,%d\r\n", TimeStamp_Get(), magData.orientation, rangeMillimeterX, rangeMillimeterY);
+        HAL_Delay(30);
     }
 }
+
 
 // Execute a command from the console
 void consoleCommand(uint8_t *ptr, int len)

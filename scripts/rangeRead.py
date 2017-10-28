@@ -88,11 +88,13 @@ class App(QtGui.QMainWindow):
         self.pgcanvas = pg.GraphicsLayoutWidget()
 #        self.pgcanvas.ci.layout.setColumnMaximumWidth(0, AXIS_PLOT_SIZE)
 #        self.pgcanvas.ci.layout.setRowMaximumHeight(1, AXIS_PLOT_SIZE)
+        self.serialStatuslabel = QtGui.QLabel()
         self.positionlabel = QtGui.QLabel()
         self.fpslabel = QtGui.QLabel()
         self.fpslabel.setFixedWidth(200)
 
         # Add widgets/layouts to the layouts
+        self.vlayout.addWidget(self.serialStatuslabel)
         self.vlayout.addWidget(self.positionlabel)
         self.vlayout.addWidget(self.fpslabel)
         self.hlayout.addWidget(self.pgcanvas)
@@ -158,6 +160,7 @@ class App(QtGui.QMainWindow):
         self.sensor_mag.appendleft(-1)  # Append -1 so we can track when to set the home angle
         self.arrow_angle = 0
         self.ser_available = False
+        self.serialStatuslabel.setText('Serial: not connected.')
 
         # create the Kalman filter
         P = np.diag([500., 49.])
@@ -209,42 +212,46 @@ class App(QtGui.QMainWindow):
         if (self.ser_available):
             try:
                 while (self.ser.in_waiting > 0):
-                    #print(self.ser.read())
-                    #break
                     readback = self.ser.readline()
                     readback_split = readback.decode().split(',')
                     try:
-                        if (len(readback_split) != 2):
+                        if (len(readback_split) != 4):
+                            print(len(readback_split))
                             return
-                        sensor_num = readback_split[0]
-                        range_val_raw = int(readback_split[1])
+                        timestamp = readback_split[0]
+                        mag_val_raw = int (readback_split[1])
+                        rangeX_val_raw = int(readback_split[2])
+                        rangeY_val_raw = int(readback_split[3])
                     except ValueError:
+                        print("Readback error: ",end='')
                         print(readback)
                         return
-                    if (sensor_num == '0'):  # Rangefinder x
-                        if (range_val_raw > 1000):
-                            range_val_raw = 1000
-                        filt_val = int(self.sensor_x[0] * LEAK_FACTOR_RANGEFINDER + range_val_raw * (1 - LEAK_FACTOR_RANGEFINDER))
-                        self.kf.predict()
-                        self.kf.update(filt_val)
 
-                        self.sensor_x.appendleft(filt_val)
-                        self.sensor_x_kalman.appendleft(self.kf.x[0])
-                    elif (sensor_num == '1'):  # Rangefinder y
-                        if (range_val_raw > 1000):
-                            range_val_raw = 1000
-                        filt_val = int(self.sensor_y[0] * LEAK_FACTOR_RANGEFINDER + range_val_raw * (1 - LEAK_FACTOR_RANGEFINDER))
-                        self.sensor_y.appendleft(filt_val)
-                    elif (sensor_num == '2'):  # Magnetometer
-                        filt_val = int(self.sensor_mag[0] * LEAK_FACTOR_MAG + range_val_raw * (1 - LEAK_FACTOR_MAG))
-                        self.sensor_mag.appendleft(filt_val)
+                    # Process magnetometer data
+                    filt_val = int(self.sensor_mag[0] * LEAK_FACTOR_MAG + mag_val_raw * (1 - LEAK_FACTOR_MAG))
+                    self.sensor_mag.appendleft(filt_val)
 
-                        # Use first angle measurement as the reference angle
-                        if (self.sensor_mag[1] == -1):
-                            self.sensor_mag_ref = self.sensor_mag[0]
+                    # Use first angle measurement as the reference angle
+                    if (self.sensor_mag[1] == -1):
+                        self.sensor_mag_ref = self.sensor_mag[0]
+
+                    # Process rangefinder X
+                    if (rangeX_val_raw > 1000):
+                        rangeX_val_raw = 1000
+                    self.kf.predict()
+                    self.kf.update(rangeX_val_raw)
+                    self.sensor_x.appendleft(rangeX_val_raw)
+                    self.sensor_x_kalman.appendleft(self.kf.x[0])
+
+                    # Process rangefinder Y
+                    if (rangeY_val_raw > 1000):
+                        rangeY_val_raw = 1000
+                    filt_val = int(self.sensor_y[0] * LEAK_FACTOR_RANGEFINDER + rangeY_val_raw * (1 - LEAK_FACTOR_RANGEFINDER))
+                    self.sensor_y.appendleft(filt_val)
 
             except OSError:
                 self.ser_available = False
+                self.serialStatuslabel.setText('Serial: not connected.')
 
     def setArrowAngle(self, angle):
         self.abs_position_arrow.rotate(angle - self.arrow_angle)
@@ -254,9 +261,7 @@ class App(QtGui.QMainWindow):
         ports = ['/dev/tty.usbmodem1413', '/dev/tty.usbmodem1423']
         self.ser_available = False
         self.ser = serial.Serial()
-        #self.ser.baudrate = 115200
         self.ser.baudrate = 921600
-        #self.ser.baudrate = 1843200
         self.ser.bytesize = serial.EIGHTBITS #number of bits per bytes
         self.ser.parity = serial.PARITY_NONE #set parity check: no parity
         self.ser.stopbits = serial.STOPBITS_ONE #number of stop bits
@@ -272,6 +277,7 @@ class App(QtGui.QMainWindow):
                 self.ser.open()
                 self.ser.reset_input_buffer()
                 self.ser_available = True
+                self.serialStatuslabel.setText('Serial: connected.')
                 break
             except serial.serialutil.SerialException:
                 pass
@@ -279,6 +285,7 @@ class App(QtGui.QMainWindow):
     def closeSerial(self):
         self.ser.close()
         self.ser_available = False
+        self.serialStatuslabel.setText('Serial: not connected.')
 
     def closeEvent(self, *args, **kwargs):
         super(QtGui.QMainWindow, self).closeEvent(*args, **kwargs)
