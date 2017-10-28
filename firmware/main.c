@@ -100,91 +100,8 @@ uint32_t TimeStamp_Get(){
     return htim5.Instance->CNT;
 }
 
-/**
- *  Setup all sensors for single shot mode
- */
-void SetupSingleShot(){
-    int i;
-    int status;
-    uint8_t VhvSettings;
-    uint8_t PhaseCal;
-    uint32_t refSpadCount;
-    uint8_t isApertureSpads;
 
-    for( i=0; i<2; i++){
-        if( VL53L0XDevs[i].Present){
-            //printf("Initializing device #%d\r\n", i);
-            status=VL53L0X_StaticInit(&VL53L0XDevs[i]);
-            if( status ){
-                printf("VL53L0X_StaticInit %d fail",i);
-            }
-
-            status = VL53L0X_PerformRefCalibration(&VL53L0XDevs[i], &VhvSettings, &PhaseCal);
-			if( status ){
-			   printf("VL53L0X_PerformRefCalibration");
-			}
-
-			status = VL53L0X_PerformRefSpadManagement(&VL53L0XDevs[i], &refSpadCount, &isApertureSpads);
-			if( status ){
-			   printf("VL53L0X_PerformRefSpadManagement");
-			}
-
-            //status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
-            status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_CONTINUOUS_RANGING); // Setup in continuous ranging mode
-            if( status ){
-               printf("VL53L0X_SetDeviceMode");
-            }
-
-            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i],  33*1000);
-            if( status ){
-               printf("VL53L0X_SetMeasurementTimingBudgetMicroSeconds");
-            }
-            VL53L0XDevs[i].LeakyFirst=1;
-        }
-    }
-}
-
-
-
-void _init(void) {return;}
-
-int main(void)
-{
-    // Initialize all clocks so we don't run into weird clock problems...
-    RCC->AHB1ENR |= 0xFFFFFFFF;
-    RCC->AHB2ENR |= 0xFFFFFFFF;
-    RCC->AHB3ENR |= 0xFFFFFFFF;
-    RCC->APB1ENR |= 0xFFFFFFFF;
-    RCC->APB2ENR |= 0xFFFFFFFF;
-
-    // Reset of all peripherals, Initializes the Flash interface and the Systick
-    HAL_Init();
-    // Configure the system clock to 180 MHz
-    SystemClock_Config();
-    // Initialize all the board IO
-    //Board_GPIO_Init();
-    MX_GPIO_Init();
-    MX_DMA_Init();
-    MX_USART2_UART_Init();
-    MX_TIM1_Init();
-    MX_TIM3_Init();
-    MX_TIM10_Init();
-    MX_TIM11_Init();
-
-    serviceUART();
-    printf("Hello. Rev 3\r\n");
-
-    //MX_I2C1_Init();
-    MX_I2C2_Init();
-
-    printf("Enabling magnetometer...\r\n");
-    LSM303_begin();
-    HAL_Delay(100);
-
-    /* Initialize and start timestamping for UART logging */
-    TimeStamp_Init();
-    TimeStamp_Reset();
-
+void VL53L0X_begin(){
     int status;
     VL53L0X_Dev_t *pDev;
     int i;
@@ -207,7 +124,7 @@ int main(void)
         default:
             printf("Error: unknown device ID\r\n");
         }
-        HAL_Delay(2); // MUST HAVE THIS OR ELSE 2ND SENSOR WONT WORK
+        HAL_Delay(3); // MUST HAVE THIS OR ELSE 2ND SENSOR WONT WORK
 
         /* Set I2C standard mode (400 KHz) before doing the first register access */
         status = VL53L0X_WrByte(pDev, 0x88, 0x00);
@@ -248,24 +165,118 @@ int main(void)
             }
         } while(0);
     }
+}
 
-    printf("Initializing rangefinders...\r\n");
-    SetupSingleShot();
-    printf("Done.\r\n");
+/**
+ *  Setup all sensors for single shot mode
+ */
+void VL53L0X_SetupSingleShot(){
+    int i;
+    int status;
+    uint8_t VhvSettings;
+    uint8_t PhaseCal;
+    uint32_t refSpadCount;
+    uint8_t isApertureSpads;
 
+    for( i=0; i<2; i++){
+        if( VL53L0XDevs[i].Present){
+            //printf("Initializing device #%d\r\n", i);
+            status=VL53L0X_StaticInit(&VL53L0XDevs[i]);
+            if( status ){
+                printf("VL53L0X_StaticInit %d fail",i);
+            }
 
-    /* kick off measure on enabled devices */
-    for( i=0; i < 2; i++){
-        if(! VL53L0XDevs[i].Present){
+            status = VL53L0X_PerformRefCalibration(&VL53L0XDevs[i], &VhvSettings, &PhaseCal);
+			if( status ){
+			   printf("VL53L0X_PerformRefCalibration");
+			}
+
+			status = VL53L0X_PerformRefSpadManagement(&VL53L0XDevs[i], &refSpadCount, &isApertureSpads);
+			if( status ){
+			   printf("VL53L0X_PerformRefSpadManagement");
+			}
+
+            //status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
+            status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_CONTINUOUS_RANGING); // Setup in continuous ranging mode
+            if( status ){
+               printf("VL53L0X_SetDeviceMode");
+            }
+
+            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i],  33*1000);
+            if( status ){
+               printf("VL53L0X_SetMeasurementTimingBudgetMicroSeconds");
+            }
+            VL53L0XDevs[i].LeakyFirst=1;
+
+            status = VL53L0X_StartMeasurement(&VL53L0XDevs[i]);
+            if( status ){
+                printf("VL53L0X_StartMeasurement failed on device %d\r\n",i);
+                Error_Handler();
+            }
+            VL53L0XDevs[i].Ready=0;
+        }
+        else {
             printf("Missing range finder #%d\r\n.", i);
             Error_Handler();
         }
-        status = VL53L0X_StartMeasurement(&VL53L0XDevs[i]);
-        if( status ){
-            printf("VL53L0X_StartMeasurement failed on device %d\r\n",i);
-        }
-        VL53L0XDevs[i].Ready=0;
     }
+}
+
+
+
+void _init(void) {return;}
+
+int main(void)
+{
+    // Initialize all clocks so we don't run into weird clock problems...
+    RCC->AHB1ENR |= 0xFFFFFFFF;
+    RCC->AHB2ENR |= 0xFFFFFFFF;
+    RCC->AHB3ENR |= 0xFFFFFFFF;
+    RCC->APB1ENR |= 0xFFFFFFFF;
+    RCC->APB2ENR |= 0xFFFFFFFF;
+
+    // Reset of all peripherals, Initializes the Flash interface and the Systick
+    HAL_Init();
+    // Configure the system clock to 180 MHz
+    SystemClock_Config();
+    // Initialize all the board IO
+    //Board_GPIO_Init();
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_USART2_UART_Init();
+    MX_TIM1_Init();
+    MX_TIM3_Init();
+    MX_TIM10_Init();
+    MX_TIM11_Init();
+
+    serviceUART();
+    printf("Hello. Rev 3\r\n");
+
+    //MX_I2C1_Init();
+    MX_I2C2_Init();
+
+    printf("Enabling magnetometer...\r\n");
+    LSM303_begin();
+    printf("Done enabling magnetometer...\r\n");
+    HAL_Delay(100);
+
+    /* Initialize and start timestamping for UART logging */
+    TimeStamp_Init();
+    TimeStamp_Reset();
+
+    printf("Initializing rangefinders...\r\n");
+    VL53L0X_begin();
+    VL53L0X_SetupSingleShot();
+
+//    /* kick off measure on enabled devices */
+//    for( i=0; i < 2; i++){
+//        status = VL53L0X_StartMeasurement(&VL53L0XDevs[i]);
+//        if( status ){
+//            printf("VL53L0X_StartMeasurement failed on device %d\r\n",i);
+//        }
+//        VL53L0XDevs[i].Ready=0;
+//    }
+    printf("Done initializing rangefinders.\r\n");
 
     // Main loop
     printf("Starting main loop.\r\n");
@@ -274,6 +285,9 @@ int main(void)
 
     while (1)
     {
+        int i = 0;
+        int status;
+
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
         LSM303_read();
         if (magData.orientation != magData.orientation_prev){

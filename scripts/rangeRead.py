@@ -209,6 +209,8 @@ class App(QtGui.QMainWindow):
         if (self.ser_available):
             try:
                 while (self.ser.in_waiting > 0):
+                    #print(self.ser.read())
+                    #break
                     readback = self.ser.readline()
                     readback_split = readback.decode().split(',')
                     try:
@@ -252,7 +254,9 @@ class App(QtGui.QMainWindow):
         ports = ['/dev/tty.usbmodem1413', '/dev/tty.usbmodem1423']
         self.ser_available = False
         self.ser = serial.Serial()
-        self.ser.baudrate = 115200
+        #self.ser.baudrate = 115200
+        self.ser.baudrate = 921600
+        #self.ser.baudrate = 1843200
         self.ser.bytesize = serial.EIGHTBITS #number of bits per bytes
         self.ser.parity = serial.PARITY_NONE #set parity check: no parity
         self.ser.stopbits = serial.STOPBITS_ONE #number of stop bits
