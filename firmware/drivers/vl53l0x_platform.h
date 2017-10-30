@@ -32,14 +32,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "vl53l0x_def.h"
 #include "vl53l0x_platform_log.h"
+#include "i2c.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// OLD:
-//#include "stm32xxx_hal.h"
-// NEW:
 #include "stm32f4xx_hal.h"
 
 
@@ -263,6 +261,7 @@ VL53L0X_Error VL53L0X_PollingDelay(VL53L0X_DEV Dev); /* usually best implemented
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif  /* _VL53L0X_PLATFORM_H_ */
 

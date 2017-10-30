@@ -60,9 +60,9 @@ SOURCES += $(DRIVERS)/lsm303.c \
 			$(DRIVERS)/vl53l0x/vl53l0x_api_calibration.c \
 			$(DRIVERS)/vl53l0x/vl53l0x_api_core.c \
 			$(DRIVERS)/vl53l0x/vl53l0x_api_strings.c \
-			$(DRIVERS)/vl53l0x_platform.c
+			$(DRIVERS)/vl53l0x_platform.c \
+			$(DRIVERS)/vl53l0x_top.c
 #			$(DRIVERS)/vl53l0x/vl53l0x_api_ranging.c \
-			$(DRIVERS)/vl53l0x/vl53l0x_api.c \
 #			$(DRIVERS)/vl53l0x/vl53l0x_api_platform_log.c 
 #		   $(DRIVERS)/comms.c \
 		   $(DRIVERS)/console.c \

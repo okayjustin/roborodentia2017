@@ -1,29 +1,25 @@
 #!/usr/local/bin/python3
 
-#import filterpy
 from filterpy.kalman import KalmanFilter
 from filterpy.common import Q_discrete_white_noise
 import itertools, statistics, sys, time, math
 #import timeit
 import serial
 import numpy as np
-#from PyQt5.QtGui import *
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-#from PyQt5.QtCore import *
-#from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
 from collections import deque
 
 LINK_PLOTS = False
 AXIS_PLOT_SIZE = 400
-MAX_HIST_LEN = 1000
+MAX_HIST_LEN = 500
 LEAK_FACTOR_RANGEFINDER = 0.01  # Set from 0 to <1 for leaky integrator
 LEAK_FACTOR_MAG = 0.01    # Set from 0 to <1 for leaky integrator
-MEDIAN_LENGTH = 10
+MEDIAN_LENGTH = 30
 
 class XYWidget(pg.GraphicsLayoutWidget):
     def __init__(self, parent = None):
@@ -161,7 +157,7 @@ class App(QtGui.QMainWindow):
 
         # create the Kalman filter
         P = np.diag([500., 49.])
-        self.kf = self.pos_vel_filter(x=(0,0), R=2, P=P, Q=0.01, dt=0.3)
+        self.kf = self.pos_vel_filter(x=(250,0), R=5, P=P, Q=0, dt=0.3)
 
         #### Start  #####################
         self._update()
@@ -186,7 +182,7 @@ class App(QtGui.QMainWindow):
             # Calculate some stuff
             plot_x_y,plot_x_x = self.reducedHistogram(sensor_x_list, self.histbins)
             plot_y_y,plot_y_x = self.reducedHistogram(sensor_y_list, self.histbins)
-            self.sensor_x_median = statistics.median(sensor_x_list[:MEDIAN_LENGTH])
+            self.sensor_x_median = statistics.median(sensor_x_kalman_list[:MEDIAN_LENGTH])
             self.sensor_x_var = np.var(sensor_x_list)
             self.sensor_x_kal_var = np.var(sensor_x_kalman_list)
             self.sensor_y_median = statistics.median(sensor_y_list[:MEDIAN_LENGTH])

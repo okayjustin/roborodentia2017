@@ -48,6 +48,7 @@
 
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim5; // Used for UART timestamping
 extern TIM_HandleTypeDef htim10;
 extern TIM_HandleTypeDef htim11;
 
@@ -59,6 +60,7 @@ extern void Error_Handler(void);
 
 void MX_TIM1_Init(void);
 void MX_TIM3_Init(void);
+void MX_TIM5_Init(void);
 void MX_TIM10_Init(void);
 void MX_TIM11_Init(void);
                     

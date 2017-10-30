@@ -1,12 +1,6 @@
-//?????#include "hal.h"
+#include <string.h>
 #include "vl53l0x_platform.h"
 #include "vl53l0x_api.h"
-#include "i2c.h"
-
-// OLD
-//#include "stm32xxx_hal.h"
-#include "stm32f4xx_hal.h"
-#include <string.h>
 
 #define I2C_TIME_OUT_BASE   10
 #define I2C_TIME_OUT_BYTE   1
@@ -240,5 +234,6 @@ VL53L0X_Error VL53L0X_PollingDelay(VL53L0X_DEV Dev) {
     VL53L0X_OsDelay();
     return status;
 }
+
 
 //end of file

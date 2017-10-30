@@ -686,7 +686,7 @@ VL53L0X_API VL53L0X_Error VL53L0X_SetMeasurementTimingBudgetMicroSeconds(
  * device to run a full ranging sequence for the current mode
  * (ranging, histogram, ASL ...)
  *
- * @note This function Access to the device
+        * @note This function Access to the device
  *
  * @param   Dev                                    Device Handle
  * @param   pMeasurementTimingBudgetMicroSeconds   Max measurement time in
@@ -1946,5 +1946,7 @@ VL53L0X_API VL53L0X_Error VL53L0X_GetReferenceSpads(VL53L0X_DEV Dev,
 #ifdef __cplusplus
 }
 #endif
+
+
 
 #endif /* _VL53L0X_API_H_ */
