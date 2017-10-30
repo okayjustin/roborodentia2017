@@ -15,60 +15,35 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-
-
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 void Error_Handler(void);
+void TimeStamp_Reset();
+uint32_t TimeStamp_Get();
+void Initialization();
 
-/* Private functions ---------------------------------------------------------*/
+void _init(void) {;}
 
-///** Timer
-// *
-// * Used get timestamp for UART logging
-// */
-//TIM_HandleTypeDef htim5;
-//
-///* TIM5 init function */
-//void MX_TIM5_Init(void)
-//{
-//
-//  TIM_MasterConfigTypeDef sMasterConfig;
-//  TIM_OC_InitTypeDef sConfigOC;
-//
-//  htim5.Instance = TIM5;
-//  htim5.Init.Prescaler = 83;
-//  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
-//  htim5.Init.Period = 0xFFFFFFFF;
-//  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-//  HAL_TIM_OC_Init(&htim5);
-//
-//  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-//  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-//  HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig);
-//
-//  sConfigOC.OCMode = TIM_OCMODE_TIMING;
-//  sConfigOC.Pulse = 0;
-//  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-//  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-//  HAL_TIM_OC_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_1);
-//
-//}
-
-void TimeStamp_Reset(){
-    HAL_TIM_Base_Start(&htim5);
-    htim5.Instance->CNT=0;
-}
-
-uint32_t TimeStamp_Get(){
-    return htim5.Instance->CNT;
-}
-
-
-void _init(void) {return;}
 
 int main(void)
 {
+    Initialization();
+
+    // Main loop
+    while (1)
+    {
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        LSM303_read();
+        rangefinderRead(0);
+        rangefinderRead(1);
+        printf("%lu,%d,%d,%d\r\n", TimeStamp_Get(), magData.orientation, rangeMillimeterX, rangeMillimeterY);
+        HAL_Delay(10);
+    }
+}
+
+
+/* Private functions ---------------------------------------------------------*/
+void Initialization(){
     // Initialize all clocks so we don't run into weird clock problems...
     RCC->AHB1ENR |= 0xFFFFFFFF;
     RCC->AHB2ENR |= 0xFFFFFFFF;
@@ -104,18 +79,16 @@ int main(void)
     VL53L0X_SetupSingleShot();
     printf("Done initializing rangefinders.\r\n");
 
-    // Main loop
-    while (1)
-    {
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-        LSM303_read();
-        rangefinderRead(0);
-        rangefinderRead(1);
-        printf("%lu,%d,%d,%d\r\n", TimeStamp_Get(), magData.orientation, rangeMillimeterX, rangeMillimeterY);
-        HAL_Delay(10);
-    }
 }
 
+void TimeStamp_Reset(){
+    HAL_TIM_Base_Start(&htim5);
+    htim5.Instance->CNT=0;
+}
+
+uint32_t TimeStamp_Get(){
+    return htim5.Instance->CNT;
+}
 
 // Execute a command from the console
 void consoleCommand(uint8_t *ptr, int len)
