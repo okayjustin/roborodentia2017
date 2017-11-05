@@ -28,11 +28,16 @@ void _init(void) {;}
 int main(void)
 {
     Initialization();
+    //HAL_GPIO_WritePin(MOTOR_R_DIR_GPIO_Port, MOTOR_R_DIR_Pin, GPIO_PIN_SET);
+    if (HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3)){
+        Error_Handler();
+    }
 
     // Main loop
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+
         LSM303_read();
         rangefinderRead(0);
         rangefinderRead(1);
@@ -58,11 +63,12 @@ void Initialization(){
     MX_GPIO_Init();
     MX_DMA_Init();
     MX_USART2_UART_Init();
-    MX_TIM1_Init();
-    MX_TIM3_Init();
-    MX_TIM5_Init();
-    MX_TIM10_Init();
-    MX_TIM11_Init();
+    //MX_TIM1_Init();
+    //MX_TIM3_Init();
+    MX_TIM4_Init();
+    MX_TIM5_Init(); // Used for UART timestamping
+    //MX_TIM10_Init();
+    //MX_TIM11_Init();
     serviceUART();
     //MX_I2C1_Init();
     MX_I2C2_Init();
@@ -78,7 +84,6 @@ void Initialization(){
     VL53L0X_begin();
     VL53L0X_SetupSingleShot();
     printf("Done initializing rangefinders.\r\n");
-
 }
 
 void TimeStamp_Reset(){

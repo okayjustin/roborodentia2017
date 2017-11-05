@@ -19,8 +19,8 @@
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
 
-#define I2C1_SDA_Pin GPIO_PIN_7
-#define I2C1_SDA_GPIO_Port GPIOB
+//#define I2C1_SDA_Pin GPIO_PIN_7 used for motor
+//#define I2C1_SDA_GPIO_Port GPIOB
 #define I2C1_SCL_Pin GPIO_PIN_6
 #define I2C1_SCL_GPIO_Port GPIOB
 
@@ -53,6 +53,15 @@
 #define RANGEY_INT_Pin GPIO_PIN_1
 #define RANGEY_INT_GPIO_Port GPIOC
 
+#define MOTOR_L_PWM_GPIO_Port GPIOB
+#define MOTOR_L_PWM_Pin GPIO_PIN_7 
+#define MOTOR_L_DIR_GPIO_Port GPIOA
+#define MOTOR_L_DIR_Pin GPIO_PIN_8 
+
+#define MOTOR_R_PWM_GPIO_Port GPIOB
+#define MOTOR_R_PWM_Pin GPIO_PIN_8 
+#define MOTOR_R_DIR_GPIO_Port GPIOA
+#define MOTOR_R_DIR_Pin GPIO_PIN_9 
 
 // Planned GPIO
 #define SERVO_ARM_Pin GPIO_PIN_6
@@ -75,6 +84,7 @@
 #define MOTOR_VERT_PWM_GPIO_Port GPIOB
 #define MOTOR_EXTRA_PWM_Pin GPIO_PIN_9
 #define MOTOR_EXTRA_PWM_GPIO_Port GPIOB
+
 
 int _write (int fd, char *ptr, int len); 
 
