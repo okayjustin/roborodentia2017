@@ -36,8 +36,6 @@ int main(void)
     uint32_t cur_time = 0;
     uint32_t dt = 0;  // Units of 0.1 ms based on Timer5
     
-    if (HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3) != HAL_OK){ Error_Handler(); }
-
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
@@ -98,33 +96,33 @@ void Initialization(){
 void consoleCommand(uint8_t *ptr, int len)
 {
     // M for motor control commands
-    if (ptr[0] == 'M'){  
+    if (ptr[0] == 'M' || ptr[0] == 'm'){  
         GPIO_TypeDef *GPIOx;
         uint16_t GPIO_Pin;
         GPIO_PinState PinState;
-//        uint32_t TIM_Channel;
+        uint32_t TIM_Channel;
 
         // Set variables based on left or right side control
-        if (ptr[1] == 'L'){  // L for left side
+        if (ptr[1] == 'L' || ptr[1] == 'l'){  // L for left side
             GPIOx = MOTOR_L_DIR_GPIO_Port;
             GPIO_Pin = MOTOR_L_DIR_Pin;
-//            TIM_Channel = TIM_CHANNEL_2;
+            TIM_Channel = TIM_CHANNEL_2;
         }
-        else if (ptr[1] == 'R'){  // L for left side
+        else if (ptr[1] == 'R' || ptr[1] == 'r'){  // L for left side
             GPIOx = MOTOR_R_DIR_GPIO_Port;
             GPIO_Pin = MOTOR_R_DIR_Pin;
-//            TIM_Channel = TIM_CHANNEL_3;
+            TIM_Channel = TIM_CHANNEL_3;
         }
         else {
             return;
         }
 
         // Direction control commands
-        if (ptr[2] == 'D'){
-            if (ptr[3] == 'F'){
+        if (ptr[2] == 'D' || ptr[2] == 'd'){
+            if (ptr[3] == 'F' || ptr[3] == 'f'){
                 PinState = GPIO_PIN_RESET;
             }
-            else if (ptr[3] == 'R'){
+            else if (ptr[3] == 'R' || ptr[3] == 'r'){
                 PinState = GPIO_PIN_SET;
             }
             else {
@@ -134,17 +132,16 @@ void consoleCommand(uint8_t *ptr, int len)
         }
 
         // S for speed command
-        if (ptr[2] == 'S'){  
+        if (ptr[2] == 'S' || ptr[2] == 's'){  
             TIM_OC_InitTypeDef sConfigOC;
             sConfigOC.OCMode = TIM_OCMODE_PWM1;
             sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
             sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-            sConfigOC.Pulse = atoi((char *)ptr + 3);
+            sConfigOC.Pulse = atoi((char *)ptr + 3); // Accepts 0-2047
 
-            printf("%lu\r\n", sConfigOC.Pulse);
             // Alter the PWM duty cycle and start PWM again
- //           if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
- //           if (HAL_TIM_PWM_Start(&htim4, TIM_Channel) != HAL_OK){ Error_Handler(); }
+            if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
+            if (HAL_TIM_PWM_Start(&htim4, TIM_Channel) != HAL_OK){ Error_Handler(); }
         }
     }
 }

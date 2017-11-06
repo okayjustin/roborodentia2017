@@ -239,10 +239,8 @@ class App(QtGui.QMainWindow):
                     readback = self.ser.readline()
                     readback_split = readback.decode().split(',')
                     try:
-                        if (len(readback_split) == 1):
-                            print(readback_split)
                         if (len(readback_split) != 4):
-                            print('Data split len: %d' % len(readback_split))
+                            print(readback)
                             return
                         dt = int(readback_split[0]) # units of 0.1 ms
                         mag_val_raw = int (readback_split[1])  # units of 0.1 degree
