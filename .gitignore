@@ -2,6 +2,7 @@
 *.d
 *.out
 *.hex
+*.csv
 
 tags
 

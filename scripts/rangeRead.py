@@ -86,7 +86,12 @@ class App(QtGui.QMainWindow):
         self.pgcanvas = pg.GraphicsLayoutWidget()
 #        self.pgcanvas.ci.layout.setColumnMaximumWidth(0, AXIS_PLOT_SIZE)
 #        self.pgcanvas.ci.layout.setRowMaximumHeight(1, AXIS_PLOT_SIZE)
+        self.buttonLogStart = QtGui.QPushButton('Start data log')
+        self.buttonLogStart.clicked.connect(self.startLog)
+        self.buttonLogStop = QtGui.QPushButton('Stop data log')
+        self.buttonLogStop.clicked.connect(self.stopLog)
         self.serialStatuslabel = QtGui.QLabel()
+        self.serialStatuslabel.setText('Serial: not connected.')
         self.serialConsole = QtGui.QLineEdit()
         self.serialConsole.returnPressed.connect(self.writeSerialConsole)
         self.buttonForward = QtGui.QPushButton('Forward')
@@ -100,6 +105,8 @@ class App(QtGui.QMainWindow):
         self.fpslabel.setFixedWidth(200)
 
         # Add widgets/layouts to the layouts
+        self.vlayout.addWidget(self.buttonLogStart)
+        self.vlayout.addWidget(self.buttonLogStop)
         self.vlayout.addWidget(self.serialStatuslabel)
         self.vlayout.addWidget(self.serialConsole)
         self.vlayout.addWidget(self.buttonForward)
@@ -167,8 +174,10 @@ class App(QtGui.QMainWindow):
         self.sensor_mag_homed = 0    # Calculated angle relative to starting angle
         self.sensor_mag.appendleft(-1)  # Append -1 so we can track when to set the home angle
         self.arrow_angle = 0
+
+        # Control signals
+        self.data_log_enable = False
         self.ser_available = False
-        self.serialStatuslabel.setText('Serial: not connected.')
 
         # create the Kalman filter
         P = np.diag([500., 49.])
@@ -210,26 +219,25 @@ class App(QtGui.QMainWindow):
             self.plot_x_hist.setData(plot_x_x,plot_x_y)
             self.plot_y_hist.setData(plot_y_x,plot_y_y)
             self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
-            self.setArrowAngle((900 - self.sensor_mag_homed)/ 10.0)
+            self.setArrowAngle(90.0 - self.sensor_mag_homed)
         else:
             # If no serial available, try to open a new one
             self.openSerial()
 
         # Update the labels on the side
-        x_pos_str =     '    Median X: %3d mm\n' % self.sensor_x_median
-        x_var_str =     '    Var X: %0.2f mm\n' % self.sensor_x_var
-        x_kal_var_str = '    Var Kal X: %0.2f mm\n' % self.sensor_x_kal_var
-        try:
-            x_var_ratio_str = '    Var ratio X: %0.2f\n' % (self.sensor_x_kal_var / self.sensor_x_var)
-        except:
-            x_var_ratio_str = '    Var ratio X: 0\n'
-        y_pos_str =     '    Median Y: %3d mm\n' % self.sensor_y_median
-        y_var_str =     '    Var y: %0.2f mm\n' % self.sensor_y_var
-        angle_str =     '    Angle: %0.1f deg\n' % (self.sensor_mag_homed / 10.0)
-        raw_angle_str = '    Raw angle: %0.1f deg\n' % (self.sensor_mag[0] / 10.0)
-        ref_angle_str = '    Ref angle: %0.1f deg\n' % (self.sensor_mag_ref / 10.0)
-        data_rate_str = '    Data rate: %0.1f Hz\n' % (10000.0 / statistics.mean(self.dt))
-        positionlabel_str = 'Position: \n' + x_pos_str+x_var_str+x_kal_var_str+x_var_ratio_str+y_pos_str+y_var_str+angle_str+raw_angle_str+ref_angle_str + data_rate_str
+        x_pos_str =         '    Median X: %3d mm\n' % self.sensor_x_median
+        x_var_str =         '    Var X: %0.2f mm\n' % self.sensor_x_var
+        x_kal_var_str =     '    Var Kal X: %0.2f mm\n' % self.sensor_x_kal_var
+        x_var_ratio_str =   '    Var ratio X: %0.2f\n' % (self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001))
+        y_pos_str =         '    Median Y: %3d mm\n' % self.sensor_y_median
+        y_var_str =         '    Var y: %0.2f mm\n' % self.sensor_y_var
+        angle_str =         '    Angle: %0.1f deg\n' % (self.sensor_mag_homed)
+        raw_angle_str =     '    Raw angle: %0.1f deg\n' % (self.sensor_mag[0])
+        ref_angle_str =     '    Ref angle: %0.1f deg\n' % (self.sensor_mag_ref)
+        data_rate_str =     '    Data rate: %0.1f Hz\n' % (1000.0 / statistics.mean(self.dt))
+        data_rate_per_str = '    Data rate per: %0.3f ms\n' % (statistics.mean(self.dt))
+        data_rate_var_str = '    Data rate var: %0.4f ms\n' % (statistics.variance(self.dt))
+        positionlabel_str = 'Position: \n' + x_pos_str+x_var_str+x_kal_var_str+x_var_ratio_str+y_pos_str+y_var_str+angle_str+raw_angle_str+ref_angle_str + data_rate_str + data_rate_per_str + data_rate_var_str
         self.positionlabel.setText(positionlabel_str)
 
         now = time.time()
@@ -252,43 +260,45 @@ class App(QtGui.QMainWindow):
                         if (len(readback_split) != 4):
                             print(readback)
                             return
-                        dt = int(readback_split[0]) # units of 0.1 ms
-                        mag_val_raw = int (readback_split[1])  # units of 0.1 degree
+                        dt = int(readback_split[0]) / 10.0  # Raw units of 0.1 ms, convert to ms
+                        mag_val_raw = int (readback_split[1]) / 10.0 # Raw units of 0.1 degree, convert to degrees
                         rangeX_val_raw = int(readback_split[2])  # units of mm
+                        if (rangeX_val_raw > 1000):
+                            rangeX_val_raw = 1000
                         rangeY_val_raw = int(readback_split[3])  # units of mm
+                        if (rangeY_val_raw > 1000):
+                            rangeY_val_raw = 1000
                     except ValueError:
                         print("Readback error: ",end='')
                         print(readback)
                         return
 
+                    # Log data
+                    if (self.data_log_enable):
+                        self.data_log += '%0.1f, %0.1f, %d, %d\n' % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
                     # Process time delta
                     self.dt.appendleft(dt)
 
                     # Process magnetometer data
-                    filt_val = int(self.sensor_mag[0] * LEAK_FACTOR_MAG + mag_val_raw * (1.0 - LEAK_FACTOR_MAG))
-                    self.sensor_mag.appendleft(mag_val_raw) #filt_val)
+                    self.sensor_mag.appendleft(mag_val_raw)
                     self.sensor_mag_homed = self.sensor_mag_ref - self.sensor_mag[0]
-                    if (self.sensor_mag_homed > 3600):
-                        self.sensor_mag_homed -= 3600
+                    if (self.sensor_mag_homed > 360.0):
+                        self.sensor_mag_homed -= 360.0
                     if (self.sensor_mag_homed < 0):
-                        self.sensor_mag_homed += 3600
-                    self.angleControlTest(900)
+                        self.sensor_mag_homed += 360.0
+                    self.angleControlTest(90.0)
 
                     # Use first angle measurement as the reference angle
                     if (self.sensor_mag[1] == -1):
-                        self.sensor_mag_ref = self.sensor_mag[0] + 900
+                        self.sensor_mag_ref = self.sensor_mag[0] + 90.0
 
                     # Process rangefinder X
-                    if (rangeX_val_raw > 1000):
-                        rangeX_val_raw = 1000
                     self.kf.predict()
                     self.kf.update(rangeX_val_raw)
                     self.sensor_x.appendleft(rangeX_val_raw)
                     self.sensor_x_kalman.appendleft(self.kf.x[0])
 
                     # Process rangefinder Y
-                    if (rangeY_val_raw > 1000):
-                        rangeY_val_raw = 1000
                     filt_val = int(self.sensor_y[0] * LEAK_FACTOR_RANGEFINDER + rangeY_val_raw * (1 - LEAK_FACTOR_RANGEFINDER))
                     self.sensor_y.appendleft(filt_val)
 
@@ -371,12 +381,12 @@ class App(QtGui.QMainWindow):
         hyst = 20
         min_set_pwm_cycles = 1000
 
-        m = (MAX_PWM_CYCLES - min_set_pwm_cycles) / 1800
+        m = (MAX_PWM_CYCLES - min_set_pwm_cycles) / 180.0
         error = self.sensor_mag_homed - desired_angle
-        if (error > 1800):
-            error -= 3600
-        elif (error < -1800):
-            error += 3600
+        if (error > 180.0):
+            error -= 360.0
+        elif (error < -180.0):
+            error += 360.0
 
         if (error > hyst):
             self.botCmdRotate(-1, self.limitValue(error * m + min_set_pwm_cycles, 0, MAX_PWM_CYCLES))
@@ -399,6 +409,18 @@ class App(QtGui.QMainWindow):
             return -1
         return 0
 
+    def startLog(self):
+        self.data_log = 'dt (ms), Magnetometer (degrees), Rangefinder X (mm), Rangefinder Y (mm)\n'
+        self.data_log_enable = True
+
+    def stopLog(self):
+        if (self.data_log_enable):
+            self.data_log_enable = False
+            timestr = time.strftime("%Y%m%d-%H%M%S")
+            filename = 'datalog_' + timestr + '.csv'
+            with open(filename, 'a') as datalog_file:
+                datalog_file.write(self.data_log)
+
     def closeSerial(self):
         self.ser.close()
         self.ser_available = False
@@ -407,6 +429,7 @@ class App(QtGui.QMainWindow):
     def closeEvent(self, *args, **kwargs):
         super(QtGui.QMainWindow, self).closeEvent(*args, **kwargs)
         if (self.ser_available): self.closeSerial()
+        if (self.data_log_enable): self.stopLog()
 
     def pos_vel_filter(self, x, P, R, Q=0., dt=1.0):
         """ Returns a KalmanFilter which implements a
