@@ -157,12 +157,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
     else // If received data = 13
     {
+        if (stringBufferIndex < RX_BUFFER_MAX_LENGTH){
+            stringBuffer[stringBufferIndex++] = '\0'; //add null char
+        } else {
+            stringBuffer[RX_BUFFER_MAX_LENGTH] = '\0'; //add null char
+        }
+
         if (UART_RX_WRITEBACK){
             HAL_UART_Transmit(&huart2, (uint8_t *)&stringBuffer, stringBufferIndex, 0xFFFF);
             printf("\r\n");
         }
-        stringBufferIndex = 0;
         consoleCommand((uint8_t *)&stringBuffer, stringBufferIndex);
+        stringBufferIndex = 0;
     }
 
     if (UART_RX_WRITEBACK){

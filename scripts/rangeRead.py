@@ -85,12 +85,15 @@ class App(QtGui.QMainWindow):
 #        self.pgcanvas.ci.layout.setColumnMaximumWidth(0, AXIS_PLOT_SIZE)
 #        self.pgcanvas.ci.layout.setRowMaximumHeight(1, AXIS_PLOT_SIZE)
         self.serialStatuslabel = QtGui.QLabel()
+        self.serialConsole = QtGui.QLineEdit()
+        self.serialConsole.returnPressed.connect(self.writeSerial)
         self.positionlabel = QtGui.QLabel()
         self.fpslabel = QtGui.QLabel()
         self.fpslabel.setFixedWidth(200)
 
         # Add widgets/layouts to the layouts
         self.vlayout.addWidget(self.serialStatuslabel)
+        self.vlayout.addWidget(self.serialConsole)
         self.vlayout.addWidget(self.positionlabel)
         self.vlayout.addWidget(self.fpslabel)
         self.hlayout.addWidget(self.pgcanvas)
@@ -173,7 +176,6 @@ class App(QtGui.QMainWindow):
 
     def _update(self):
         if (self.ser_available):
-            #self.ser.write('L\r'.encode('utf-8'))
             self.updateSensorValue()
 
             # Convert deques to lists for easier processing
@@ -235,9 +237,10 @@ class App(QtGui.QMainWindow):
             try:
                 while (self.ser.in_waiting > 0):
                     readback = self.ser.readline()
-                    #print(readback)
                     readback_split = readback.decode().split(',')
                     try:
+                        if (len(readback_split) == 1):
+                            print(readback_split)
                         if (len(readback_split) != 4):
                             print('Data split len: %d' % len(readback_split))
                             return
@@ -307,6 +310,13 @@ class App(QtGui.QMainWindow):
                 break
             except serial.serialutil.SerialException:
                 pass
+
+    def writeSerial(self):
+        cmd_str = self.serialConsole.text()
+        self.serialConsole.setText('')
+        if (self.ser_available):
+            cmd_str += '\r'
+            self.ser.write(cmd_str.encode('utf-8'))
 
     def closeSerial(self):
         self.ser.close()

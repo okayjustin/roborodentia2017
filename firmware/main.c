@@ -1,6 +1,7 @@
 
 #include <string.h>
 #include <limits.h>
+#include <stdlib.h>
 #include "main.h"
 #include "dma.h"
 #include "i2c.h"
@@ -31,10 +32,12 @@ int main(void)
     //HAL_GPIO_WritePin(MOTOR_R_DIR_GPIO_Port, MOTOR_R_DIR_Pin, GPIO_PIN_SET);
 
     // Main loop
-    uint32_t last_timestamp = 0;
-    uint32_t current_timestamp = 0;
-    uint32_t dt = 0;
+    uint32_t print_time = 0;
+    uint32_t cur_time = 0;
+    uint32_t dt = 0;  // Units of 0.1 ms based on Timer5
     
+    if (HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3) != HAL_OK){ Error_Handler(); }
+
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
@@ -42,11 +45,12 @@ int main(void)
         LSM303_read();
         rangefinderRead(0);
         rangefinderRead(1);
-        current_timestamp = TimeStamp_Get();
-        dt = current_timestamp - last_timestamp;
-        last_timestamp = current_timestamp;
-        printf("%lu,%d,%d,%d\r\n", dt, magData.orientation, rangeMillimeterX, rangeMillimeterY);
-        HAL_Delay(10);
+        cur_time = TimeStamp_Get();
+        dt = cur_time - print_time;
+        if (dt > 98){   // Ends up w/ data rate ~100 Hz
+            print_time = cur_time;
+            printf("%lu,%d,%d,%d\r\n", dt, magData.orientation, rangeMillimeterX, rangeMillimeterY);
+        }
     }
 }
 
@@ -93,12 +97,54 @@ void Initialization(){
 // Execute a command from the console
 void consoleCommand(uint8_t *ptr, int len)
 {
-    if (len > 0){
-        if (ptr[0] == 'L'){
-            if (HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3)){
-                Error_Handler();
+    // M for motor control commands
+    if (ptr[0] == 'M'){  
+        GPIO_TypeDef *GPIOx;
+        uint16_t GPIO_Pin;
+        GPIO_PinState PinState;
+//        uint32_t TIM_Channel;
+
+        // Set variables based on left or right side control
+        if (ptr[1] == 'L'){  // L for left side
+            GPIOx = MOTOR_L_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_L_DIR_Pin;
+//            TIM_Channel = TIM_CHANNEL_2;
+        }
+        else if (ptr[1] == 'R'){  // L for left side
+            GPIOx = MOTOR_R_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_R_DIR_Pin;
+//            TIM_Channel = TIM_CHANNEL_3;
+        }
+        else {
+            return;
+        }
+
+        // Direction control commands
+        if (ptr[2] == 'D'){
+            if (ptr[3] == 'F'){
+                PinState = GPIO_PIN_RESET;
             }
-            //HAL_GPIO_WritePin(MOTOR_R_DIR_GPIO_Port, MOTOR_R_DIR_Pin, GPIO_PIN_SET);
+            else if (ptr[3] == 'R'){
+                PinState = GPIO_PIN_SET;
+            }
+            else {
+                return;
+            }
+            HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
+        }
+
+        // S for speed command
+        if (ptr[2] == 'S'){  
+            TIM_OC_InitTypeDef sConfigOC;
+            sConfigOC.OCMode = TIM_OCMODE_PWM1;
+            sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+            sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+            sConfigOC.Pulse = atoi((char *)ptr + 3);
+
+            printf("%lu\r\n", sConfigOC.Pulse);
+            // Alter the PWM duty cycle and start PWM again
+ //           if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
+ //           if (HAL_TIM_PWM_Start(&htim4, TIM_Channel) != HAL_OK){ Error_Handler(); }
         }
     }
 }
