@@ -21,6 +21,7 @@ LEAK_FACTOR_RANGEFINDER = 0.01  # Set from 0 to <1 for leaky integrator
 LEAK_FACTOR_MAG = 0.01    # Set from 0 to <1 for leaky integrator
 MEDIAN_LENGTH = 30
 MAX_PWM_CYCLES = 2047
+BUTTON_PWM_CYCLES = 2000
 
 class XYWidget(pg.GraphicsLayoutWidget):
     def __init__(self, parent = None):
@@ -89,11 +90,11 @@ class App(QtGui.QMainWindow):
         self.serialConsole = QtGui.QLineEdit()
         self.serialConsole.returnPressed.connect(self.writeSerialConsole)
         self.buttonForward = QtGui.QPushButton('Forward')
-        self.buttonForward.clicked.connect(self.botCmdForward)
+        self.buttonForward.clicked.connect(self.botCmdForwardButton)
         self.buttonStop = QtGui.QPushButton('Stop')
-        self.buttonStop.clicked.connect(self.botCmdStop)
+        self.buttonStop.clicked.connect(self.botCmdStopButton)
         self.buttonReverse = QtGui.QPushButton('Reverse')
-        self.buttonReverse.clicked.connect(self.botCmdReverse)
+        self.buttonReverse.clicked.connect(self.botCmdReverseButton)
         self.positionlabel = QtGui.QLabel()
         self.fpslabel = QtGui.QLabel()
         self.fpslabel.setFixedWidth(200)
@@ -166,7 +167,6 @@ class App(QtGui.QMainWindow):
         self.sensor_mag_homed = 0    # Calculated angle relative to starting angle
         self.sensor_mag.appendleft(-1)  # Append -1 so we can track when to set the home angle
         self.arrow_angle = 0
-        self.pwmCycles = 1000
         self.ser_available = False
         self.serialStatuslabel.setText('Serial: not connected.')
 
@@ -202,7 +202,6 @@ class App(QtGui.QMainWindow):
             self.sensor_x_kal_var = np.var(sensor_x_kalman_list)
             self.sensor_y_median = statistics.median(sensor_y_list[:MEDIAN_LENGTH])
             self.sensor_y_var = np.var(sensor_y_list)
-            self.sensor_mag_homed = self.sensor_mag[0] - self.sensor_mag_ref
 
             # Update plots
             self.plot_x_raw.setData(self.sensor_x, self.x)
@@ -211,7 +210,7 @@ class App(QtGui.QMainWindow):
             self.plot_x_hist.setData(plot_x_x,plot_x_y)
             self.plot_y_hist.setData(plot_y_x,plot_y_y)
             self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
-            self.setArrowAngle(self.sensor_mag_homed / 10.0)
+            self.setArrowAngle((900 - self.sensor_mag_homed)/ 10.0)
         else:
             # If no serial available, try to open a new one
             self.openSerial()
@@ -266,12 +265,18 @@ class App(QtGui.QMainWindow):
                     self.dt.appendleft(dt)
 
                     # Process magnetometer data
-                    filt_val = int(self.sensor_mag[0] * LEAK_FACTOR_MAG + mag_val_raw * (1 - LEAK_FACTOR_MAG))
-                    self.sensor_mag.appendleft(filt_val)
+                    filt_val = int(self.sensor_mag[0] * LEAK_FACTOR_MAG + mag_val_raw * (1.0 - LEAK_FACTOR_MAG))
+                    self.sensor_mag.appendleft(mag_val_raw) #filt_val)
+                    self.sensor_mag_homed = self.sensor_mag_ref - self.sensor_mag[0]
+                    if (self.sensor_mag_homed > 3600):
+                        self.sensor_mag_homed -= 3600
+                    if (self.sensor_mag_homed < 0):
+                        self.sensor_mag_homed += 3600
+                    self.angleControlTest(900)
 
                     # Use first angle measurement as the reference angle
                     if (self.sensor_mag[1] == -1):
-                        self.sensor_mag_ref = self.sensor_mag[0]
+                        self.sensor_mag_ref = self.sensor_mag[0] + 900
 
                     # Process rangefinder X
                     if (rangeX_val_raw > 1000):
@@ -332,14 +337,67 @@ class App(QtGui.QMainWindow):
             for cmd in cmd_seq:
                 self.ser.write(cmd.encode('utf-8'))
 
-    def botCmdForward(self):
-         self.writeSerialSequence(['MLDF\r', 'MRDF\r', 'MLS%d\r' % self.pwmCycles, 'MRS%d\r' % self.pwmCycles])
+    def botCmdForwardButton(self):
+        self.writeSerialSequence(['MLDF\r', 'MRDF\r', 'MLS%d\r' % BUTTON_PWM_CYCLES, 'MRS%d\r' % BUTTON_PWM_CYCLES])
+
+    def botCmdStopButton(self):
+        self.writeSerialSequence(['MLDF\r', 'MRDF\r','MLS0\r', 'MRS0\r'])
+
+    def botCmdReverseButton(self):
+        self.writeSerialSequence(['MLDR\r', 'MRDR\r', 'MLS%d\r' % (MAX_PWM_CYCLES - BUTTON_PWM_CYCLES), 'MRS%d\r' % (MAX_PWM_CYCLES - BUTTON_PWM_CYCLES)])
+
+    def botCmdForward(self, pwmCycles):
+        if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
+            raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
+        self.writeSerialSequence(['MLDF\r', 'MRDF\r', 'MLS%d\r' % pwmCycles, 'MRS%d\r' % pwmCycles])
 
     def botCmdStop(self):
-         self.writeSerialSequence(['MLDF\r', 'MRDF\r','MLS0\r', 'MRS0\r'])
+        self.writeSerialSequence(['MLDF\r', 'MRDF\r','MLS0\r', 'MRS0\r'])
 
-    def botCmdReverse(self):
-         self.writeSerialSequence(['MLDR\r', 'MRDR\r', 'MLS%d\r' % (MAX_PWM_CYCLES - self.pwmCycles), 'MRS%d\r' % (MAX_PWM_CYCLES - self.pwmCycles)])
+    def botCmdReverse(self, pwmCycles):
+        if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
+            raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
+        self.writeSerialSequence(['MLDR\r', 'MRDR\r', 'MLS%d\r' % (MAX_PWM_CYCLES - pwmCycles), 'MRS%d\r' % (MAX_PWM_CYCLES - pwmCycles)])
+
+    def botCmdRotate(self, direction, pwmCycles):
+        if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
+            raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
+        if (direction == 1):       # Counterclockwise (+theta)
+            self.writeSerialSequence(['MLDR\r', 'MRDF\r', 'MLS%d\r' % (MAX_PWM_CYCLES - pwmCycles), 'MRS%d\r' % pwmCycles])
+        if (direction == -1):       # Clockwise (-theta)
+            self.writeSerialSequence(['MLDF\r', 'MRDR\r', 'MLS%d\r' % pwmCycles, 'MRS%d\r' % (MAX_PWM_CYCLES - pwmCycles)])
+
+    def angleControlTest(self, desired_angle):
+        hyst = 20
+        min_set_pwm_cycles = 1000
+
+        m = (MAX_PWM_CYCLES - min_set_pwm_cycles) / 1800
+        error = self.sensor_mag_homed - desired_angle
+        if (error > 1800):
+            error -= 3600
+        elif (error < -1800):
+            error += 3600
+
+        if (error > hyst):
+            self.botCmdRotate(-1, self.limitValue(error * m + min_set_pwm_cycles, 0, MAX_PWM_CYCLES))
+        elif (error < -1 * hyst):
+            self.botCmdRotate(1, self.limitValue(error * -1 * m + min_set_pwm_cycles, 0, MAX_PWM_CYCLES))
+        else:
+            self.botCmdStop()
+
+    def limitValue(self, value, min_val, max_val):
+        if (value > max_val):
+            return max_val
+        if (value < min_val):
+            return min_val
+        return value
+
+    def checkValue(self, value, min_val, max_val):
+        if (value > max_val):
+            return 1
+        if (value < min_val):
+            return -1
+        return 0
 
     def closeSerial(self):
         self.ser.close()

@@ -60,19 +60,6 @@ void LSM303_read() {
 
     // Calculate orientation
     magData.orientation_prev = magData.orientation;
-    if (y_uT > 0){
-        magData.orientation = (int16_t)(900.0 - atanf(x_uT / y_uT) * 1800.0 / M_PI);
-    }
-    else if (y_uT < 0) {
-        magData.orientation = (int16_t)(2700.0 - atanf(x_uT / y_uT) * 1800.0 / M_PI);
-    }
-    else {
-        if (x_uT < 0) {
-            magData.orientation = 1800;
-        }
-        else {
-            magData.orientation = 0;
-        }
-    }
+    magData.orientation = (int16_t)((atan2f(y_uT, x_uT) * 1800.0 / M_PI + 1800.0));
 }
 
