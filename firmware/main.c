@@ -29,11 +29,12 @@ int main(void)
 {
     Initialization();
     //HAL_GPIO_WritePin(MOTOR_R_DIR_GPIO_Port, MOTOR_R_DIR_Pin, GPIO_PIN_SET);
-    if (HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3)){
-        Error_Handler();
-    }
 
     // Main loop
+    uint32_t last_timestamp = 0;
+    uint32_t current_timestamp = 0;
+    uint32_t dt = 0;
+    
     while (1)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
@@ -41,7 +42,10 @@ int main(void)
         LSM303_read();
         rangefinderRead(0);
         rangefinderRead(1);
-        printf("%lu,%d,%d,%d\r\n", TimeStamp_Get(), magData.orientation, rangeMillimeterX, rangeMillimeterY);
+        current_timestamp = TimeStamp_Get();
+        dt = current_timestamp - last_timestamp;
+        last_timestamp = current_timestamp;
+        printf("%lu,%d,%d,%d\r\n", dt, magData.orientation, rangeMillimeterX, rangeMillimeterY);
         HAL_Delay(10);
     }
 }
@@ -86,6 +90,19 @@ void Initialization(){
     printf("Done initializing rangefinders.\r\n");
 }
 
+// Execute a command from the console
+void consoleCommand(uint8_t *ptr, int len)
+{
+    if (len > 0){
+        if (ptr[0] == 'L'){
+            if (HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3)){
+                Error_Handler();
+            }
+            //HAL_GPIO_WritePin(MOTOR_R_DIR_GPIO_Port, MOTOR_R_DIR_Pin, GPIO_PIN_SET);
+        }
+    }
+}
+
 void TimeStamp_Reset(){
     HAL_TIM_Base_Start(&htim5);
     htim5.Instance->CNT=0;
@@ -93,11 +110,6 @@ void TimeStamp_Reset(){
 
 uint32_t TimeStamp_Get(){
     return htim5.Instance->CNT;
-}
-
-// Execute a command from the console
-void consoleCommand(uint8_t *ptr, int len)
-{
 }
 
 // Redirect printf to UART

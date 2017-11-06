@@ -139,6 +139,7 @@ class App(QtGui.QMainWindow):
         self.histbins = bins=np.linspace(0, 1000, 1000)
         self.fps = 0.
         self.lastupdate = time.time()
+        self.dt = deque(MAX_HIST_LEN * [-1], MAX_HIST_LEN)
         self.sensor_x = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
         self.sensor_x_kalman = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
         self.sensor_x_median = 0
@@ -172,6 +173,7 @@ class App(QtGui.QMainWindow):
 
     def _update(self):
         if (self.ser_available):
+            #self.ser.write('L\r'.encode('utf-8'))
             self.updateSensorValue()
 
             # Convert deques to lists for easier processing
@@ -205,17 +207,17 @@ class App(QtGui.QMainWindow):
         x_pos_str =     '    Median X: %3d mm\n' % self.sensor_x_median
         x_var_str =     '    Var X: %0.2f mm\n' % self.sensor_x_var
         x_kal_var_str = '    Var Kal X: %0.2f mm\n' % self.sensor_x_kal_var
-        x_var_ratio_str = '    Var ratio X: 0\n'
         try:
             x_var_ratio_str = '    Var ratio X: %0.2f\n' % (self.sensor_x_kal_var / self.sensor_x_var)
         except:
-            pass
+            x_var_ratio_str = '    Var ratio X: 0\n'
         y_pos_str =     '    Median Y: %3d mm\n' % self.sensor_y_median
         y_var_str =     '    Var y: %0.2f mm\n' % self.sensor_y_var
         angle_str =     '    Angle: %0.1f deg\n' % (self.sensor_mag_homed / 10.0)
         raw_angle_str = '    Raw angle: %0.1f deg\n' % (self.sensor_mag[0] / 10.0)
         ref_angle_str = '    Ref angle: %0.1f deg\n' % (self.sensor_mag_ref / 10.0)
-        positionlabel_str = 'Position: \n' + x_pos_str+x_var_str+x_kal_var_str+x_var_ratio_str+y_pos_str+y_var_str+angle_str+raw_angle_str+ref_angle_str
+        data_rate_str = '    Data rate: %0.1f Hz\n' % (10000.0 / statistics.mean(self.dt))
+        positionlabel_str = 'Position: \n' + x_pos_str+x_var_str+x_kal_var_str+x_var_ratio_str+y_pos_str+y_var_str+angle_str+raw_angle_str+ref_angle_str + data_rate_str
         self.positionlabel.setText(positionlabel_str)
 
         now = time.time()
@@ -233,12 +235,13 @@ class App(QtGui.QMainWindow):
             try:
                 while (self.ser.in_waiting > 0):
                     readback = self.ser.readline()
+                    #print(readback)
                     readback_split = readback.decode().split(',')
                     try:
                         if (len(readback_split) != 4):
-                            print(len(readback_split))
+                            print('Data split len: %d' % len(readback_split))
                             return
-                        timestamp = readback_split[0]
+                        dt = int(readback_split[0]) # units of 0.1 ms
                         mag_val_raw = int (readback_split[1])  # units of 0.1 degree
                         rangeX_val_raw = int(readback_split[2])  # units of mm
                         rangeY_val_raw = int(readback_split[3])  # units of mm
@@ -246,6 +249,9 @@ class App(QtGui.QMainWindow):
                         print("Readback error: ",end='')
                         print(readback)
                         return
+
+                    # Process time delta
+                    self.dt.appendleft(dt)
 
                     # Process magnetometer data
                     filt_val = int(self.sensor_mag[0] * LEAK_FACTOR_MAG + mag_val_raw * (1 - LEAK_FACTOR_MAG))

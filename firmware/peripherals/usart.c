@@ -38,6 +38,8 @@
 #include "dma.h"
 
 #define RX_BUFFER_MAX_LENGTH 16 
+#define UART_RX_WRITEBACK 0
+
 uint8_t rxBuffer = '\000';
 uint8_t stringBuffer[RX_BUFFER_MAX_LENGTH];
 uint8_t stringBufferIndex;
@@ -155,11 +157,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
     else // If received data = 13
     {
-        HAL_UART_Transmit(&huart2, (uint8_t *)&stringBuffer, stringBufferIndex, 0xFFFF);
-        printf("\r\n");
+        if (UART_RX_WRITEBACK){
+            HAL_UART_Transmit(&huart2, (uint8_t *)&stringBuffer, stringBufferIndex, 0xFFFF);
+            printf("\r\n");
+        }
         stringBufferIndex = 0;
         consoleCommand((uint8_t *)&stringBuffer, stringBufferIndex);
     }
 
-    HAL_UART_Transmit(&huart2, (uint8_t *)&rxBuffer, 1, 1);
+    if (UART_RX_WRITEBACK){
+        HAL_UART_Transmit(&huart2, (uint8_t *)&rxBuffer, 1, 1);
+    }
 }
