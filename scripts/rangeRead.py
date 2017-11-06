@@ -20,6 +20,7 @@ MAX_HIST_LEN = 500
 LEAK_FACTOR_RANGEFINDER = 0.01  # Set from 0 to <1 for leaky integrator
 LEAK_FACTOR_MAG = 0.01    # Set from 0 to <1 for leaky integrator
 MEDIAN_LENGTH = 30
+MAX_PWM_CYCLES = 2047
 
 class XYWidget(pg.GraphicsLayoutWidget):
     def __init__(self, parent = None):
@@ -86,7 +87,13 @@ class App(QtGui.QMainWindow):
 #        self.pgcanvas.ci.layout.setRowMaximumHeight(1, AXIS_PLOT_SIZE)
         self.serialStatuslabel = QtGui.QLabel()
         self.serialConsole = QtGui.QLineEdit()
-        self.serialConsole.returnPressed.connect(self.writeSerial)
+        self.serialConsole.returnPressed.connect(self.writeSerialConsole)
+        self.buttonForward = QtGui.QPushButton('Forward')
+        self.buttonForward.clicked.connect(self.botCmdForward)
+        self.buttonStop = QtGui.QPushButton('Stop')
+        self.buttonStop.clicked.connect(self.botCmdStop)
+        self.buttonReverse = QtGui.QPushButton('Reverse')
+        self.buttonReverse.clicked.connect(self.botCmdReverse)
         self.positionlabel = QtGui.QLabel()
         self.fpslabel = QtGui.QLabel()
         self.fpslabel.setFixedWidth(200)
@@ -94,6 +101,9 @@ class App(QtGui.QMainWindow):
         # Add widgets/layouts to the layouts
         self.vlayout.addWidget(self.serialStatuslabel)
         self.vlayout.addWidget(self.serialConsole)
+        self.vlayout.addWidget(self.buttonForward)
+        self.vlayout.addWidget(self.buttonStop)
+        self.vlayout.addWidget(self.buttonReverse)
         self.vlayout.addWidget(self.positionlabel)
         self.vlayout.addWidget(self.fpslabel)
         self.hlayout.addWidget(self.pgcanvas)
@@ -156,6 +166,7 @@ class App(QtGui.QMainWindow):
         self.sensor_mag_homed = 0    # Calculated angle relative to starting angle
         self.sensor_mag.appendleft(-1)  # Append -1 so we can track when to set the home angle
         self.arrow_angle = 0
+        self.pwmCycles = 1000
         self.ser_available = False
         self.serialStatuslabel.setText('Serial: not connected.')
 
@@ -309,12 +320,26 @@ class App(QtGui.QMainWindow):
             except serial.serialutil.SerialException:
                 pass
 
-    def writeSerial(self):
+    def writeSerialConsole(self):
         cmd_str = self.serialConsole.text()
         self.serialConsole.setText('')
         if (self.ser_available):
             cmd_str += '\r'
             self.ser.write(cmd_str.encode('utf-8'))
+
+    def writeSerialSequence(self, cmd_seq):
+        if (self.ser_available):
+            for cmd in cmd_seq:
+                self.ser.write(cmd.encode('utf-8'))
+
+    def botCmdForward(self):
+         self.writeSerialSequence(['MLDF\r', 'MRDF\r', 'MLS%d\r' % self.pwmCycles, 'MRS%d\r' % self.pwmCycles])
+
+    def botCmdStop(self):
+         self.writeSerialSequence(['MLDF\r', 'MRDF\r','MLS0\r', 'MRS0\r'])
+
+    def botCmdReverse(self):
+         self.writeSerialSequence(['MLDR\r', 'MRDR\r', 'MLS%d\r' % (MAX_PWM_CYCLES - self.pwmCycles), 'MRS%d\r' % (MAX_PWM_CYCLES - self.pwmCycles)])
 
     def closeSerial(self):
         self.ser.close()
