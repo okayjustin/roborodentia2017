@@ -6,6 +6,7 @@
 
 tags
 
+scripts/__pycache__
 firmware/build/*
 arm/build/*
 arm/orig/*
