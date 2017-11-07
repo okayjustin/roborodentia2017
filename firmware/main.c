@@ -47,7 +47,7 @@ int main(void)
         dt = cur_time - print_time;
         if (dt > 98){   // Ends up w/ data rate ~100 Hz
             print_time = cur_time;
-            printf("%lu,%d,%d,%d\r\n", dt, magData.orientation, rangeMillimeterX, rangeMillimeterY);
+            printf("%lu,%d,%d,%d,%d,%d,%d\r\n", dt, magData.orientation, rangeMillimeterX, rangeMillimeterY, accelData.x, accelData.y, accelData.z);
         }
     }
 }

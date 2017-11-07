@@ -14,61 +14,11 @@ from PyQt5.QtWidgets import *
 import pyqtgraph as pg
 from collections import deque
 
-LINK_PLOTS = False
 AXIS_PLOT_SIZE = 400
 MAX_HIST_LEN = 500
-LEAK_FACTOR_RANGEFINDER = 0.01  # Set from 0 to <1 for leaky integrator
-LEAK_FACTOR_MAG = 0.01    # Set from 0 to <1 for leaky integrator
 MEDIAN_LENGTH = 30
 MAX_PWM_CYCLES = 2047
 BUTTON_PWM_CYCLES = 2000
-
-class XYWidget(pg.GraphicsLayoutWidget):
-    def __init__(self, parent = None):
-        super().__init__(parent)
-
-    def resizeEvent(self, resizeEvent):
-        if self.closed:
-            return
-        if self.autoPixelRange:
-            try:
-                ideal_height = self.parent().height() - 34 - AXIS_PLOT_SIZE
-                ideal_width = self.parent().width() - 49 - AXIS_PLOT_SIZE
-                if (ideal_height > ideal_width):
-                    self.range = QtCore.QRectF(0, 0, ideal_width, ideal_width)
-                else:
-                    self.range = QtCore.QRectF(0, 0, ideal_height, ideal_height)
-            except:
-                pass
-        super().setRange(self.range, padding=0, lockAspect=True, disableAutoPixel=False)
-        self.updateMatrix()
-
-    def sizeHint(self):
-        return QSize(10000, 10000)
-
-class XWidget(pg.GraphicsLayoutWidget):
-    def __init__(self, parent = None):
-        super().__init__(parent)
-
-    def resizeEvent(self, resizeEvent):
-        if self.closed:
-            return
-        if self.autoPixelRange:
-            try:
-                ideal_height = self.parent().height() - 34 - AXIS_PLOT_SIZE
-                ideal_width = self.parent().width() - 49 - AXIS_PLOT_SIZE
-                if (ideal_height > ideal_width):
-                    self.range = QtCore.QRectF(0, 0, ideal_width, self.size().height())
-                else:
-                    self.range = QtCore.QRectF(0, 0, ideal_height, self.size().height())
-            except:
-                pass
-        super().setRange(self.range, padding=0, lockAspect=True, disableAutoPixel=False)
-        self.updateMatrix()
-
-    def sizeHint(self):
-        return QSize(10000, 10000)
-
 
 class App(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -84,8 +34,6 @@ class App(QtGui.QMainWindow):
 
         # Define widgets
         self.pgcanvas = pg.GraphicsLayoutWidget()
-#        self.pgcanvas.ci.layout.setColumnMaximumWidth(0, AXIS_PLOT_SIZE)
-#        self.pgcanvas.ci.layout.setRowMaximumHeight(1, AXIS_PLOT_SIZE)
         self.buttonLogStart = QtGui.QPushButton('Start data log')
         self.buttonLogStart.clicked.connect(self.startLog)
         self.buttonLogStop = QtGui.QPushButton('Stop data log')
@@ -130,9 +78,6 @@ class App(QtGui.QMainWindow):
         # Y range plot
         self.plot_y = self.pgcanvas.addPlot(0,0,labels={'left':'Latest sample #','bottom':'Y distance(mm)'})
         self.plot_y.showGrid(1,1,255)
-        if (LINK_PLOTS):
-            self.plot_y.getAxis('left').setTickSpacing(100, 50)
-            self.plot_y.setYLink(self.plot_xy)
         self.plot_y.invertY()
         self.plot_y.setYRange(0, MAX_HIST_LEN, padding=0)
         self.plot_y_raw = self.plot_y.plot(pen='y')
@@ -141,9 +86,6 @@ class App(QtGui.QMainWindow):
         # X range plot
         self.plot_x = self.pgcanvas.addPlot(1,1,labels={'left':'Latest sample #','bottom':'X distance(mm)'})
         self.plot_x.showGrid(1,1,255)
-        if (LINK_PLOTS):
-            self.plot_x.setXLink(self.plot_xy)
-            self.plot_x.getAxis('bottom').setTickSpacing(100, 50)
         self.plot_x.invertY()
         self.plot_x.setYRange(0, MAX_HIST_LEN, padding=0)
         self.plot_x_raw = self.plot_x.plot(pen='y')
@@ -174,6 +116,9 @@ class App(QtGui.QMainWindow):
         self.sensor_mag_homed = 0    # Calculated angle relative to starting angle
         self.sensor_mag.appendleft(-1)  # Append -1 so we can track when to set the home angle
         self.arrow_angle = 0
+        self.sensor_accel_x = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
+        self.sensor_accel_y = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
+        self.sensor_accel_z = deque(MAX_HIST_LEN * [0], MAX_HIST_LEN)
 
         # Control signals
         self.data_log_enable = False
@@ -234,10 +179,15 @@ class App(QtGui.QMainWindow):
         angle_str =         '    Angle: %0.1f deg\n' % (self.sensor_mag_homed)
         raw_angle_str =     '    Raw angle: %0.1f deg\n' % (self.sensor_mag[0])
         ref_angle_str =     '    Ref angle: %0.1f deg\n' % (self.sensor_mag_ref)
+        x_accel_str =       '    X accel: %0.5f g\n' % self.sensor_accel_x[0]
+        y_accel_str =       '    Y accel: %0.5f g\n' % self.sensor_accel_y[0]
+        z_accel_str =       '    Z accel: %0.5f g\n' % self.sensor_accel_z[0]
         data_rate_str =     '    Data rate: %0.1f Hz\n' % (1000.0 / statistics.mean(self.dt))
         data_rate_per_str = '    Data rate per: %0.3f ms\n' % (statistics.mean(self.dt))
         data_rate_var_str = '    Data rate var: %0.4f ms\n' % (statistics.variance(self.dt))
-        positionlabel_str = 'Position: \n' + x_pos_str+x_var_str+x_kal_var_str+x_var_ratio_str+y_pos_str+y_var_str+angle_str+raw_angle_str+ref_angle_str + data_rate_str + data_rate_per_str + data_rate_var_str
+        positionlabel_str = 'Data: \n' + x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
+            + y_pos_str + y_var_str + angle_str + raw_angle_str + ref_angle_str + x_accel_str \
+            + y_accel_str + z_accel_str+ data_rate_str + data_rate_per_str + data_rate_var_str
         self.positionlabel.setText(positionlabel_str)
 
         now = time.time()
@@ -255,19 +205,22 @@ class App(QtGui.QMainWindow):
             try:
                 while (self.ser.in_waiting > 0):
                     readback = self.ser.readline()
-                    readback_split = readback.decode().split(',')
                     try:
-                        if (len(readback_split) != 4):
+                        readback_split = readback.decode().split(',')
+                        if (len(readback_split) != 7):
                             print(readback)
                             return
-                        dt = int(readback_split[0]) / 10.0  # Raw units of 0.1 ms, convert to ms
-                        mag_val_raw = int (readback_split[1]) / 10.0 # Raw units of 0.1 degree, convert to degrees
-                        rangeX_val_raw = int(readback_split[2])  # units of mm
+                        dt = int(readback_split[0]) / 10.0  # Units of 0.1 ms, convert to ms
+                        mag_val_raw = int (readback_split[1]) / 10.0 # Units of 0.1 degree, convert to degrees
+                        rangeX_val_raw = int(readback_split[2])  # Units of mm
                         if (rangeX_val_raw > 1000):
                             rangeX_val_raw = 1000
-                        rangeY_val_raw = int(readback_split[3])  # units of mm
+                        rangeY_val_raw = int(readback_split[3])  # Units of mm
                         if (rangeY_val_raw > 1000):
                             rangeY_val_raw = 1000
+                        accelX_val_raw = 1.0* int(readback_split[4]) / pow(2, 14) # Units of g (9.8m/s/s)
+                        accelY_val_raw = 1.0* int(readback_split[5]) / pow(2, 14) # Units of g (9.8m/s/s)
+                        accelZ_val_raw = 1.0* int(readback_split[6]) / pow(2, 14) # Units of g (9.8m/s/s)
                     except ValueError:
                         print("Readback error: ",end='')
                         print(readback)
@@ -276,6 +229,7 @@ class App(QtGui.QMainWindow):
                     # Log data
                     if (self.data_log_enable):
                         self.data_log += '%0.1f, %0.1f, %d, %d\n' % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
+
                     # Process time delta
                     self.dt.appendleft(dt)
 
@@ -292,19 +246,20 @@ class App(QtGui.QMainWindow):
                     if (self.sensor_mag[1] == -1):
                         self.sensor_mag_ref = self.sensor_mag[0] + 90.0
 
-                    # Process rangefinder X
+                    # Process rangefinders
                     self.kf.predict()
                     self.kf.update(rangeX_val_raw)
                     self.sensor_x.appendleft(rangeX_val_raw)
                     self.sensor_x_kalman.appendleft(self.kf.x[0])
+                    self.sensor_y.appendleft(rangeY_val_raw)
 
-                    # Process rangefinder Y
-                    filt_val = int(self.sensor_y[0] * LEAK_FACTOR_RANGEFINDER + rangeY_val_raw * (1 - LEAK_FACTOR_RANGEFINDER))
-                    self.sensor_y.appendleft(filt_val)
+                    # Process accelerometers
+                    self.sensor_accel_x.appendleft(accelX_val_raw)
+                    self.sensor_accel_y.appendleft(accelY_val_raw)
+                    self.sensor_accel_z.appendleft(accelZ_val_raw)
 
             except OSError:
-                self.ser_available = False
-                self.serialStatuslabel.setText('Serial: not connected.')
+                self.closeSerial()
 
     def setArrowAngle(self, angle):
         self.abs_position_arrow.rotate(angle - self.arrow_angle)
@@ -322,11 +277,12 @@ class App(QtGui.QMainWindow):
         self.ser.xonxoff = False     #disable software flow control
         self.ser.rtscts = False     #disable hardware (RTS/CTS) flow control
         self.ser.dsrdtr = False       #disable hardware (DSR/DTR) flow control
-        self.ser.writeTimeout = 2     #timeout for write
+        self.ser.writeTimeout = 1     #timeout for write
 
         for port in ports:
             self.ser.port = port
             try:
+                self.ser.close()
                 self.ser.open()
                 self.ser.reset_input_buffer()
                 self.ser_available = True

@@ -7,6 +7,13 @@
 #define LSM303_ADDRESS_MAG            (0x1E)         // 0011 110x
 #define LSM303_ID                     (0b11010100)             
 #define SENSORS_GAUSS_TO_MICROTESLA   100
+
+// Accelerometer data rates: 50, 100, 400, 1000 Hz
+#define LSM303_ACCEL_DR50   0x00 << 3
+#define LSM303_ACCEL_DR100  0x01 << 3
+#define LSM303_ACCEL_DR400  0x02 << 3
+#define LSM303_ACCEL_DR1000 0x03 << 3
+
 typedef enum
 {                                                     // DEFAULT    TYPE
     LSM303_REGISTER_ACCEL_CTRL_REG1_A         = 0x20,   // 00000111   rw
@@ -73,9 +80,9 @@ typedef enum
 
 typedef struct lsm303AccelData_s
 {
-    float x;
-    float y;
-    float z;
+    int16_t x;
+    int16_t y;
+    int16_t z;
 } lsm303AccelData;
 
 typedef struct lsm303MagData_s
@@ -90,7 +97,7 @@ typedef struct lsm303MagData_s
 void LSM303_begin (void);
 void LSM303_read (void);
 
-//lsm303AccelData accelData;    // Last read accelerometer data will be available here
+lsm303AccelData accelData;    // Last read accelerometer data will be available here
 lsm303MagData magData;        // Last read magnetometer data will be available here
 
 #endif
