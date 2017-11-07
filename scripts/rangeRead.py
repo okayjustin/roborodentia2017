@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 
 from robot import robot
-import sys, time, statistics
+import sys, time, statistics, threading
 import numpy as np
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
@@ -92,57 +92,72 @@ class App(QtGui.QMainWindow):
         self.abs_position_arrow.rotate(90)
         self.plot_xy.addItem(self.abs_position_arrow)
 
-        # Control signals
+        # Control/data signals
+        self.sensor_x_median = 0
+        self.sensor_x_var = 0
+        self.sensor_x_kal_var = 0
+        self.sensor_y_median = 0
+        self.sensor_y_var = 0
         self.x = np.linspace(0, self.robot.max_hist_len + 1, num = self.robot.max_hist_len)
         self.histbins = bins=np.linspace(0, 1000, 1000)
         self.fps = 0.
         self.lastupdate = time.time()
         self.arrow_angle = 0
+        self.exiting = False
+        self.sensor_update_thread = threading.Thread(target=self.updateSensorValueWorker)
+        self.thread_lock = threading.Lock()
 
         #### Start  #####################
         self._update()
 
     def _update(self):
-        if (self.robot.ser_available):
-            if (self.robot.updateSensorValue() == -1):
-                self.serialStatuslabel.setText('Serial: not connected.')
-
-            # Convert deques to lists for easier processing
-            sensor_x_list = list(self.robot.sensor_x)
-            sensor_x_kalman_list = list(self.robot.sensor_x_kalman)
-            sensor_y_list = list(self.robot.sensor_y)
-
-            # Calculate some stuff
-            plot_x_y,plot_x_x = self.reducedHistogram(sensor_x_list, self.histbins)
-            plot_y_y,plot_y_x = self.reducedHistogram(sensor_y_list, self.histbins)
-            self.sensor_x_median = statistics.median(sensor_x_kalman_list[:MEDIAN_LENGTH])
-            self.sensor_x_var = np.var(sensor_x_list)
-            self.sensor_x_kal_var = np.var(sensor_x_kalman_list)
-            self.sensor_y_median = statistics.median(sensor_y_list[:MEDIAN_LENGTH])
-            self.sensor_y_var = np.var(sensor_y_list)
-
-            # Update plots
-            self.plot_x_raw.setData(self.robot.sensor_x, self.x)
-            self.plot_x_kalman.setData(self.robot.sensor_x_kalman, self.x)
-            self.plot_y_raw.setData(self.robot.sensor_y, self.x)
-            self.plot_x_hist.setData(plot_x_x,plot_x_y)
-            self.plot_y_hist.setData(plot_y_x,plot_y_y)
-            self.abs_position_arrow.setPos(self.robot.sensor_x_median,self.robot.sensor_y_median)
-            self.setArrowAngle(90.0 - self.robot.sensor_mag_homed)
-        else:
-            # If no serial available, try to open a new one
+        # If no serial available, try to open a new one
+        if (self.robot.ser_available == False):
+            self.serialStatuslabel.setText('Serial: not connected.')
+            if (self.sensor_update_thread.is_alive()):
+                pass
             self.robot.openSerial()
             if (self.robot.ser_available):
                 self.serialStatuslabel.setText('Serial: Connected.')
+                self.sensor_update_thread = threading.Thread(target=self.updateSensorValueWorker)
+                self.sensor_update_thread.start()
+
+#            self.robot.angleControlTest(90.0)
+
+        # Acquire thread lock
+        self.thread_lock.acquire()
+
+        # Convert deques to lists for easier processing
+        sensor_x_list = list(self.robot.sensor_x)
+        sensor_x_kalman_list = list(self.robot.sensor_x_kalman)
+        sensor_y_list = list(self.robot.sensor_y)
+
+        # Calculate some stuff
+        plot_x_y,plot_x_x = self.reducedHistogram(sensor_x_list, self.histbins)
+        plot_y_y,plot_y_x = self.reducedHistogram(sensor_y_list, self.histbins)
+        self.sensor_x_median = statistics.median(sensor_x_kalman_list[:MEDIAN_LENGTH])
+        self.sensor_x_var = np.var(sensor_x_list)
+        self.sensor_x_kal_var = np.var(sensor_x_kalman_list)
+        self.sensor_y_median = statistics.median(sensor_y_list[:MEDIAN_LENGTH])
+        self.sensor_y_var = np.var(sensor_y_list)
+
+        # Update plots
+        self.plot_x_raw.setData(self.robot.sensor_x, self.x)
+        self.plot_x_kalman.setData(self.robot.sensor_x_kalman, self.x)
+        self.plot_y_raw.setData(self.robot.sensor_y, self.x)
+        self.plot_x_hist.setData(plot_x_x,plot_x_y)
+        self.plot_y_hist.setData(plot_y_x,plot_y_y)
+        self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
+        self.setArrowAngle(90.0 - self.robot.sensor_mag_homed)
 
 
         # Update the labels on the side
-        x_pos_str =         'Median X: \t%d \tmm\n' % self.robot.sensor_x_median
-        x_var_str =         'Var X: \t\t%0.2f \tmm\n' % self.robot.sensor_x_var
-        x_kal_var_str =     'Var Kal X: \t%0.2f \tmm\n' % self.robot.sensor_x_kal_var
-        x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % (self.robot.sensor_x_kal_var / (self.robot.sensor_x_var + 0.00000001))
-        y_pos_str =         '\nMedian Y: \t%d \tmm\n' % self.robot.sensor_y_median
-        y_var_str =         'Var y: \t\t%0.2f \tmm\n' % self.robot.sensor_y_var
+        x_pos_str =         'Median X: \t%d \tmm\n' % self.sensor_x_median
+        x_var_str =         'Var X: \t\t%0.2f \tmm^2\n' % self.sensor_x_var
+        x_kal_var_str =     'Var Kal X: \t%0.2f \tmm^2\n' % self.sensor_x_kal_var
+        x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % (self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001))
+        y_pos_str =         '\nMedian Y: \t%d \tmm\n' % self.sensor_y_median
+        y_var_str =         'Var y: \t\t%0.2f \tmm^2\n' % self.sensor_y_var
         angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % (self.robot.sensor_mag_homed)
         raw_angle_str =     'Raw angle: \t%0.1f \tdeg\n' % (self.robot.sensor_mag[0])
         ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % (self.robot.sensor_mag_ref)
@@ -152,6 +167,10 @@ class App(QtGui.QMainWindow):
         data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % (1000.0 / statistics.mean(self.robot.dt))
         data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % (statistics.mean(self.robot.dt))
         data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % (statistics.variance(self.robot.dt))
+
+        # Release thread lock
+        self.thread_lock.release()
+
         positionlabel_str = x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
             + y_pos_str + y_var_str + angle_str + raw_angle_str + ref_angle_str + x_accel_str \
             + y_accel_str + z_accel_str+ data_rate_str + data_rate_per_str + data_rate_var_str
@@ -167,6 +186,14 @@ class App(QtGui.QMainWindow):
         self.fpslabel.setText('Mean Frame Rate:  {fps:0.0f} FPS'.format(fps=self.fps))
         QtCore.QTimer.singleShot(1, self._update)
 
+
+    def updateSensorValueWorker(self):
+        if (not self.exiting):
+            print("Sensor update worker started.")
+        while (not self.exiting):
+            self.thread_lock.acquire()
+            self.robot.updateSensorValue()
+            self.thread_lock.release()
 
     # Gets the histogram but without empty bins
     def reducedHistogram(self, data_list, bins):
@@ -188,9 +215,13 @@ class App(QtGui.QMainWindow):
             self.robot.ser.write(cmd_str.encode('utf-8'))
 
     def closeEvent(self, *args, **kwargs):
+        self.exiting = True
         super(QtGui.QMainWindow, self).closeEvent(*args, **kwargs)
         if (self.robot.ser_available): self.robot.closeSerial()
         if (self.robot.data_log_enable): self.stopLog()
+        self.sensor_update_thread.join()
+
+
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)

@@ -18,13 +18,8 @@ class robot():
 
         self.sensor_x = deque(self.max_hist_len * [0], self.max_hist_len)
         self.sensor_x_kalman = deque(self.max_hist_len * [0], self.max_hist_len)
-        self.sensor_x_median = 0
-        self.sensor_x_var = 0
-        self.sensor_x_kal_var = 0
 
         self.sensor_y = deque(self.max_hist_len * [0], self.max_hist_len)
-        self.sensor_y_median = 0
-        self.sensor_y_var = 0
 
         self.sensor_mag = deque(self.max_hist_len * [0], self.max_hist_len)
         self.sensor_mag_ref = 0  # Stores the true compass home position angle
@@ -84,7 +79,6 @@ class robot():
                         self.sensor_mag_homed -= 360.0
                     if (self.sensor_mag_homed < 0):
                         self.sensor_mag_homed += 360.0
-                    self.angleControlTest(90.0)
 
                     # Use first angle measurement as the reference angle
                     if (self.sensor_mag[1] == -1):
@@ -104,7 +98,6 @@ class robot():
 
             except OSError:
                 self.closeSerial()
-                return -1
 
     def imu_calibrate(x, y, z):
         H = numpy.array([x, y, z, -y**2, -z**2, numpy.ones([len(x), 1])])
