@@ -97,7 +97,7 @@ class robot():
                     self.sensor_accel_z.appendleft(accelZ_val_raw)
 
             except OSError:
-                self.closeSerial()
+                self.ser_available = False
 
     def imu_calibrate(x, y, z):
         H = numpy.array([x, y, z, -y**2, -z**2, numpy.ones([len(x), 1])])

@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 
 from robot import robot
-import sys, time, statistics, threading
+import sys, time, threading
 import numpy as np
 import PyQt5.QtGui as QtGui
 import PyQt5.QtCore as QtCore
@@ -126,65 +126,68 @@ class App(QtGui.QMainWindow):
 
         # Acquire thread lock to get data from thread
         self.thread_lock.acquire()
-        sensor_x_deque = self.robot.sensor_x
-        sensor_x_kalman_deque = self.robot.sensor_x_kalman
-        sensor_y_deque = self.robot.sensor_y
-        dt_deque = self.robot.dt
-        sensor_mag_homed = self.robot.sensor_mag_homed
-        sensor_mag_ref = self.robot.sensor_mag_ref
-        sensor_mag = self.robot.sensor_mag
-        sensor_accel_x_deque = self.robot.sensor_accel_x
-        sensor_accel_y_deque = self.robot.sensor_accel_y
-        sensor_accel_z_deque = self.robot.sensor_accel_z
+        self.sensor_x_deque = self.robot.sensor_x
+        self.sensor_x_kalman_deque = self.robot.sensor_x_kalman
+        self.sensor_y_deque = self.robot.sensor_y
+        self.dt_deque = self.robot.dt
+        self.sensor_mag_homed = self.robot.sensor_mag_homed
+        self.sensor_mag_ref = self.robot.sensor_mag_ref
+        self.sensor_mag = self.robot.sensor_mag
+        self.sensor_accel_x_deque = self.robot.sensor_accel_x
+        self.sensor_accel_y_deque = self.robot.sensor_accel_y
+        self.sensor_accel_z_deque = self.robot.sensor_accel_z
         self.thread_lock.release()
 
         # Convert deques to lists for easier processing
-        sensor_x_list = list(sensor_x_deque)
-        sensor_x_kalman_list = list(sensor_x_kalman_deque)
-        sensor_y_list = list(sensor_y_deque)
-        dt_list = list(dt_deque)
+        self.sensor_x_list = list(self.sensor_x_deque)
+        self.sensor_x_kalman_list = list(self.sensor_x_kalman_deque)
+        self.sensor_y_list = list(self.sensor_y_deque)
+        self.dt_list = list(self.dt_deque)
 
-        # Calculate some stuff
-        plot_x_y,plot_x_x = self.reducedHistogram(sensor_x_list, self.histbins)
-        plot_y_y,plot_y_x = self.reducedHistogram(sensor_y_list, self.histbins)
-        self.sensor_x_median = statistics.median(sensor_x_kalman_list[:MEDIAN_LENGTH])
-        self.sensor_x_var = np.var(sensor_x_list)
-        self.sensor_x_kal_var = np.var(sensor_x_kalman_list)
-        self.sensor_y_median = statistics.median(sensor_y_list[:MEDIAN_LENGTH])
-        self.sensor_y_var = np.var(sensor_y_list)
+        # Calculate some stats
+        self.sensor_x_median = np.median(self.sensor_x_kalman_list[:MEDIAN_LENGTH])
+        self.sensor_x_var = np.var(self.sensor_x_list)
+        self.sensor_x_kal_var = np.var(self.sensor_x_kalman_list)
+        self.sensor_y_median = np.median(self.sensor_y_list[:MEDIAN_LENGTH])
+        self.sensor_y_var = np.var(self.sensor_y_list)
+        self.x_kal_var = self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001)
+        self.dt_mean = np.mean(self.dt_list)
+        self.dt_var = np.var(self.dt_list)
+        self.data_rate = 1000.0 / self.dt_mean
 
-        # Update plots
-        self.plot_x_raw.setData(sensor_x_list, self.x)
-        self.plot_x_kalman.setData(sensor_x_kalman_list, self.x)
-        self.plot_y_raw.setData(sensor_y_list, self.x)
-        self.plot_x_hist.setData(plot_x_x,plot_x_y)
-        self.plot_y_hist.setData(plot_y_x,plot_y_y)
-        self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
-        self.setArrowAngle(90.0 - sensor_mag_homed)
-
-
-        # Update the labels on the side
+        # Update the data label
         x_pos_str =         'Median X: \t%d \tmm\n' % self.sensor_x_median
         x_var_str =         'Var X: \t\t%0.2f \tmm^2\n' % self.sensor_x_var
         x_kal_var_str =     'Var Kal X: \t%0.2f \tmm^2\n' % self.sensor_x_kal_var
-        x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % (self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001))
+        x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % self.x_kal_var
         y_pos_str =         '\nMedian Y: \t%d \tmm\n' % self.sensor_y_median
         y_var_str =         'Var y: \t\t%0.2f \tmm^2\n' % self.sensor_y_var
-        angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % (sensor_mag_homed)
-        raw_angle_str =     'Raw angle: \t%0.1f \tdeg\n' % (sensor_mag[0])
-        ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % (sensor_mag_ref)
-        x_accel_str =       '\nX accel: \t%+0.5f g\n' % sensor_accel_x_deque[0]
-        y_accel_str =       'Y accel: \t%+0.5f g\n' % sensor_accel_y_deque[0]
-        z_accel_str =       'Z accel: \t%+0.5f g\n' % sensor_accel_z_deque[0]
-        data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % (1000.0 / statistics.mean(dt_list))
-        data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % (statistics.mean(dt_list))
-        data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % (statistics.variance(dt_list))
-
+        angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % (self.sensor_mag_homed)
+        raw_angle_str =     'Raw angle: \t%0.1f \tdeg\n' % (self.sensor_mag[0])
+        ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % (self.sensor_mag_ref)
+        x_accel_str =       '\nX accel: \t%+0.5f g\n' % self.sensor_accel_x_deque[0]
+        y_accel_str =       'Y accel: \t%+0.5f g\n' % self.sensor_accel_y_deque[0]
+        z_accel_str =       'Z accel: \t%+0.5f g\n' % self.sensor_accel_z_deque[0]
+        data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % self.data_rate
+        data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % self.dt_mean
+        data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % self.dt_var
 
         positionlabel_str = x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
             + y_pos_str + y_var_str + angle_str + raw_angle_str + ref_angle_str + x_accel_str \
             + y_accel_str + z_accel_str+ data_rate_str + data_rate_per_str + data_rate_var_str
+
         self.positionlabel.setText(positionlabel_str)
+
+        # Update plots
+        self.plot_x_raw.setData(self.sensor_x_list, self.x)
+        self.plot_x_kalman.setData(self.sensor_x_kalman_list, self.x)
+        self.plot_y_raw.setData(self.sensor_y_list, self.x)
+        plot_x_y,plot_x_x = self.reducedHistogram(self.sensor_x_list, self.histbins)
+        plot_y_y,plot_y_x = self.reducedHistogram(self.sensor_y_list, self.histbins)
+        self.plot_x_hist.setData(plot_x_x,plot_x_y)
+        self.plot_y_hist.setData(plot_y_x,plot_y_y)
+        self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
+        self.setArrowAngle(90.0 - self.sensor_mag_homed)
 
         now = time.time()
         dt = (now-self.lastupdate)
@@ -206,6 +209,7 @@ class App(QtGui.QMainWindow):
             self.robot.updateSensorValue()
             self.thread_lock.release()
 
+
     # Gets the histogram but without empty bins
     def reducedHistogram(self, data_list, bins):
         y,x = np.histogram(data_list, bins)
@@ -226,6 +230,7 @@ class App(QtGui.QMainWindow):
             self.robot.ser.write(cmd_str.encode('utf-8'))
 
     def closeEvent(self, *args, **kwargs):
+#        self.thread_lock2.acquire()
         self.exiting = True
         super(QtGui.QMainWindow, self).closeEvent(*args, **kwargs)
         if (self.robot.ser_available): self.robot.closeSerial()
