@@ -70,6 +70,7 @@ void MX_I2C2_Init(void);
 // I2C write command(I2C handle, 7-bit address, data array, number of data bytes) 
 void I2C_Write (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t size);
 void I2C_Read  (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t size);
+void I2C_WriteRead (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *wr_data, uint16_t wr_size, uint8_t *rd_data, uint16_t rd_size);
 
 #ifdef __cplusplus
 }

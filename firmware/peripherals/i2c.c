@@ -390,6 +390,13 @@ void I2C_Write (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t s
 //    }
 }
 
+// I2C write then read command
+void I2C_WriteRead (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *wr_data, uint16_t wr_size, uint8_t *rd_data, uint16_t rd_size)
+{
+    I2C_Write(hi2c, addr, wr_data, wr_size);
+    I2C_Read(hi2c, addr, rd_data, rd_size);
+}
+
 void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c)
 {
 }
