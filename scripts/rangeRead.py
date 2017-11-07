@@ -32,7 +32,7 @@ class App(QtGui.QMainWindow):
         self.buttonLogStop = QtGui.QPushButton('Stop data log')
         self.buttonLogStop.clicked.connect(self.robot.stopLog)
         self.serialStatuslabel = QtGui.QLabel()
-        self.serialStatuslabel.setText('Serial: not connected.')
+        self.serialStatuslabel.setText('Serial: Not connected.')
         self.serialConsole = QtGui.QLineEdit()
         self.serialConsole.returnPressed.connect(self.writeSerialConsole)
         self.buttonForward = QtGui.QPushButton('Forward')
@@ -113,7 +113,7 @@ class App(QtGui.QMainWindow):
     def _update(self):
         # If no serial available, try to open a new one
         if (self.robot.ser_available == False):
-            self.serialStatuslabel.setText('Serial: not connected.')
+            self.serialStatuslabel.setText('Serial: Not connected.')
             if (self.sensor_update_thread.is_alive()):
                 pass
             self.robot.openSerial()
@@ -124,13 +124,25 @@ class App(QtGui.QMainWindow):
 
 #            self.robot.angleControlTest(90.0)
 
-        # Acquire thread lock
+        # Acquire thread lock to get data from thread
         self.thread_lock.acquire()
+        sensor_x_deque = self.robot.sensor_x
+        sensor_x_kalman_deque = self.robot.sensor_x_kalman
+        sensor_y_deque = self.robot.sensor_y
+        dt_deque = self.robot.dt
+        sensor_mag_homed = self.robot.sensor_mag_homed
+        sensor_mag_ref = self.robot.sensor_mag_ref
+        sensor_mag = self.robot.sensor_mag
+        sensor_accel_x_deque = self.robot.sensor_accel_x
+        sensor_accel_y_deque = self.robot.sensor_accel_y
+        sensor_accel_z_deque = self.robot.sensor_accel_z
+        self.thread_lock.release()
 
         # Convert deques to lists for easier processing
-        sensor_x_list = list(self.robot.sensor_x)
-        sensor_x_kalman_list = list(self.robot.sensor_x_kalman)
-        sensor_y_list = list(self.robot.sensor_y)
+        sensor_x_list = list(sensor_x_deque)
+        sensor_x_kalman_list = list(sensor_x_kalman_deque)
+        sensor_y_list = list(sensor_y_deque)
+        dt_list = list(dt_deque)
 
         # Calculate some stuff
         plot_x_y,plot_x_x = self.reducedHistogram(sensor_x_list, self.histbins)
@@ -142,13 +154,13 @@ class App(QtGui.QMainWindow):
         self.sensor_y_var = np.var(sensor_y_list)
 
         # Update plots
-        self.plot_x_raw.setData(self.robot.sensor_x, self.x)
-        self.plot_x_kalman.setData(self.robot.sensor_x_kalman, self.x)
-        self.plot_y_raw.setData(self.robot.sensor_y, self.x)
+        self.plot_x_raw.setData(sensor_x_list, self.x)
+        self.plot_x_kalman.setData(sensor_x_kalman_list, self.x)
+        self.plot_y_raw.setData(sensor_y_list, self.x)
         self.plot_x_hist.setData(plot_x_x,plot_x_y)
         self.plot_y_hist.setData(plot_y_x,plot_y_y)
         self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
-        self.setArrowAngle(90.0 - self.robot.sensor_mag_homed)
+        self.setArrowAngle(90.0 - sensor_mag_homed)
 
 
         # Update the labels on the side
@@ -158,18 +170,16 @@ class App(QtGui.QMainWindow):
         x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % (self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001))
         y_pos_str =         '\nMedian Y: \t%d \tmm\n' % self.sensor_y_median
         y_var_str =         'Var y: \t\t%0.2f \tmm^2\n' % self.sensor_y_var
-        angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % (self.robot.sensor_mag_homed)
-        raw_angle_str =     'Raw angle: \t%0.1f \tdeg\n' % (self.robot.sensor_mag[0])
-        ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % (self.robot.sensor_mag_ref)
-        x_accel_str =       '\nX accel: \t%+0.5f g\n' % self.robot.sensor_accel_x[0]
-        y_accel_str =       'Y accel: \t%+0.5f g\n' % self.robot.sensor_accel_y[0]
-        z_accel_str =       'Z accel: \t%+0.5f g\n' % self.robot.sensor_accel_z[0]
-        data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % (1000.0 / statistics.mean(self.robot.dt))
-        data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % (statistics.mean(self.robot.dt))
-        data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % (statistics.variance(self.robot.dt))
+        angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % (sensor_mag_homed)
+        raw_angle_str =     'Raw angle: \t%0.1f \tdeg\n' % (sensor_mag[0])
+        ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % (sensor_mag_ref)
+        x_accel_str =       '\nX accel: \t%+0.5f g\n' % sensor_accel_x_deque[0]
+        y_accel_str =       'Y accel: \t%+0.5f g\n' % sensor_accel_y_deque[0]
+        z_accel_str =       'Z accel: \t%+0.5f g\n' % sensor_accel_z_deque[0]
+        data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % (1000.0 / statistics.mean(dt_list))
+        data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % (statistics.mean(dt_list))
+        data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % (statistics.variance(dt_list))
 
-        # Release thread lock
-        self.thread_lock.release()
 
         positionlabel_str = x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
             + y_pos_str + y_var_str + angle_str + raw_angle_str + ref_angle_str + x_accel_str \
@@ -184,7 +194,8 @@ class App(QtGui.QMainWindow):
         self.lastupdate = now
         self.fps = self.fps * 0.9 + fps2 * 0.1
         self.fpslabel.setText('Mean Frame Rate:  {fps:0.0f} FPS'.format(fps=self.fps))
-        QtCore.QTimer.singleShot(1, self._update)
+        if (not self.exiting):
+            QtCore.QTimer.singleShot(1, self._update)
 
 
     def updateSensorValueWorker(self):
@@ -219,7 +230,6 @@ class App(QtGui.QMainWindow):
         super(QtGui.QMainWindow, self).closeEvent(*args, **kwargs)
         if (self.robot.ser_available): self.robot.closeSerial()
         if (self.robot.data_log_enable): self.stopLog()
-        self.sensor_update_thread.join()
 
 
 
