@@ -49,6 +49,8 @@ class App(QtGui.QMainWindow):
         self.buttonReverse = QtGui.QPushButton('Reverse')
         self.buttonReverse.clicked.connect(self.botCmdReverseButton)
         self.positionlabel = QtGui.QLabel()
+        newfont = QtGui.QFont("courier")
+        self.positionlabel.setFont(newfont)
         self.fpslabel = QtGui.QLabel()
         self.fpslabel.setFixedWidth(200)
 
@@ -170,22 +172,22 @@ class App(QtGui.QMainWindow):
             self.openSerial()
 
         # Update the labels on the side
-        x_pos_str =         '    Median X: %3d mm\n' % self.sensor_x_median
-        x_var_str =         '    Var X: %0.2f mm\n' % self.sensor_x_var
-        x_kal_var_str =     '    Var Kal X: %0.2f mm\n' % self.sensor_x_kal_var
-        x_var_ratio_str =   '    Var ratio X: %0.2f\n' % (self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001))
-        y_pos_str =         '    Median Y: %3d mm\n' % self.sensor_y_median
-        y_var_str =         '    Var y: %0.2f mm\n' % self.sensor_y_var
-        angle_str =         '    Angle: %0.1f deg\n' % (self.sensor_mag_homed)
-        raw_angle_str =     '    Raw angle: %0.1f deg\n' % (self.sensor_mag[0])
-        ref_angle_str =     '    Ref angle: %0.1f deg\n' % (self.sensor_mag_ref)
-        x_accel_str =       '    X accel: %0.5f g\n' % self.sensor_accel_x[0]
-        y_accel_str =       '    Y accel: %0.5f g\n' % self.sensor_accel_y[0]
-        z_accel_str =       '    Z accel: %0.5f g\n' % self.sensor_accel_z[0]
-        data_rate_str =     '    Data rate: %0.1f Hz\n' % (1000.0 / statistics.mean(self.dt))
-        data_rate_per_str = '    Data rate per: %0.3f ms\n' % (statistics.mean(self.dt))
-        data_rate_var_str = '    Data rate var: %0.4f ms\n' % (statistics.variance(self.dt))
-        positionlabel_str = 'Data: \n' + x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
+        x_pos_str =         'Median X: \t%d \tmm\n' % self.sensor_x_median
+        x_var_str =         'Var X: \t\t%0.2f \tmm\n' % self.sensor_x_var
+        x_kal_var_str =     'Var Kal X: \t%0.2f \tmm\n' % self.sensor_x_kal_var
+        x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % (self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001))
+        y_pos_str =         '\nMedian Y: \t%d \tmm\n' % self.sensor_y_median
+        y_var_str =         'Var y: \t\t%0.2f \tmm\n' % self.sensor_y_var
+        angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % (self.sensor_mag_homed)
+        raw_angle_str =     'Raw angle: \t%0.1f \tdeg\n' % (self.sensor_mag[0])
+        ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % (self.sensor_mag_ref)
+        x_accel_str =       '\nX accel: \t%+0.5f g\n' % self.sensor_accel_x[0]
+        y_accel_str =       'Y accel: \t%+0.5f g\n' % self.sensor_accel_y[0]
+        z_accel_str =       'Z accel: \t%+0.5f g\n' % self.sensor_accel_z[0]
+        data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % (1000.0 / statistics.mean(self.dt))
+        data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % (statistics.mean(self.dt))
+        data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % (statistics.variance(self.dt))
+        positionlabel_str = x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
             + y_pos_str + y_var_str + angle_str + raw_angle_str + ref_angle_str + x_accel_str \
             + y_accel_str + z_accel_str+ data_rate_str + data_rate_per_str + data_rate_var_str
         self.positionlabel.setText(positionlabel_str)
@@ -228,7 +230,7 @@ class App(QtGui.QMainWindow):
 
                     # Log data
                     if (self.data_log_enable):
-                        self.data_log += '%0.1f, %0.1f, %d, %d\n' % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
+                        self.data_log += '%0.1f, %0.1f, %d, %d, \n' % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
 
                     # Process time delta
                     self.dt.appendleft(dt)
@@ -286,7 +288,7 @@ class App(QtGui.QMainWindow):
                 self.ser.open()
                 self.ser.reset_input_buffer()
                 self.ser_available = True
-                self.serialStatuslabel.setText('Serial: connected.')
+                self.serialStatuslabel.setText('Serial: Connected.')
                 break
             except serial.serialutil.SerialException:
                 pass
