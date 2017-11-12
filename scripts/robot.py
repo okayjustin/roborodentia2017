@@ -30,6 +30,10 @@ class robot():
         self.sensor_accel_y = deque(self.max_hist_len * [0], self.max_hist_len)
         self.sensor_accel_z = deque(self.max_hist_len * [0], self.max_hist_len)
 
+        self.sensor_gyro_x = deque(self.max_hist_len * [0], self.max_hist_len)
+        self.sensor_gyro_y = deque(self.max_hist_len * [0], self.max_hist_len)
+        self.sensor_gyro_z = deque(self.max_hist_len * [0], self.max_hist_len)
+
         self.ser_available = False
         self.data_log_enable = False
 
@@ -44,7 +48,7 @@ class robot():
                     readback = self.ser.readline()
                     try:
                         readback_split = readback.decode().split(',')
-                        if (len(readback_split) != 7):
+                        if (len(readback_split) != 10):
                             print(readback)
                             return
                         dt = int(readback_split[0]) / 10.0  # Units of 0.1 ms, convert to ms
@@ -59,6 +63,10 @@ class robot():
                         accelX_val_raw = 1.0* int(readback_split[4]) / pow(2, 14) # Units of g (9.8m/s/s)
                         accelY_val_raw = 1.0* int(readback_split[5]) / pow(2, 14) # Units of g (9.8m/s/s)
                         accelZ_val_raw = 1.0* int(readback_split[6]) / pow(2, 14) # Units of g (9.8m/s/s)
+
+                        gyroX_val_raw = int(readback_split[7]) #/ 133.74693878
+                        gyroY_val_raw = int(readback_split[8]) #/ 133.74693878
+                        gyroZ_val_raw = int(readback_split[9]) #/ 133.74693878
                     except ValueError:
                         print("Readback error: ",end='')
                         print(readback)
@@ -95,6 +103,11 @@ class robot():
                     self.sensor_accel_x.appendleft(accelX_val_raw)
                     self.sensor_accel_y.appendleft(accelY_val_raw)
                     self.sensor_accel_z.appendleft(accelZ_val_raw)
+
+                    # Process gyros
+                    self.sensor_gyro_x.appendleft(gyroX_val_raw)
+                    self.sensor_gyro_y.appendleft(gyroY_val_raw)
+                    self.sensor_gyro_z.appendleft(gyroZ_val_raw)
 
             except OSError:
                 self.ser_available = False

@@ -93,11 +93,6 @@ class App(QtGui.QMainWindow):
         self.plot_xy.addItem(self.abs_position_arrow)
 
         # Control/data signals
-        self.sensor_x_median = 0
-        self.sensor_x_var = 0
-        self.sensor_x_kal_var = 0
-        self.sensor_y_median = 0
-        self.sensor_y_var = 0
         self.x = np.linspace(0, self.robot.max_hist_len + 1, num = self.robot.max_hist_len)
         self.histbins = bins=np.linspace(0, 1000, 1000)
         self.fps = 0.
@@ -136,6 +131,9 @@ class App(QtGui.QMainWindow):
         self.sensor_accel_x_deque = self.robot.sensor_accel_x
         self.sensor_accel_y_deque = self.robot.sensor_accel_y
         self.sensor_accel_z_deque = self.robot.sensor_accel_z
+        self.sensor_gyro_x_deque = self.robot.sensor_gyro_x
+        self.sensor_gyro_y_deque = self.robot.sensor_gyro_y
+        self.sensor_gyro_z_deque = self.robot.sensor_gyro_z
         self.thread_lock.release()
 
         # Convert deques to lists for easier processing
@@ -168,13 +166,17 @@ class App(QtGui.QMainWindow):
         x_accel_str =       '\nX accel: \t%+0.5f g\n' % self.sensor_accel_x_deque[0]
         y_accel_str =       'Y accel: \t%+0.5f g\n' % self.sensor_accel_y_deque[0]
         z_accel_str =       'Z accel: \t%+0.5f g\n' % self.sensor_accel_z_deque[0]
+        x_gyro_str =       '\nX gyro: \t%d dps\n' % self.sensor_gyro_x_deque[0]
+        y_gyro_str =       'Y gyro: \t%d dps\n' % self.sensor_gyro_y_deque[0]
+        z_gyro_str =       'Z gyro: \t%d dps\n' % self.sensor_gyro_z_deque[0]
         data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % self.data_rate
         data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % self.dt_mean
         data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % self.dt_var
 
         positionlabel_str = x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
             + y_pos_str + y_var_str + angle_str + raw_angle_str + ref_angle_str + x_accel_str \
-            + y_accel_str + z_accel_str+ data_rate_str + data_rate_per_str + data_rate_var_str
+            + y_accel_str + z_accel_str + x_gyro_str + y_gyro_str + z_gyro_str \
+            + data_rate_str + data_rate_per_str + data_rate_var_str
 
         self.positionlabel.setText(positionlabel_str)
 

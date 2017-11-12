@@ -55,7 +55,7 @@ SOURCES += $(PERIPHERALS)/gpio.c \
 		   $(USB)/usbd_desc.c \
 		   $(USB)/usbd_ioreq.c
 
-SOURCES += $(DRIVERS)/lsm303.c \
+SOURCES += $(DRIVERS)/imu.c \
 			$(DRIVERS)/vl53l0x/vl53l0x_api.c \
 			$(DRIVERS)/vl53l0x/vl53l0x_api_calibration.c \
 			$(DRIVERS)/vl53l0x/vl53l0x_api_core.c \

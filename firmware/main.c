@@ -9,7 +9,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "config.h"
-#include "lsm303.h"
+#include "imu.h"
 #include "vl53l0x_top.h"
 
 /* Private typedef -----------------------------------------------------------*/
@@ -22,6 +22,9 @@ void Error_Handler(void);
 void TimeStamp_Reset();
 uint32_t TimeStamp_Get();
 void Initialization();
+void getRawValues(int16_t * raw_values);
+void writeArr(void * varr, uint8_t arr_length, uint8_t type_bytes); 
+void writeVar(void * val, uint8_t type_bytes);
 
 void _init(void) {;}
 
@@ -40,14 +43,16 @@ int main(void)
     {
         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-        LSM303_read();
+        gyro_read();
+        accelerometer_read();
+        magnetometer_read();
         rangefinderRead(0);
         rangefinderRead(1);
         cur_time = TimeStamp_Get();
         dt = cur_time - print_time;
         if (dt > 98){   // Ends up w/ data rate ~100 Hz
             print_time = cur_time;
-            printf("%lu,%d,%d,%d,%d,%d,%d\r\n", dt, magData.orientation, rangeMillimeterX, rangeMillimeterY, accelData.x, accelData.y, accelData.z);
+            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", dt, magData.orientation, rangeMillimeterX, rangeMillimeterY, accelData.x, accelData.y, accelData.z, gyroData.x, gyroData.y, gyroData.z);
         }
     }
 }
@@ -71,7 +76,7 @@ void Initialization(){
     MX_USART2_UART_Init();
     //MX_TIM1_Init();
     //MX_TIM3_Init();
-    MX_TIM4_Init();
+    MX_TIM4_Init(); // Used for movement motor PWM
     MX_TIM5_Init(); // Used for UART timestamping
     //MX_TIM10_Init();
     //MX_TIM11_Init();
@@ -80,7 +85,7 @@ void Initialization(){
     MX_I2C2_Init();
 
     printf("Enabling magnetometer...\r\n");
-    LSM303_begin();
+    IMU_begin();
     printf("Done enabling magnetometer...\r\n");
     HAL_Delay(100);
 
@@ -95,8 +100,25 @@ void Initialization(){
 // Execute a command from the console
 void consoleCommand(uint8_t *ptr, int len)
 {
+    // V for version
+    if (ptr[0] == 'V' || ptr[0] == 'v'){
+        printf("Robojustin v0.1\r\n");
+    }
+
+    // B for sending IMU data
+    else if (ptr[0] == 'B' || ptr[0] == 'b') {
+        uint8_t count = ptr[1]; // Accepts 0-255 
+        uint8_t i = 0;
+        for(i=0; i < count; i++) {
+            int16_t raw_values[9];
+            getRawValues(raw_values);
+            writeArr(raw_values, 9, sizeof(int16_t)); // writes accelerometer, gyro values & mag        
+            printf("\r\n");
+        }
+    }
+
     // M for motor control commands
-    if (ptr[0] == 'M' || ptr[0] == 'm'){  
+    else if (ptr[0] == 'M' || ptr[0] == 'm'){  
         GPIO_TypeDef *GPIOx;
         uint16_t GPIO_Pin;
         GPIO_PinState PinState;
@@ -143,6 +165,41 @@ void consoleCommand(uint8_t *ptr, int len)
             if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
             if (HAL_TIM_PWM_Start(&htim4, TIM_Channel) != HAL_OK){ Error_Handler(); }
         }
+    }
+}            
+
+/**
+ * Populates raw_values with the raw_values from the sensors
+*/
+void getRawValues(int16_t * raw_values) {
+    gyro_read();
+    accelerometer_read();
+    magnetometer_read();
+
+    raw_values[0] = accelData.x;
+    raw_values[1] = accelData.y;
+    raw_values[2] = accelData.z;
+	raw_values[3] = gyroData.x;
+	raw_values[4] = gyroData.y;
+	raw_values[5] = gyroData.z;
+    raw_values[6] = magData.x;
+    raw_values[7] = magData.y;
+    raw_values[8] = magData.z;
+		
+}
+void writeArr(void * varr, uint8_t arr_length, uint8_t type_bytes) {
+    uint8_t i = 0;
+    unsigned char * arr = (unsigned char*) varr;
+    for (i = 0; i<arr_length; i++) {
+        writeVar(&arr[i * type_bytes], type_bytes);
+    }
+}
+
+void writeVar(void * val, uint8_t type_bytes) {
+    uint8_t i = 0;
+    unsigned char * addr=(unsigned char *)(val);
+    for (i = 0; i<type_bytes; i++) { 
+        printf("%c", addr[i]);
     }
 }
 
