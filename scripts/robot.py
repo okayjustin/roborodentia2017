@@ -43,13 +43,22 @@ class robot():
         self.sensor_accel_x = deque(self.max_hist_len * [0], self.max_hist_len)
         self.sensor_accel_y = deque(self.max_hist_len * [0], self.max_hist_len)
         self.sensor_accel_z = deque(self.max_hist_len * [0], self.max_hist_len)
+        self.sensor_accel_offset_x = 0
+        self.sensor_accel_offset_y = 0
+        self.sensor_accel_offset_z = 0
 
         self.sensor_gyro_x = deque(self.max_hist_len * [0], self.max_hist_len)
         self.sensor_gyro_y = deque(self.max_hist_len * [0], self.max_hist_len)
         self.sensor_gyro_z = deque(self.max_hist_len * [0], self.max_hist_len)
+        self.sensor_gyro_offset_x = 0
+        self.sensor_gyro_offset_y = 0
+        self.sensor_gyro_offset_z = 0
 
         self.ser_available = False
         self.data_log_enable = False
+
+        self.calibrating = True
+        self.calibration_sample_count = 0
 
         # create the Kalman filter
         P = np.diag([500., 49.])
@@ -102,10 +111,6 @@ class robot():
                     if (self.sensor_mag_homed < 0):
                         self.sensor_mag_homed += 360.0
 
-                    # Use first angle measurement as the reference angle
-                    if (self.sensor_mag[1] == -1):
-                        self.sensor_mag_ref = self.sensor_mag[0] + 90.0
-
                     # Process rangefinders
                     self.kf.predict()
                     self.kf.update(rangeX_val_raw)
@@ -114,14 +119,42 @@ class robot():
                     self.sensor_y.appendleft(rangeY_val_raw)
 
                     # Process accelerometers
-                    self.sensor_accel_x.appendleft(accelX_val_raw)
-                    self.sensor_accel_y.appendleft(accelY_val_raw)
-                    self.sensor_accel_z.appendleft(accelZ_val_raw)
+                    self.sensor_accel_x.appendleft(accelX_val_raw - self.sensor_accel_offset_x)
+                    self.sensor_accel_y.appendleft(accelY_val_raw - self.sensor_accel_offset_y)
+                    self.sensor_accel_z.appendleft(accelZ_val_raw - self.sensor_accel_offset_z)
 
                     # Process gyros
-                    self.sensor_gyro_x.appendleft(gyroX_val_raw)
-                    self.sensor_gyro_y.appendleft(gyroY_val_raw)
-                    self.sensor_gyro_z.appendleft(gyroZ_val_raw)
+                    self.sensor_gyro_x.appendleft(gyroX_val_raw - self.sensor_gyro_offset_x)
+                    self.sensor_gyro_y.appendleft(gyroY_val_raw - self.sensor_gyro_offset_y)
+                    self.sensor_gyro_z.appendleft(gyroZ_val_raw - self.sensor_gyro_offset_z)
+
+                    # Collect many samples to get the average sensor value for offset calibration
+                    if (self.calibrating):
+                        if (self.calibration_sample_count == 0):
+                            self.sensor_mag_ref = 0
+                            self.sensor_accel_offset_x = 0
+                            self.sensor_accel_offset_y = 0
+                            self.sensor_accel_offset_z = 0
+                            self.sensor_gyro_offset_x = 0
+                            self.sensor_gyro_offset_y = 0
+                            self.sensor_gyro_offset_z = 0
+
+                        self.calibration_sample_count += 1
+                        if (self.calibration_sample_count == self.max_hist_len + 1):
+                            self.calibrating = False
+
+                            # Use average angle measurement as the reference angle
+                            self.sensor_mag_ref = np.mean(self.sensor_mag) + 90.0
+
+                            # Use average accel measurement
+                            self.sensor_accel_offset_x = np.mean(self.sensor_accel_x)
+                            self.sensor_accel_offset_y = np.mean(self.sensor_accel_y)
+                            self.sensor_accel_offset_z = np.mean(self.sensor_accel_z)
+
+                            # Use average gyro  measurement
+                            self.sensor_gyro_offset_x = np.mean(self.sensor_gyro_x)
+                            self.sensor_gyro_offset_y = np.mean(self.sensor_gyro_y)
+                            self.sensor_gyro_offset_z = np.mean(self.sensor_gyro_z)
 
             except OSError:
                 self.ser_available = False

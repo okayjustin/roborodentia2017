@@ -163,9 +163,9 @@ class App(QtGui.QMainWindow):
         angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % (self.sensor_mag_homed)
         raw_angle_str =     'Raw angle: \t%0.1f \tdeg\n' % (self.sensor_mag[0])
         ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % (self.sensor_mag_ref)
-        x_accel_str =       '\nX accel: \t%+0.5f g\n' % self.sensor_accel_x_deque[0]
-        y_accel_str =       'Y accel: \t%+0.5f g\n' % self.sensor_accel_y_deque[0]
-        z_accel_str =       'Z accel: \t%+0.5f g\n' % self.sensor_accel_z_deque[0]
+        x_accel_str =       '\nX accel: \t%+0.3f g\n' % self.sensor_accel_x_deque[0]
+        y_accel_str =       'Y accel: \t%+0.3f g\n' % self.sensor_accel_y_deque[0]
+        z_accel_str =       'Z accel: \t%+0.3f g\n' % self.sensor_accel_z_deque[0]
         x_gyro_str =       '\nX gyro: \t%+0.1f dps\n' % self.sensor_gyro_x_deque[0]
         y_gyro_str =       'Y gyro: \t%+0.1f dps\n' % self.sensor_gyro_y_deque[0]
         z_gyro_str =       'Z gyro: \t%+0.1f dps\n' % self.sensor_gyro_z_deque[0]
