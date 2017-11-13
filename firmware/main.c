@@ -83,10 +83,10 @@ void Initialization(){
     serviceUART();
     //MX_I2C1_Init();
     MX_I2C2_Init();
+    //I2C_Scan(&hi2c2); // Debug use: for detecting I2C devices
 
-    printf("Enabling magnetometer...\r\n");
+    printf("Enabling IMU...\r\n");
     IMU_begin();
-    printf("Done enabling magnetometer...\r\n");
     HAL_Delay(100);
 
     TimeStamp_Reset();
@@ -94,7 +94,6 @@ void Initialization(){
     printf("Initializing rangefinders...\r\n");
     VL53L0X_begin();
     VL53L0X_SetupSingleShot();
-    printf("Done initializing rangefinders.\r\n");
 }
 
 // Execute a command from the console

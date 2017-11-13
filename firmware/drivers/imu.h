@@ -3,7 +3,7 @@
 #define __IMU_H__
 
 #define IMU_I2C_INTERFACE              &hi2c2
-#define L3GD20H_ADDRESS               (0x6B)         // 1101 011x
+#define L3G4200D_ADDRESS              (0x69)         // 1101 001x
 #define LSM303_ADDRESS_ACCEL          (0x19)         // 0011 001x
 #define LSM303_ADDRESS_MAG            (0x1E)         // 0011 110x
 
@@ -11,34 +11,33 @@
 
 typedef enum
 {                                                
-    L3GD20H_REG_WHO_AM_I                = 0x0F, 
-    L3GD20H_REG_CTRL1                   = 0x20, 
-    L3GD20H_REG_CTRL2                   = 0x21, 
-    L3GD20H_REG_CTRL3                   = 0x22, 
-    L3GD20H_REG_CTRL4                   = 0x23, 
-    L3GD20H_REG_CTRL5                   = 0x24, 
-    L3GD20H_REG_REFERENCE               = 0x25, 
-    L3GD20H_REG_OUT_TEMP                = 0x26, 
-    L3GD20H_REG_STATUS                  = 0x27, 
-    L3GD20H_REG_OUT_X_L                 = 0x28,
-    L3GD20H_REG_OUT_X_H                 = 0x29,
-    L3GD20H_REG_OUT_Y_L                 = 0x2A,
-    L3GD20H_REG_OUT_Y_H                 = 0x2B,
-    L3GD20H_REG_OUT_Z_L                 = 0x2C,
-    L3GD20H_REG_OUT_Z_H                 = 0x2D,
-    L3GD20H_REG_FIFO_CTRL               = 0x2E,
-    L3GD20H_REG_FIFO_SRC                = 0x2F,
-    L3GD20H_REG_IG_CFG                  = 0x30,
-    L3GD20H_REG_IG_SRC                  = 0x31,
-    L3GD20H_REG_IG_THS_XH               = 0x32,
-    L3GD20H_REG_IG_THS_XL               = 0x33,
-    L3GD20H_REG_IG_THS_YH               = 0x34,
-    L3GD20H_REG_IG_THS_YL               = 0x35,
-    L3GD20H_REG_IG_THS_ZH               = 0x36,
-    L3GD20H_REG_IG_THS_ZL               = 0x37,
-    L3GD20H_REG_IG_DURATION             = 0x38,
-    L3GD20H_REG_LOW_ODR                 = 0x39
-} l3gd20hRegisters_t;
+    L3G4200D_REG_WHO_AM_I               = 0x0F, 
+    L3G4200D_REG_CTRL_REG1              = 0x20, 
+    L3G4200D_REG_CTRL_REG2              = 0x21, 
+    L3G4200D_REG_CTRL_REG3              = 0x22, 
+    L3G4200D_REG_CTRL_REG4              = 0x23, 
+    L3G4200D_REG_CTRL_REG5              = 0x24, 
+    L3G4200D_REG_REFERENCE              = 0x25, 
+    L3G4200D_REG_OUT_TEMP               = 0x26, 
+    L3G4200D_REG_STATUS_REG             = 0x27, 
+    L3G4200D_REG_OUT_X_L                = 0x28,
+    L3G4200D_REG_OUT_X_H                = 0x29,
+    L3G4200D_REG_OUT_Y_L                = 0x2A,
+    L3G4200D_REG_OUT_Y_H                = 0x2B,
+    L3G4200D_REG_OUT_Z_L                = 0x2C,
+    L3G4200D_REG_OUT_Z_H                = 0x2D,
+    L3G4200D_REG_FIFO_CTRL_REG          = 0x2E,
+    L3G4200D_REG_FIFO_SRC_REG           = 0x2F,
+    L3G4200D_REG_INT1_CFG               = 0x30,
+    L3G4200D_REG_INT1_SRC               = 0x31,
+    L3G4200D_REG_INT1_TSH_XH            = 0x32,
+    L3G4200D_REG_INT1_TSH_XL            = 0x33,
+    L3G4200D_REG_INT1_TSH_YH            = 0x34,
+    L3G4200D_REG_INT1_TSH_YL            = 0x35,
+    L3G4200D_REG_INT1_TSH_ZH            = 0x36,
+    L3G4200D_REG_INT1_TSH_ZL            = 0x37,
+    L3G4200D_REG_INT1_DURATION          = 0x38
+} l3g4200dRegisters_t;
 
 typedef enum
 {                                                
@@ -102,12 +101,12 @@ typedef enum
     LSM303_MAGGAIN_8_1                  = 0xE0   // +/- 8.1
 } lsm303MagGain;    
 
-typedef struct l3gd20hGyroData_s
+typedef struct l3g4200dGyroData_s
 {
     int16_t x;
     int16_t y;
     int16_t z;
-} l3gd20hGyroData;
+} l3g4200dGyroData;
 
 typedef struct lsm303AccelData_s
 {
@@ -130,7 +129,7 @@ void gyro_read (void);
 void accelerometer_read (void);
 void magnetometer_read (void);
 
-l3gd20hGyroData gyroData;     // Last read gyro data will be available here
+l3g4200dGyroData gyroData;     // Last read gyro data will be available here
 lsm303AccelData accelData;    // Last read accelerometer data will be available here
 lsm303MagData magData;        // Last read magnetometer data will be available here
 

@@ -1,6 +1,6 @@
 // Library for controling Adafruit 9-DOF IMU
 // LSM303DLHC magnetometer/accelerometer combo
-// L3GD20H gyroscope
+// L3G4200D gyroscope
 
 #include "main.h"
 #include "imu.h"
@@ -8,20 +8,15 @@
 #include "math.h"
 
 void IMU_begin() {
-    uint8_t write_data_gyro3[2] = {L3GD20H_REG_LOW_ODR, 0x00}; 
-    I2C_Write(IMU_I2C_INTERFACE, L3GD20H_ADDRESS, write_data_gyro3, 2); 
-
     // BDU block data update enabled
-    uint8_t write_data_gyro[2] = {L3GD20H_REG_CTRL4, 0x00}; 
-    I2C_Write(IMU_I2C_INTERFACE, L3GD20H_ADDRESS, write_data_gyro, 2); 
-
+    uint8_t write_data_gyro[2] = {L3G4200D_REG_CTRL_REG4, 0x80}; 
+    I2C_Write(IMU_I2C_INTERFACE, L3G4200D_ADDRESS, write_data_gyro, 2); 
      
     // Enable the gyroscope
     // DR = 00 (100 Hz ODR); BW = 01 (25 Hz bandwidth); PD = 1 (normal mode); 
     // Zen = Yen = Xen = 1 (all axes enabled)
-    HAL_Delay(5);
-    uint8_t write_data_gyro2[2] = {L3GD20H_REG_CTRL1, 0x6F}; 
-    I2C_Write(IMU_I2C_INTERFACE, L3GD20H_ADDRESS, write_data_gyro2, 2); 
+    uint8_t write_data_gyro2[2] = {L3G4200D_REG_CTRL_REG1, 0x1F}; 
+    I2C_Write(IMU_I2C_INTERFACE, L3G4200D_ADDRESS, write_data_gyro2, 2); 
 
 
     // Enable the accelerometer
@@ -46,9 +41,9 @@ void IMU_begin() {
 }
 
 void gyro_read() {
-    uint8_t write_data[1] = {L3GD20H_REG_OUT_X_L | 0x80};  // 0x80 addr autoincrement
+    uint8_t write_data[1] = {L3G4200D_REG_OUT_X_L | 0x80};  // 0x80 addr autoincrement
     uint8_t read_data[6];
-    I2C_WriteRead(IMU_I2C_INTERFACE, L3GD20H_ADDRESS, write_data, 1, read_data, 6); 
+    I2C_WriteRead(IMU_I2C_INTERFACE, L3G4200D_ADDRESS, write_data, 1, read_data, 6); 
 
     // Shift values to create properly formed integer 
     gyroData.x = (int16_t)((read_data[1] << 8) | read_data[0]);
