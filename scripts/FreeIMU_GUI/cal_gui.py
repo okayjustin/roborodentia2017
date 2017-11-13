@@ -124,7 +124,7 @@ class FreeIMUCal(QMainWindow, Ui_FreeIMUCal):
     mx.setSize(x=1000, y=1000, z=1000)
     self.magn3D.addItem(ax)
 
-    temp_pos = numpy.array([0, 1, 2]).transpose()
+    temp_pos = numpy.array([0, 0, 0]).transpose()
 
     self.acc3D_sp = gl.GLScatterPlotItem(pos=temp_pos)
     self.acc3D.addItem(self.acc3D_sp)

@@ -26,7 +26,7 @@ void Initialization();
 void _init(void) {;}
 
 
-//#define DATA_PRINT_EN
+#define DATA_PRINT_EN
 
 int main(void)
 {
@@ -46,11 +46,11 @@ int main(void)
         if (dt < 88){
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-           // gyro_read();
-           // accelerometer_read();
-           // magnetometer_read();
-           // rangefinderRead(0);
-           // rangefinderRead(1);
+            gyro_read();
+            accelerometer_read();
+            magnetometer_read();
+            rangefinderRead(0);
+            rangefinderRead(1);
         }
         cur_time = TimeStamp_Get();
         dt = cur_time - print_time;

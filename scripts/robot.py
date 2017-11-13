@@ -10,6 +10,20 @@ from filterpy.common import Q_discrete_white_noise
 MAX_PWM_CYCLES = 2047
 BUTTON_PWM_CYCLES = 2000
 
+# CALIBRATION VALUES, offset and scale
+ACC_O_X = -482
+ACC_O_Y =   48
+ACC_O_Z = -972
+ACC_S_X = 16522.56746066602
+ACC_S_Y = 17033.517951277074
+ACC_S_Z = 16921.85847403815
+MAG_O_X = -76
+MAG_O_Y = 382
+MAG_O_Z = -78
+MAG_S_X = 421.93019841175084
+MAG_S_Y = 486
+MAG_S_Z = 549.6501012927249
+
 class robot():
     def __init__(self):
         self.max_hist_len = 500
@@ -60,9 +74,9 @@ class robot():
                         if (rangeY_val_raw > 1000):
                             rangeY_val_raw = 1000
 
-                        accelX_val_raw = 1.0* int(readback_split[4]) / pow(2, 14) # Units of g (9.8m/s/s)
-                        accelY_val_raw = 1.0* int(readback_split[5]) / pow(2, 14) # Units of g (9.8m/s/s)
-                        accelZ_val_raw = 1.0* int(readback_split[6]) / pow(2, 14) # Units of g (9.8m/s/s)
+                        accelX_val_raw = (int(readback_split[4]) - ACC_O_X) / ACC_S_X # Units of g (9.8m/s/s)
+                        accelY_val_raw = (int(readback_split[5]) - ACC_O_Y) / ACC_S_Y # Units of g (9.8m/s/s)
+                        accelZ_val_raw = (int(readback_split[6]) - ACC_O_Z) / ACC_S_Z # Units of g (9.8m/s/s)
 
                         gyroX_val_raw = int(readback_split[7]) / 131.068 # Units of degrees per second
                         gyroY_val_raw = int(readback_split[8]) / 131.068 # Units of degrees per second
