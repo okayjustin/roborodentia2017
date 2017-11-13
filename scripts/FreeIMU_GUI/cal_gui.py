@@ -238,9 +238,11 @@ class FreeIMUCal(QMainWindow, Ui_FreeIMUCal):
     (self.acc_offset, self.acc_scale) = cal_lib.calibrate_from_file(acc_file_name)
     (self.magn_offset, self.magn_scale) = cal_lib.calibrate_from_file(magn_file_name)
 
-    # map floats into integers
-    self.acc_offset = map(int, self.acc_offset)
-    self.magn_offset = map(int, self.magn_offset)
+    # map floats into integers and return to indexable list
+    self.acc_offset = list(map(int, self.acc_offset))
+    self.acc_scale = list(self.acc_scale)
+    self.magn_offset = list(map(int, self.magn_offset))
+    self.magn_scale = list(self.magn_scale)
 
     # show calibrated tab
     self.tabWidget.setCurrentIndex(1)
@@ -396,22 +398,22 @@ class SerialWorker(QThread):
       # Request data
       for j in range(count):
         self.ser.write(('b\r').encode("utf-8"))
-        ser_read = self.ser.readline()
-        if (len(ser_read) != 20):
-            print(ser_read)
-            print(len(ser_read))
-            continue
-        for i in range(in_values):
-            reading[i] = ser_read[i*2] + (ser_read[i*2+1] << 8)
-        if reading[8] == 0:
-          reading[6] = 1
-          reading[7] = 1
-          reading[8] = 1
-        # prepare readings to store on file
-        acc_readings_line = "%d %d %d\r\n" % (reading[0], reading[1], reading[2])
-        self.acc_file.write(acc_readings_line)
-        magn_readings_line = "%d %d %d\r\n" % (reading[6], reading[7], reading[8])
-        self.magn_file.write(magn_readings_line)
+        readback = self.ser.readline()
+        try:
+            readback_split = readback.decode().split(',')
+            if (len(readback_split) != 9):
+                print(readback)
+                continue
+            for i in range(in_values):
+                reading[i] = int(readback_split[i])
+            # prepare readings to store on file
+            acc_readings_line = "%d %d %d\r\n" % (reading[0], reading[1], reading[2])
+            self.acc_file.write(acc_readings_line)
+            magn_readings_line = "%d %d %d\r\n" % (reading[6], reading[7], reading[8])
+            self.magn_file.write(magn_readings_line)
+        except ValueError:
+            print("Readback error: ",end='')
+            print(readback)
       # every count times we pass some data to the GUI
       self.sig_newdata.emit(reading)
       print (".", end='')

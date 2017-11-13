@@ -22,9 +22,6 @@ void Error_Handler(void);
 void TimeStamp_Reset();
 uint32_t TimeStamp_Get();
 void Initialization();
-void getRawValues(int16_t * raw_values);
-void writeArr(void * varr, uint8_t arr_length, uint8_t type_bytes); 
-void writeVar(void * val, uint8_t type_bytes);
 
 void _init(void) {;}
 
@@ -116,9 +113,13 @@ void consoleCommand(uint8_t *ptr, int len)
 
     // B for sending IMU data
     else if (ptr[0] == 'B' || ptr[0] == 'b') {
-        int16_t raw_values[9];
-        getRawValues(raw_values);
-        writeArr(raw_values, 9, sizeof(int16_t)); // writes accelerometer, gyro values & mag        
+        gyro_read();
+        accelerometer_read();
+        magnetometer_read();
+        printf("%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+                accelData.x, accelData.y, accelData.z, 
+                gyroData.x, gyroData.y, gyroData.z,
+                magData.x, magData.y, magData.z);
     }
 
     // M for motor control commands
@@ -171,42 +172,6 @@ void consoleCommand(uint8_t *ptr, int len)
         }
     }
 }            
-
-/**
- * Populates raw_values with the raw_values from the sensors
-*/
-void getRawValues(int16_t * raw_values) {
-    gyro_read();
-    accelerometer_read();
-    magnetometer_read();
-
-    raw_values[0] = accelData.x;
-    raw_values[1] = accelData.y;
-    raw_values[2] = accelData.z;
-	raw_values[3] = gyroData.x;
-	raw_values[4] = gyroData.y;
-	raw_values[5] = gyroData.z;
-    raw_values[6] = magData.x;
-    raw_values[7] = magData.y;
-    raw_values[8] = magData.z;
-		
-}
-void writeArr(void * varr, uint8_t arr_length, uint8_t type_bytes) {
-    uint8_t i = 0;
-    unsigned char * arr = (unsigned char*) varr;
-    for (i = 0; i<arr_length; i++) {
-        writeVar(&arr[i * type_bytes], type_bytes);
-    }
-    printf("\r\n");
-}
-
-void writeVar(void * val, uint8_t type_bytes) {
-    uint8_t i = 0;
-    unsigned char * addr=(unsigned char *)(val);
-    for (i = 0; i<type_bytes; i++) { 
-        printf("%c", addr[i]);
-    }
-}
 
 void TimeStamp_Reset(){
     HAL_TIM_Base_Start(&htim5);
