@@ -64,9 +64,9 @@ class robot():
                         accelY_val_raw = 1.0* int(readback_split[5]) / pow(2, 14) # Units of g (9.8m/s/s)
                         accelZ_val_raw = 1.0* int(readback_split[6]) / pow(2, 14) # Units of g (9.8m/s/s)
 
-                        gyroX_val_raw = int(readback_split[7]) #/ 133.74693878
-                        gyroY_val_raw = int(readback_split[8]) #/ 133.74693878
-                        gyroZ_val_raw = int(readback_split[9]) #/ 133.74693878
+                        gyroX_val_raw = int(readback_split[7]) / 131.068 # Units of degrees per second
+                        gyroY_val_raw = int(readback_split[8]) / 131.068 # Units of degrees per second
+                        gyroZ_val_raw = int(readback_split[9]) / 131.068 # Units of degrees per second
                     except ValueError:
                         print("Readback error: ",end='')
                         print(readback)
