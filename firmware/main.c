@@ -29,6 +29,8 @@ void writeVar(void * val, uint8_t type_bytes);
 void _init(void) {;}
 
 
+//#define DATA_PRINT_EN
+
 int main(void)
 {
     Initialization();
@@ -47,21 +49,23 @@ int main(void)
         if (dt < 88){
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-            gyro_read();
-            accelerometer_read();
-            magnetometer_read();
-            rangefinderRead(0);
-            rangefinderRead(1);
+           // gyro_read();
+           // accelerometer_read();
+           // magnetometer_read();
+           // rangefinderRead(0);
+           // rangefinderRead(1);
         }
         cur_time = TimeStamp_Get();
         dt = cur_time - print_time;
         if (dt > 99){   // Data rate = 100 Hz
             print_time = cur_time;
+#ifdef DATA_PRINT_EN
             printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
                     dt, magData.orientation, 
                     rangeMillimeterX, rangeMillimeterY, 
                     accelData.x, accelData.y, accelData.z, 
                     gyroData.x, gyroData.y, gyroData.z);
+#endif
         }
     }
 }
@@ -112,14 +116,9 @@ void consoleCommand(uint8_t *ptr, int len)
 
     // B for sending IMU data
     else if (ptr[0] == 'B' || ptr[0] == 'b') {
-        uint8_t count = ptr[1]; // Accepts 0-255 
-        uint8_t i = 0;
-        for(i=0; i < count; i++) {
-            int16_t raw_values[9];
-            getRawValues(raw_values);
-            writeArr(raw_values, 9, sizeof(int16_t)); // writes accelerometer, gyro values & mag        
-            printf("\r\n");
-        }
+        int16_t raw_values[9];
+        getRawValues(raw_values);
+        writeArr(raw_values, 9, sizeof(int16_t)); // writes accelerometer, gyro values & mag        
     }
 
     // M for motor control commands
@@ -198,6 +197,7 @@ void writeArr(void * varr, uint8_t arr_length, uint8_t type_bytes) {
     for (i = 0; i<arr_length; i++) {
         writeVar(&arr[i * type_bytes], type_bytes);
     }
+    printf("\r\n");
 }
 
 void writeVar(void * val, uint8_t type_bytes) {

@@ -155,7 +155,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             stringBuffer[stringBufferIndex++] = rxBuffer; //add data to stringBuffer
         }
     }
-    else // If received data = 13
+    else // If received data = 10 or 13
     {
         if (stringBufferIndex < RX_BUFFER_MAX_LENGTH){
             stringBuffer[stringBufferIndex++] = '\0'; //add null char

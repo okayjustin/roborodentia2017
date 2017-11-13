@@ -38,15 +38,6 @@ acc_file_name = "acc.txt"
 magn_file_name = "magn.txt"
 calibration_h_file_name = "calibration.h"
 
-#####
-##
-## For 16-bit processors use word = 2
-## For 32-bit processors use word = 4
-##
-#####
-
-word = 4
-
 acc_range = 25000
 magn_range = 1500
 
@@ -171,13 +162,16 @@ class FreeIMUCal(QMainWindow, Ui_FreeIMUCal):
         baudrate=921600,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS
+        bytesize=serial.EIGHTBITS,
+        timeout = 1,            #non-block read
+        writeTimeout = 1     #timeout for write
       )
 
       if self.ser.isOpen():
         print ("Serial port opened correctly")
         self.set_status("Connection Successful.")
 
+        self.ser.reset_input_buffer()
         self.ser.write('v\r'.encode('utf-8')) # ask version
         self.set_status("Connected to: " + self.ser.readline().decode('utf-8')) # TODO: hangs if a wrong serial protocol has been loaded. To be fixed.
 
@@ -394,22 +388,21 @@ class SerialWorker(QThread):
     print ("sampling start..")
     self.acc_file = open(acc_file_name, 'w')
     self.magn_file = open(magn_file_name, 'w')
-    count = 100
+    count = 10
     in_values = 9
     reading = [0.0 for i in range(in_values)]
     # read data for calibration
     while not self.exiting:
-      # determine word size
-      self.ser.write('b'.encode("utf-8"))
-      self.ser.write(chr(count).encode("utf-8"))
-      self.ser.write('\r'.encode("utf-8"))
+      # Request data
       for j in range(count):
+        self.ser.write(('b\r').encode("utf-8"))
+        ser_read = self.ser.readline()
+        if (len(ser_read) != 20):
+            print(ser_read)
+            print(len(ser_read))
+            continue
         for i in range(in_values):
-          if word == 4:
-            reading[i] = unpack('hh', self.ser.read(4))[0]
-          if word == 2:
-            reading[i] = unpack('h', self.ser.read(2))[0]
-        self.ser.read(2) # consumes remaining '\r\n'
+            reading[i] = ser_read[i*2] + (ser_read[i*2+1] << 8)
         if reading[8] == 0:
           reading[6] = 1
           reading[7] = 1
@@ -422,6 +415,7 @@ class SerialWorker(QThread):
       # every count times we pass some data to the GUI
       self.sig_newdata.emit(reading)
       print (".", end='')
+      sys.stdout.flush()
     # closing acc and magn files
     self.acc_file.close()
     self.magn_file.close()
