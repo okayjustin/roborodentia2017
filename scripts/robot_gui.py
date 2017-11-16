@@ -125,9 +125,8 @@ class App(QtGui.QMainWindow):
         self.sensor_x_kalman_deque = self.robot.sensor_x_kalman
         self.sensor_y_deque = self.robot.sensor_y
         self.dt_deque = self.robot.dt
-        self.sensor_mag_homed = self.robot.sensor_mag_homed
         self.sensor_mag_ref = self.robot.sensor_mag_ref
-        self.sensor_mag = self.robot.sensor_mag
+        self.sensor_mag_deque = self.robot.sensor_mag
         self.sensor_accel_x_deque = self.robot.sensor_accel_x
         self.sensor_accel_y_deque = self.robot.sensor_accel_y
         self.sensor_accel_z_deque = self.robot.sensor_accel_z
@@ -140,6 +139,13 @@ class App(QtGui.QMainWindow):
         self.sensor_x_list = list(self.sensor_x_deque)
         self.sensor_x_kalman_list = list(self.sensor_x_kalman_deque)
         self.sensor_y_list = list(self.sensor_y_deque)
+        self.sensor_mag_list = list(self.sensor_mag_deque)
+        self.sensor_accel_x_list = list(self.sensor_accel_x_deque)
+        self.sensor_accel_y_list = list(self.sensor_accel_y_deque)
+        self.sensor_accel_z_list = list(self.sensor_accel_z_deque)
+        self.sensor_gyro_x_list = list(self.sensor_gyro_x_deque)
+        self.sensor_gyro_y_list = list(self.sensor_gyro_y_deque)
+        self.sensor_gyro_z_list = list(self.sensor_gyro_z_deque)
         self.dt_list = list(self.dt_deque)
 
         # Calculate some stats
@@ -149,6 +155,13 @@ class App(QtGui.QMainWindow):
         self.sensor_y_median = np.median(self.sensor_y_list[:MEDIAN_LENGTH])
         self.sensor_y_var = np.var(self.sensor_y_list)
         self.x_kal_var = self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001)
+        self.sensor_mag_median = np.median(self.sensor_mag_list[:MEDIAN_LENGTH])
+        self.sensor_accel_x_median = np.median(self.sensor_accel_x_list[:MEDIAN_LENGTH])
+        self.sensor_accel_y_median = np.median(self.sensor_accel_y_list[:MEDIAN_LENGTH])
+        self.sensor_accel_z_median = np.median(self.sensor_accel_z_list[:MEDIAN_LENGTH])
+        self.sensor_gyro_x_median = np.median(self.sensor_gyro_x_list[:MEDIAN_LENGTH])
+        self.sensor_gyro_y_median = np.median(self.sensor_gyro_y_list[:MEDIAN_LENGTH])
+        self.sensor_gyro_z_median = np.median(self.sensor_gyro_z_list[:MEDIAN_LENGTH])
         self.dt_mean = np.mean(self.dt_list)
         self.dt_var = np.var(self.dt_list)
         self.data_rate = 1000.0 / self.dt_mean
@@ -160,21 +173,20 @@ class App(QtGui.QMainWindow):
         x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % self.x_kal_var
         y_pos_str =         '\nMedian Y: \t%d \tmm\n' % self.sensor_y_median
         y_var_str =         'Var y: \t\t%0.2f \tmm^2\n' % self.sensor_y_var
-        angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % (self.sensor_mag_homed)
-        raw_angle_str =     'Raw angle: \t%0.1f \tdeg\n' % (self.sensor_mag[0])
-        ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % (self.sensor_mag_ref)
-        x_accel_str =       '\nX accel: \t%+0.3f g\n' % self.sensor_accel_x_deque[0]
-        y_accel_str =       'Y accel: \t%+0.3f g\n' % self.sensor_accel_y_deque[0]
-        z_accel_str =       'Z accel: \t%+0.3f g\n' % self.sensor_accel_z_deque[0]
-        x_gyro_str =       '\nX gyro: \t%+0.1f dps\n' % self.sensor_gyro_x_deque[0]
-        y_gyro_str =       'Y gyro: \t%+0.1f dps\n' % self.sensor_gyro_y_deque[0]
-        z_gyro_str =       'Z gyro: \t%+0.1f dps\n' % self.sensor_gyro_z_deque[0]
+        angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % self.sensor_mag_median
+        ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % self.sensor_mag_ref
+        x_accel_str =       '\nX accel: \t%+0.3f g\n' % self.sensor_accel_x_median
+        y_accel_str =       'Y accel: \t%+0.3f g\n' % self.sensor_accel_y_median
+        z_accel_str =       'Z accel: \t%+0.3f g\n' % self.sensor_accel_z_median
+        x_gyro_str =       '\nX gyro: \t%+0.1f dps\n' % self.sensor_gyro_x_median
+        y_gyro_str =       'Y gyro: \t%+0.1f dps\n' % self.sensor_gyro_y_median
+        z_gyro_str =       'Z gyro: \t%+0.1f dps\n' % self.sensor_gyro_z_median
         data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % self.data_rate
         data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % self.dt_mean
         data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % self.dt_var
 
         positionlabel_str = x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
-            + y_pos_str + y_var_str + angle_str + raw_angle_str + ref_angle_str + x_accel_str \
+            + y_pos_str + y_var_str + angle_str + ref_angle_str + x_accel_str \
             + y_accel_str + z_accel_str + x_gyro_str + y_gyro_str + z_gyro_str \
             + data_rate_str + data_rate_per_str + data_rate_var_str
 
@@ -189,7 +201,7 @@ class App(QtGui.QMainWindow):
         self.plot_x_hist.setData(plot_x_x,plot_x_y)
         self.plot_y_hist.setData(plot_y_x,plot_y_y)
         self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
-        self.setArrowAngle(90.0 - self.sensor_mag_homed)
+        self.setArrowAngle(90.0 - self.sensor_mag_median)
 
         now = time.time()
         dt = (now-self.lastupdate)

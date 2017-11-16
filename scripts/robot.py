@@ -12,7 +12,7 @@ BUTTON_PWM_CYCLES = 2000
 
 # CALIBRATION VALUES, offset and scale
 ACC_O_X = -482
-ACC_O_Y =   48
+ACC_O_Y = 48
 ACC_O_Z = -972
 ACC_S_X = 16522.56746066602
 ACC_S_Y = 17033.517951277074
@@ -23,6 +23,8 @@ MAG_O_Z = -78
 MAG_S_X = 421.93019841175084
 MAG_S_Y = 486
 MAG_S_Z = 549.6501012927249
+RANGE_O = 0.965025066
+RANGE_S = -3.853474266
 
 class robot():
     def __init__(self):
@@ -54,6 +56,8 @@ class robot():
         self.sensor_gyro_offset_y = 0
         self.sensor_gyro_offset_z = 0
 
+        self.velocity_x = deque(self.max_hist_len * [0], self.max_hist_len)
+
         self.ser_available = False
         self.data_log_enable = False
 
@@ -61,8 +65,8 @@ class robot():
         self.calibration_sample_count = 0
 
         # create the Kalman filter
-        P = np.diag([500., 49.])
-        self.kf = self.pos_vel_filter(x=(250,0), R=5, P=P, Q=0, dt=0.3)
+        P = np.diag([500., 50.])
+        self.kf = self.pos_vel_filter(x=(1000,0), R=5, P=P, Q=0.1, dt=0.01)
 
     def updateSensorValue(self):
         if (self.ser_available):
@@ -76,10 +80,10 @@ class robot():
                             return
                         dt = int(readback_split[0]) / 10.0  # Units of 0.1 ms, convert to ms
                         mag_val_raw = int (readback_split[1]) / 10.0 # Units of 0.1 degree, convert to degrees
-                        rangeX_val_raw = int(readback_split[2])  # Units of mm
+                        rangeX_val_raw = int(readback_split[2]) * RANGE_O + RANGE_S # Units of mm
                         if (rangeX_val_raw > 1000):
                             rangeX_val_raw = 1000
-                        rangeY_val_raw = int(readback_split[3])  # Units of mm
+                        rangeY_val_raw = int(readback_split[3]) * RANGE_O + RANGE_S # Units of mm
                         if (rangeY_val_raw > 1000):
                             rangeY_val_raw = 1000
 
@@ -104,18 +108,18 @@ class robot():
                     self.dt.appendleft(dt)
 
                     # Process magnetometer data
-                    self.sensor_mag.appendleft(mag_val_raw)
-                    self.sensor_mag_homed = self.sensor_mag_ref - self.sensor_mag[0]
-                    if (self.sensor_mag_homed > 360.0):
-                        self.sensor_mag_homed -= 360.0
-                    if (self.sensor_mag_homed < 0):
-                        self.sensor_mag_homed += 360.0
+                    if (self.calibrating):
+                        sensor_mag_homed = self.sensor_mag_ref - mag_val_raw
+                    else:
+                        sensor_mag_homed = self.loopAngle(self.sensor_mag_ref - mag_val_raw)
+                    self.sensor_mag.appendleft(sensor_mag_homed)
 
                     # Process rangefinders
                     self.kf.predict()
                     self.kf.update(rangeX_val_raw)
                     self.sensor_x.appendleft(rangeX_val_raw)
                     self.sensor_x_kalman.appendleft(self.kf.x[0])
+                    self.velocity_x.appendleft(self.kf.x[1])
                     self.sensor_y.appendleft(rangeY_val_raw)
 
                     # Process accelerometers
@@ -144,7 +148,7 @@ class robot():
                             self.calibrating = False
 
                             # Use average angle measurement as the reference angle
-                            self.sensor_mag_ref = np.mean(self.sensor_mag) + 90.0
+                            self.sensor_mag_ref = self.loopAngle(-1 * np.mean(self.sensor_mag) + 90.0)
 
                             # Use average accel measurement
                             self.sensor_accel_offset_x = np.mean(self.sensor_accel_x)
@@ -159,7 +163,13 @@ class robot():
             except OSError:
                 self.ser_available = False
 
-    def imu_calibrate(x, y, z):
+    def loopAngle(self, angle):
+        while ((angle >= 360.0) or (angle < 0.0)):
+            if (angle >= 360.0): angle -= 360.0
+            if (angle <    0.0): angle += 360.0
+        return angle
+
+    def imu_calibrate(self, x, y, z):
         H = numpy.array([x, y, z, -y**2, -z**2, numpy.ones([len(x), 1])])
         H = numpy.transpose(H)
         w = x**2
