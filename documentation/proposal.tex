@@ -125,14 +125,14 @@ The desired state variable \textbf{x} is chosen as the linear position, velocity
 \end{align*}
 The process model for position and velocity:
 \[ \begin{cases} 
-	\bar{x}=x+\dot{x}\Delta t+\ddot{x}(\Delta t)^2\\
+	\bar{x}=x+\dot{x}\Delta t+0.5\ddot{x}(\Delta t)^2\\
 	\bar{\dot{x}}=\dot{x}+\ddot{x}\Delta t\\
 	\bar{\ddot{x}}=\ddot{x}\\
 \end{cases} \]
 Which can be written in the form:
 \begin{align*}
 \begin{bmatrix}\bar{x}\\ \bar{\dot{x}}\\ \bar{\ddot{x}} \end{bmatrix} &=
-\begin{bmatrix}1 & \Delta t & (\Delta t)^2 \\
+\begin{bmatrix}1 & \Delta t & 0.5(\Delta t)^2 \\
 0 & 1 & \Delta t \\
 0 & 0 & 1 \\\end{bmatrix}
 \begin{bmatrix}x\\ \dot{x}\\ \ddot{x} \end{bmatrix}\\ 

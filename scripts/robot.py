@@ -7,6 +7,8 @@ import serial, time, sys
 from collections import deque
 from filterpy.kalman import KalmanFilter
 from filterpy.common import Q_discrete_white_noise
+from filterpy.kalman import MerweScaledSigmaPoints
+from filterpy.kalman import UnscentedKalmanFilter as UKF
 
 MAX_PWM_CYCLES = 2047
 BUTTON_PWM_CYCLES = 2000
@@ -26,6 +28,11 @@ MAG_S_Y = 486
 MAG_S_Z = 549.6501012927249
 RANGE_O = 0.965025066
 RANGE_S = -3.853474266
+
+# Kalman settings
+RANGE_VAR = 140
+KAL_DT = 0.01
+Q_VAR = 0.02
 
 class robot():
     def __init__(self):
@@ -56,7 +63,8 @@ class robot():
         self.sensor_gyro_offset_y = 0
         self.sensor_gyro_offset_z = 0
 
-        self.velocity_x = RunningStat(self.max_hist_len)
+        self.vel_x = RunningStat(self.max_hist_len)
+        self.accel_x = RunningStat(self.max_hist_len)
 
         self.ser_available = False
         self.data_log_enable = False
@@ -64,9 +72,7 @@ class robot():
         self.calibrating = True
         self.calibration_sample_count = 0
 
-        # create the Kalman filter
-        P = np.diag([500., 50.])
-        self.kf = self.pos_vel_filter(x=(1000,0), R=5, P=P, Q=0.1, dt=0.01)
+        self.initKalman()
 
     def updateSensorValue(self):
         if (self.ser_available):
@@ -87,9 +93,9 @@ class robot():
                         if (rangeY_val_raw > 1000):
                             rangeY_val_raw = 1000
 
-                        accelX_val_raw = (int(readback_split[4]) - ACC_O_X) / ACC_S_X # Units of g (9.8m/s/s)
-                        accelY_val_raw = (int(readback_split[5]) - ACC_O_Y) / ACC_S_Y # Units of g (9.8m/s/s)
-                        accelZ_val_raw = (int(readback_split[6]) - ACC_O_Z) / ACC_S_Z # Units of g (9.8m/s/s)
+                        accelX_val_raw = (int(readback_split[4]) - ACC_O_X) * 9806.65 / ACC_S_X # Units of mm/s/s)
+                        accelY_val_raw = (int(readback_split[5]) - ACC_O_Y) * 9806.65 / ACC_S_Y # Units of mm/s/s)
+                        accelZ_val_raw = (int(readback_split[6]) - ACC_O_Z) * 9806.65 / ACC_S_Z # Units of mm/s/s)
 
                         gyroX_val_raw = int(readback_split[7]) / 131.068 # Units of degrees per second
                         gyroY_val_raw = int(readback_split[8]) / 131.068 # Units of degrees per second
@@ -115,22 +121,25 @@ class robot():
                     self.sensor_mag.push(sensor_mag_homed)
 
                     # Process rangefinders
-                    self.kf.predict()
-                    self.kf.update(self.limitValue(rangeX_val_raw, 0))
                     self.sensor_x.push(self.limitValue(rangeX_val_raw, 0))
-                    self.sensor_x_kalman.push(self.limitValue(self.kf.x[0], 0))
-                    self.velocity_x.push(self.kf.x[1])
                     self.sensor_y.push(self.limitValue(rangeY_val_raw, 0))
 
                     # Process accelerometers
-                    self.sensor_accel_x.push(accelX_val_raw - self.sensor_accel_offset_x)
-                    self.sensor_accel_y.push(accelY_val_raw - self.sensor_accel_offset_y)
-                    self.sensor_accel_z.push(accelZ_val_raw - self.sensor_accel_offset_z)
+                    self.sensor_accel_x.push(round(accelX_val_raw - self.sensor_accel_offset_x))
+                    self.sensor_accel_y.push(round(accelY_val_raw - self.sensor_accel_offset_y))
+                    self.sensor_accel_z.push(round(accelZ_val_raw - self.sensor_accel_offset_z))
 
                     # Process gyros
                     self.sensor_gyro_x.push(gyroX_val_raw - self.sensor_gyro_offset_x)
                     self.sensor_gyro_y.push(gyroY_val_raw - self.sensor_gyro_offset_y)
                     self.sensor_gyro_z.push(gyroZ_val_raw - self.sensor_gyro_offset_z)
+
+                    # Kalman filter
+                    self.kf.predict()
+                    self.kf.update([self.sensor_x.curVal(), self.sensor_accel_x.curVal()])
+                    self.sensor_x_kalman.push(self.limitValue(self.kf.x[0], 0))
+                    self.vel_x.push(self.kf.x[1])
+                    self.accel_x.push(self.kf.x[2])
 
                     # Collect many samples to get the average sensor value for offset calibration
                     if (self.calibrating):
@@ -265,26 +274,28 @@ class robot():
             for cmd in cmd_seq:
                 self.ser.write(cmd.encode('utf-8'))
 
-    def pos_vel_filter(self, x, P, R, Q=0., dt=1.0):
-        """ Returns a KalmanFilter which implements a
-        constant velocity model for a state [x dx].T
-        """
+    def initKalman(self):
+        sigmas = MerweScaledSigmaPoints(4, alpha=.1, beta=2., kappa=1.)
+        self.ukf = UKF(dim_x=4, dim_z=2, fx=self.f_cv, hx=self.h_cv, dt=KAL_DT, points=sigmas)
+        self.ukf.x = np.array([0., 0., 0., 0.])      # Initial states: x, dx, y, dy
+        self.ukf.P *= 1000                           # State covariance
+        self.ukf.R = np.diag([RANGE_VAR, RANGE_VAR]) # Measurement covariance
+        # Process covariance
+        self.ukf.Q[0:2, 0:2] = Q_discrete_white_noise(dim=2, dt=KAL_DT, var=Q_VAR)
+        self.ukf.Q[2:4, 2:4] = Q_discrete_white_noise(dim=2, dt=KAL_DT, var=Q_VAR)
 
-        kf = KalmanFilter(dim_x=2, dim_z=1)
-        kf.x = np.array([x[0], x[1]]) # location and velocity
-        kf.F = np.array([[1., dt],
-                         [0.,  1.]])  # state transition matrix
-        kf.H = np.array([[1., 0]])    # Measurement function
-        kf.R *= R                     # measurement uncertainty
-        if np.isscalar(P):
-            kf.P *= P                 # covariance matrix
-        else:
-            kf.P[:] = P               # [:] makes deep copy
-        if np.isscalar(Q):
-            kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=Q)
-        else:
-            kf.Q[:] = Q
-        return kf
+     def f_cv(x, dt):
+        """ state transition function for a
+        constant velocity aircraft"""
+
+        F = np.array([[1, dt, 0,  0],
+                      [0,  1, 0,  0],
+                      [0,  0, 1, dt],
+                      [0,  0, 0,  1]])
+        return np.dot(F, x)
+
+    def h_cv(x):
+        return np.array([x[0], x[2]])
 
     def startLog(self):
         self.data_log = 'dt (ms), Magnetometer (degrees), Rangefinder X (mm), Rangefinder Y (mm)\n'

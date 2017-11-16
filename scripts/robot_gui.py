@@ -63,8 +63,8 @@ class App(QtGui.QMainWindow):
 
         # XY plot
         self.plot_xy = self.pgcanvas.addPlot(0,1,labels={'bottom':'X distance (mm)','left':'Y distance(mm)'})
-#        self.plot_xy.setAspectLocked(1)
         self.plot_xy.showGrid(1,1,255)
+        self.plot_xy.setDownsampling(ds=True, auto=True, mode='peak')
         self.plot_xy.getAxis('left').setTickSpacing(100, 50)
         self.plot_xy.getAxis('bottom').setTickSpacing(100, 50)
         self.plot_xy.setXRange(0, 1000, padding=0)
@@ -73,6 +73,7 @@ class App(QtGui.QMainWindow):
         # Y range plot
         self.plot_y = self.pgcanvas.addPlot(0,0,labels={'left':'Latest sample #','bottom':'Y distance(mm)'})
         self.plot_y.showGrid(1,1,255)
+        #self.plot_y.setDownsampling(ds=True, auto=True, mode='peak')
         self.plot_y.invertY()
         self.plot_y.setYRange(0, self.robot.max_hist_len, padding=0)
         self.plot_y_raw = self.plot_y.plot(pen='y')
@@ -81,6 +82,7 @@ class App(QtGui.QMainWindow):
         # X range plot
         self.plot_x = self.pgcanvas.addPlot(1,1,labels={'left':'Latest sample #','bottom':'X distance(mm)'})
         self.plot_x.showGrid(1,1,255)
+        #self.plot_x.setDownsampling(ds=True, auto=True, mode='peak')
         self.plot_x.invertY()
         self.plot_x.setYRange(0, self.robot.max_hist_len, padding=0)
         self.plot_x_raw = self.plot_x.plot(pen='y')
@@ -131,6 +133,7 @@ class App(QtGui.QMainWindow):
         self.sensor_y_median = self.robot.sensor_y.winMedian()
 
         self.sensor_accel_x_median = self.robot.sensor_accel_x.winMedian()
+        self.sensor_accel_x_var = self.robot.sensor_accel_x.winVar()
         self.sensor_accel_y_median = self.robot.sensor_accel_y.winMedian()
         self.sensor_accel_z_median = self.robot.sensor_accel_z.winMedian()
 
@@ -141,7 +144,8 @@ class App(QtGui.QMainWindow):
         self.sensor_mag_median = self.robot.sensor_mag.winMedian()
         self.sensor_mag_ref = self.robot.sensor_mag_ref
 
-        self.velocity_x_median = self.robot.velocity_x.winMedian()
+        self.vel_x_median = self.robot.vel_x.winMedian()
+        self.accel_x_median = self.robot.accel_x.winMedian()
 
         self.dt_mean = self.robot.dt.winMean()
         self.dt_var = self.robot.dt.winVar()
@@ -161,10 +165,12 @@ class App(QtGui.QMainWindow):
         y_var_str =         'Var y: \t\t%0.2f \tmm^2\n' % self.sensor_y_var
         angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % self.sensor_mag_median
         ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % self.sensor_mag_ref
-        x_vel_str =         '\nX vel: \t%+0.3f mm/s\n' % self.velocity_x_median
-        x_accel_str =       '\nX accel: \t%+0.3f g\n' % self.sensor_accel_x_median
-        y_accel_str =       'Y accel: \t%+0.3f g\n' % self.sensor_accel_y_median
-        z_accel_str =       'Z accel: \t%+0.3f g\n' % self.sensor_accel_z_median
+        x_vel_str =         '\nX vel: \t%+0.3f mm/s\n' % self.vel_x_median
+        xk_accel_str =       'X accel: \t%+0.3f mm/s/s\n' % self.accel_x_median
+        x_accel_str =       '\nX accel: \t%+0.3f mm/s/s\n' % self.sensor_accel_x_median
+        x_accel_var_str =   'X accel var: \t%+0.3f mm/s/s\n' % self.sensor_accel_x_var
+        y_accel_str =       'Y accel: \t%+0.3f mm/s/s\n' % self.sensor_accel_y_median
+        z_accel_str =       'Z accel: \t%+0.3f mm/s/s\n' % self.sensor_accel_z_median
         x_gyro_str =       '\nX gyro: \t%+0.1f dps\n' % self.sensor_gyro_x_median
         y_gyro_str =       'Y gyro: \t%+0.1f dps\n' % self.sensor_gyro_y_median
         z_gyro_str =       'Z gyro: \t%+0.1f dps\n' % self.sensor_gyro_z_median
@@ -173,8 +179,8 @@ class App(QtGui.QMainWindow):
         data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % self.dt_var
 
         positionlabel_str = x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
-            + y_pos_str + y_var_str + angle_str + ref_angle_str + x_vel_str + x_accel_str \
-            + y_accel_str + z_accel_str + x_gyro_str + y_gyro_str + z_gyro_str \
+            + y_pos_str + y_var_str + angle_str + ref_angle_str + x_vel_str + xk_accel_str + x_accel_str \
+            + x_accel_var_str + y_accel_str + z_accel_str + x_gyro_str + y_gyro_str + z_gyro_str \
             + data_rate_str + data_rate_per_str + data_rate_var_str
 
         self.positionlabel.setText(positionlabel_str)
