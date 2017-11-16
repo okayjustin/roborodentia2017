@@ -117,62 +117,45 @@ class App(QtGui.QMainWindow):
                 self.sensor_update_thread = threading.Thread(target=self.updateSensorValueWorker)
                 self.sensor_update_thread.start()
 
-#            self.robot.angleControlTest(90.0)
-
         # Acquire thread lock to get data from thread
         self.thread_lock.acquire()
-        self.velocity_x = self.robot.velocity_x
-        self.sensor_x_deque = self.robot.sensor_x
-        self.sensor_x_kalman_deque = self.robot.sensor_x_kalman
-        self.sensor_y_deque = self.robot.sensor_y
-        self.dt_deque = self.robot.dt
+
+        self.sensor_x_deque = self.robot.sensor_x.vals
+        self.sensor_x_kalman_deque = self.robot.sensor_x_kalman.vals
+        self.sensor_x_median = self.robot.sensor_x_kalman.winMedian()
+        self.sensor_x_var = self.robot.sensor_x.winVar()
+        self.sensor_x_kal_var = self.robot.sensor_x_kalman.winVar()
+
+        self.sensor_y_deque = self.robot.sensor_y.vals
+        self.sensor_y_var = self.robot.sensor_y.winVar()
+        self.sensor_y_median = self.robot.sensor_y.winMedian()
+
+        self.sensor_accel_x_median = self.robot.sensor_accel_x.winMedian()
+        self.sensor_accel_y_median = self.robot.sensor_accel_y.winMedian()
+        self.sensor_accel_z_median = self.robot.sensor_accel_z.winMedian()
+
+        self.sensor_gyro_x_median = self.robot.sensor_gyro_x.winMedian()
+        self.sensor_gyro_y_median = self.robot.sensor_gyro_y.winMedian()
+        self.sensor_gyro_z_median = self.robot.sensor_gyro_z.winMedian()
+
+        self.sensor_mag_median = self.robot.sensor_mag.winMedian()
         self.sensor_mag_ref = self.robot.sensor_mag_ref
-        self.sensor_mag_deque = self.robot.sensor_mag
-        self.sensor_accel_x_deque = self.robot.sensor_accel_x
-        self.sensor_accel_y_deque = self.robot.sensor_accel_y
-        self.sensor_accel_z_deque = self.robot.sensor_accel_z
-        self.sensor_gyro_x_deque = self.robot.sensor_gyro_x
-        self.sensor_gyro_y_deque = self.robot.sensor_gyro_y
-        self.sensor_gyro_z_deque = self.robot.sensor_gyro_z
+
+        self.velocity_x_median = self.robot.velocity_x.winMedian()
+
+        self.dt_mean = self.robot.dt.winMean()
+        self.dt_var = self.robot.dt.winVar()
+
         self.thread_lock.release()
 
-        # Convert deques to lists for easier processing
-        self.velocity_x_list = list(self.velocity_x)
-        self.sensor_x_list = list(self.sensor_x_deque)
-        self.sensor_x_kalman_list = list(self.sensor_x_kalman_deque)
-        self.sensor_y_list = list(self.sensor_y_deque)
-        self.sensor_mag_list = list(self.sensor_mag_deque)
-        self.sensor_accel_x_list = list(self.sensor_accel_x_deque)
-        self.sensor_accel_y_list = list(self.sensor_accel_y_deque)
-        self.sensor_accel_z_list = list(self.sensor_accel_z_deque)
-        self.sensor_gyro_x_list = list(self.sensor_gyro_x_deque)
-        self.sensor_gyro_y_list = list(self.sensor_gyro_y_deque)
-        self.sensor_gyro_z_list = list(self.sensor_gyro_z_deque)
-        self.dt_list = list(self.dt_deque)
-
         # Calculate some stats
-        self.velocity_x_median = np.median(self.velocity_x_list[:MEDIAN_LENGTH])
-        self.sensor_x_median = np.median(self.sensor_x_kalman_list[:MEDIAN_LENGTH])
-        self.sensor_x_var = np.var(self.sensor_x_list)
-        self.sensor_x_kal_var = np.var(self.sensor_x_kalman_list)
-        self.sensor_y_median = np.median(self.sensor_y_list[:MEDIAN_LENGTH])
-        self.sensor_y_var = np.var(self.sensor_y_list)
         self.x_kal_var = self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001)
-        self.sensor_mag_median = np.median(self.sensor_mag_list[:MEDIAN_LENGTH])
-        self.sensor_accel_x_median = np.median(self.sensor_accel_x_list[:MEDIAN_LENGTH])
-        self.sensor_accel_y_median = np.median(self.sensor_accel_y_list[:MEDIAN_LENGTH])
-        self.sensor_accel_z_median = np.median(self.sensor_accel_z_list[:MEDIAN_LENGTH])
-        self.sensor_gyro_x_median = np.median(self.sensor_gyro_x_list[:MEDIAN_LENGTH])
-        self.sensor_gyro_y_median = np.median(self.sensor_gyro_y_list[:MEDIAN_LENGTH])
-        self.sensor_gyro_z_median = np.median(self.sensor_gyro_z_list[:MEDIAN_LENGTH])
-        self.dt_mean = np.mean(self.dt_list)
-        self.dt_var = np.var(self.dt_list)
-        self.data_rate = 1000.0 / self.dt_mean
+        self.data_rate = 1000.0 / (self.dt_mean + 0.00000001)
 
         # Update the data label
         x_pos_str =         'Median X: \t%d \tmm\n' % self.sensor_x_median
         x_var_str =         'Var X: \t\t%0.2f \tmm^2\n' % self.sensor_x_var
-        x_kal_var_str =     'Var Kal X: \t%0.2f \tmm^2\n' % self.robot.sensor_x_rs.winVar() #sensor_x_kal_var
+        x_kal_var_str =     'Var Kal X: \t%0.2f \tmm^2\n' % self.sensor_x_kal_var
         x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % self.x_kal_var
         y_pos_str =         '\nMedian Y: \t%d \tmm\n' % self.sensor_y_median
         y_var_str =         'Var y: \t\t%0.2f \tmm^2\n' % self.sensor_y_var
@@ -196,6 +179,11 @@ class App(QtGui.QMainWindow):
 
         self.positionlabel.setText(positionlabel_str)
 
+        # Convert deques to lists for easier processing
+        self.sensor_x_list = list(self.sensor_x_deque)
+        self.sensor_x_kalman_list = list(self.sensor_x_kalman_deque)
+        self.sensor_y_list = list(self.sensor_y_deque)
+
         # Update plots
         self.plot_x_raw.setData(self.sensor_x_list, self.x)
         self.plot_x_kalman.setData(self.sensor_x_kalman_list, self.x)
@@ -204,6 +192,8 @@ class App(QtGui.QMainWindow):
         plot_y_y,plot_y_x = self.reducedHistogram(self.sensor_y_list, self.histbins)
         self.plot_x_hist.setData(plot_x_x,plot_x_y)
         self.plot_y_hist.setData(plot_y_x,plot_y_y)
+
+        # Set xy plot arrow's position and angle
         self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
         self.setArrowAngle(90.0 - self.sensor_mag_median)
 
