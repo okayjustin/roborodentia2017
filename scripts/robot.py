@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3
 
+from helper_funcs import RunningStat
 import numpy as np
 from numpy import linalg
 import serial, time, sys
@@ -32,6 +33,7 @@ class robot():
 
         self.dt = deque(self.max_hist_len * [-1], self.max_hist_len)
 
+        self.sensor_x_rs = RunningStat(self.max_hist_len)
         self.sensor_x = deque(self.max_hist_len * [0], self.max_hist_len)
         self.sensor_x_kalman = deque(self.max_hist_len * [0], self.max_hist_len)
 
@@ -117,10 +119,11 @@ class robot():
                     # Process rangefinders
                     self.kf.predict()
                     self.kf.update(rangeX_val_raw)
-                    self.sensor_x.appendleft(rangeX_val_raw)
+                    self.sensor_x.appendleft(self.limitValue(rangeX_val_raw, 0))
+                    self.sensor_x_rs.push(rangeX_val_raw)
                     self.sensor_x_kalman.appendleft(self.kf.x[0])
                     self.velocity_x.appendleft(self.kf.x[1])
-                    self.sensor_y.appendleft(rangeY_val_raw)
+                    self.sensor_y.appendleft(self.limitValue(rangeY_val_raw, 0))
 
                     # Process accelerometers
                     self.sensor_accel_x.appendleft(accelX_val_raw - self.sensor_accel_offset_x)
@@ -168,27 +171,6 @@ class robot():
             if (angle >= 360.0): angle -= 360.0
             if (angle <    0.0): angle += 360.0
         return angle
-
-    def imu_calibrate(self, x, y, z):
-        H = numpy.array([x, y, z, -y**2, -z**2, numpy.ones([len(x), 1])])
-        H = numpy.transpose(H)
-        w = x**2
-
-        (X, residues, rank, shape) = linalg.lstsq(H, w)
-
-        OSx = X[0] / 2
-        OSy = X[1] / (2 * X[3])
-        OSz = X[2] / (2 * X[4])
-
-        A = X[5] + OSx**2 + X[3] * OSy**2 + X[4] * OSz**2
-        B = A / X[3]
-        C = A / X[4]
-
-        SCx = numpy.sqrt(A)
-        SCy = numpy.sqrt(B)
-        SCz = numpy.sqrt(C)
-
-        return ([OSx, OSy, OSz], [SCx, SCy, SCz])
 
     def botCmdForwardButton(self):
         self.writeSerialSequence(['MLDF\r', 'MRDF\r', 'MLS%d\r' % BUTTON_PWM_CYCLES, 'MRS%d\r' % BUTTON_PWM_CYCLES])
@@ -238,10 +220,10 @@ class robot():
         else:
             self.botCmdStop()
 
-    def limitValue(self, value, min_val, max_val):
-        if (value > max_val):
+    def limitValue(self, value, min_val = None, max_val = None):
+        if ((max_val != None) and (value > max_val)):
             return max_val
-        if (value < min_val):
+        if ((min_val != None) and (value < min_val)):
             return min_val
         return value
 
@@ -318,26 +300,4 @@ class robot():
             filename = 'datalog_' + timestr + '.csv'
             with open(filename, 'a') as datalog_file:
                 datalog_file.write(self.data_log)
-
-#if __name__ == "__main__":
-#    acc_f = open("acc.txt", 'r')
-#    acc_x = []
-#    acc_y = []
-#    acc_z = []
-#    for line in acc_f:
-#        reading = line.split()
-#        acc_x.append(int(reading[0]))
-#        acc_y.append(int(reading[1]))
-#        acc_z.append(int(reading[2]))
-#
-#    (offsets, scale) = calibrate(numpy.array(acc_x), numpy.array(acc_y), numpy.array(acc_z))
-#    print(offsets)
-#    print(scale)
-
-
-
-
-
-
-
 
