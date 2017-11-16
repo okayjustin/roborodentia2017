@@ -77,6 +77,7 @@ class App(QtGui.QMainWindow):
         self.plot_y.invertY()
         self.plot_y.setYRange(0, self.robot.max_hist_len, padding=0)
         self.plot_y_raw = self.plot_y.plot(pen='y')
+        self.plot_y_kalman = self.plot_y.plot(pen='r')
         self.plot_y_hist = self.plot_y.plot( stepMode=True, fillLevel=0, brush=(0,0,255,150))
 
         # X range plot
@@ -123,14 +124,12 @@ class App(QtGui.QMainWindow):
         self.thread_lock.acquire()
 
         self.sensor_x_deque = self.robot.sensor_x.vals
-        self.sensor_x_kalman_deque = self.robot.sensor_x_kalman.vals
-        self.sensor_x_median = self.robot.sensor_x_kalman.winMedian()
+        self.sensor_x_median = self.robot.sensor_x.winMedian()
         self.sensor_x_var = self.robot.sensor_x.winVar()
-        self.sensor_x_kal_var = self.robot.sensor_x_kalman.winVar()
 
         self.sensor_y_deque = self.robot.sensor_y.vals
-        self.sensor_y_var = self.robot.sensor_y.winVar()
         self.sensor_y_median = self.robot.sensor_y.winMedian()
+        self.sensor_y_var = self.robot.sensor_y.winVar()
 
         self.sensor_accel_x_median = self.robot.sensor_accel_x.winMedian()
         self.sensor_accel_x_var = self.robot.sensor_accel_x.winVar()
@@ -144,8 +143,14 @@ class App(QtGui.QMainWindow):
         self.sensor_mag_median = self.robot.sensor_mag.winMedian()
         self.sensor_mag_ref = self.robot.sensor_mag_ref
 
-        self.vel_x_median = self.robot.vel_x.winMedian()
-        self.accel_x_median = self.robot.accel_x.winMedian()
+        # Kalman states
+        self.kalman_x_deque = self.robot.kalman_x.vals
+        self.kalman_y_deque = self.robot.kalman_y.vals
+        self.kalman_x_median = self.robot.kalman_x.winMedian()
+        self.kalman_x_var = self.robot.kalman_x.winVar()
+        self.kalman_dx_median = self.robot.kalman_dx.winMedian()
+        self.kalman_y_median = self.robot.kalman_y.winMedian()
+        self.kalman_dy_median = self.robot.kalman_dy.winMedian()
 
         self.dt_mean = self.robot.dt.winMean()
         self.dt_var = self.robot.dt.winVar()
@@ -153,54 +158,54 @@ class App(QtGui.QMainWindow):
         self.thread_lock.release()
 
         # Calculate some stats
-        self.x_kal_var = self.sensor_x_kal_var / (self.sensor_x_var + 0.00000001)
+        self.var_ratio = self.kalman_x_var / (self.sensor_x_var + 0.00000001)
         self.data_rate = 1000.0 / (self.dt_mean + 0.00000001)
 
         # Update the data label
-        x_pos_str =         'Median X: \t%d \tmm\n' % self.sensor_x_median
-        x_var_str =         'Var X: \t\t%0.2f \tmm^2\n' % self.sensor_x_var
-        x_kal_var_str =     'Var Kal X: \t%0.2f \tmm^2\n' % self.sensor_x_kal_var
-        x_var_ratio_str =   'Var ratio X: \t%0.2f\n' % self.x_kal_var
-        y_pos_str =         '\nMedian Y: \t%d \tmm\n' % self.sensor_y_median
-        y_var_str =         'Var y: \t\t%0.2f \tmm^2\n' % self.sensor_y_var
-        angle_str =         '\nAngle: \t\t%0.1f \tdeg\n' % self.sensor_mag_median
-        ref_angle_str =     'Ref angle: \t%0.1f \tdeg\n' % self.sensor_mag_ref
-        x_vel_str =         '\nX vel: \t%+0.3f mm/s\n' % self.vel_x_median
-        xk_accel_str =       'X accel: \t%+0.3f mm/s/s\n' % self.accel_x_median
-        x_accel_str =       '\nX accel: \t%+0.3f mm/s/s\n' % self.sensor_accel_x_median
-        x_accel_var_str =   'X accel var: \t%+0.3f mm/s/s\n' % self.sensor_accel_x_var
-        y_accel_str =       'Y accel: \t%+0.3f mm/s/s\n' % self.sensor_accel_y_median
-        z_accel_str =       'Z accel: \t%+0.3f mm/s/s\n' % self.sensor_accel_z_median
-        x_gyro_str =       '\nX gyro: \t%+0.1f dps\n' % self.sensor_gyro_x_median
-        y_gyro_str =       'Y gyro: \t%+0.1f dps\n' % self.sensor_gyro_y_median
-        z_gyro_str =       'Z gyro: \t%+0.1f dps\n' % self.sensor_gyro_z_median
-        data_rate_str =     '\nData rate: \t%0.1f \tHz\n' % self.data_rate
-        data_rate_per_str = 'Data rate per: \t%0.3f \tms\n' % self.dt_mean
-        data_rate_var_str = 'Data rate var: \t%0.4f \tms\n' % self.dt_var
-
-        positionlabel_str = x_pos_str + x_var_str + x_kal_var_str + x_var_ratio_str \
-            + y_pos_str + y_var_str + angle_str + ref_angle_str + x_vel_str + xk_accel_str + x_accel_str \
-            + x_accel_var_str + y_accel_str + z_accel_str + x_gyro_str + y_gyro_str + z_gyro_str \
-            + data_rate_str + data_rate_per_str + data_rate_var_str
+        positionlabel_str = 'Median X: \t%d \tmm\n' % self.sensor_x_median + \
+                            'Var X: \t\t%0.2f \tmm^2\n' % self.sensor_x_var + \
+                            '\nMedian Y: \t%d \tmm\n' % self.sensor_y_median + \
+                            'Var y: \t\t%0.2f \tmm^2\n' % self.sensor_y_var + \
+                            '\nAngle: \t\t%0.1f \tdeg\n' % self.sensor_mag_median + \
+                            'Ref angle: \t%0.1f \tdeg\n' % self.sensor_mag_ref + \
+                            '\nKalman states:\n' + \
+                            'X: \t\t%d \tmm/s\n' % self.kalman_x_median + \
+                            'dX: \t\t%+0.3f \tmm/s/s\n' % self.kalman_dx_median + \
+                            'Var X: \t\t%0.2f \tmm^2\n' % self.kalman_x_var + \
+                            'Var ratio X: \t%0.2f\n' % self.var_ratio + \
+                            'Y: \t\t%d \tmm/s\n' % self.kalman_y_median + \
+                            'dY: \t\t%+0.3f \tmm/s/s\n' % self.kalman_dy_median + \
+                            '\nX accel: \t%+0.3f \tmm/s/s\n' % self.sensor_accel_x_median + \
+                            'X accel var: \t%+0.1f \tmm/s/s\n' % self.sensor_accel_x_var + \
+                            'Y accel: \t%+0.1f \tmm/s/s\n' % self.sensor_accel_y_median + \
+                            'Z accel: \t%+0.1f \tmm/s/s\n' % self.sensor_accel_z_median + \
+                            '\nX gyro: \t%+0.1f \tdps\n' % self.sensor_gyro_x_median + \
+                            'Y gyro: \t%+0.1f \tdps\n' % self.sensor_gyro_y_median + \
+                            'Z gyro: \t%+0.1f \tdps\n' % self.sensor_gyro_z_median + \
+                            '\nData rate: \t%0.1f \tHz\n' % self.data_rate + \
+                            'Data rate per: \t%0.3f \tms\n' % self.dt_mean + \
+                            'Data rate var: \t%0.4f \tms\n' % self.dt_var
 
         self.positionlabel.setText(positionlabel_str)
 
         # Convert deques to lists for easier processing
         self.sensor_x_list = list(self.sensor_x_deque)
-        self.sensor_x_kalman_list = list(self.sensor_x_kalman_deque)
+        self.kalman_x_list = list(self.kalman_x_deque)
         self.sensor_y_list = list(self.sensor_y_deque)
+        self.kalman_y_list = list(self.kalman_y_deque)
 
         # Update plots
         self.plot_x_raw.setData(self.sensor_x_list, self.x)
-        self.plot_x_kalman.setData(self.sensor_x_kalman_list, self.x)
+        self.plot_x_kalman.setData(self.kalman_x_list, self.x)
         self.plot_y_raw.setData(self.sensor_y_list, self.x)
+        self.plot_y_kalman.setData(self.kalman_y_list, self.x)
         plot_x_y,plot_x_x = self.reducedHistogram(self.sensor_x_list, self.histbins)
         plot_y_y,plot_y_x = self.reducedHistogram(self.sensor_y_list, self.histbins)
         self.plot_x_hist.setData(plot_x_x,plot_x_y)
         self.plot_y_hist.setData(plot_y_x,plot_y_y)
 
         # Set xy plot arrow's position and angle
-        self.abs_position_arrow.setPos(self.sensor_x_median,self.sensor_y_median)
+        self.abs_position_arrow.setPos(self.kalman_x_median,self.kalman_y_median)
         self.setArrowAngle(90.0 - self.sensor_mag_median)
 
         now = time.time()

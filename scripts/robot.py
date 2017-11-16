@@ -32,7 +32,7 @@ RANGE_S = -3.853474266
 # Kalman settings
 RANGE_VAR = 140
 KAL_DT = 0.01
-Q_VAR = 0.02
+Q_VAR = 0.001  # Process covariance
 
 class robot():
     def __init__(self):
@@ -41,8 +41,6 @@ class robot():
         self.dt = RunningStat(self.max_hist_len)
 
         self.sensor_x = RunningStat(self.max_hist_len)
-        self.sensor_x_kalman = RunningStat(self.max_hist_len)
-
         self.sensor_y = RunningStat(self.max_hist_len)
 
         self.sensor_mag = RunningStat(self.max_hist_len)
@@ -63,8 +61,6 @@ class robot():
         self.sensor_gyro_offset_y = 0
         self.sensor_gyro_offset_z = 0
 
-        self.vel_x = RunningStat(self.max_hist_len)
-        self.accel_x = RunningStat(self.max_hist_len)
 
         self.ser_available = False
         self.data_log_enable = False
@@ -72,7 +68,12 @@ class robot():
         self.calibrating = True
         self.calibration_sample_count = 0
 
+        # Kalman filter and states
         self.initKalman()
+        self.kalman_x = RunningStat(self.max_hist_len)
+        self.kalman_dx = RunningStat(self.max_hist_len)
+        self.kalman_y = RunningStat(self.max_hist_len)
+        self.kalman_dy = RunningStat(self.max_hist_len)
 
     def updateSensorValue(self):
         if (self.ser_available):
@@ -135,11 +136,12 @@ class robot():
                     self.sensor_gyro_z.push(gyroZ_val_raw - self.sensor_gyro_offset_z)
 
                     # Kalman filter
-                    self.kf.predict()
-                    self.kf.update([self.sensor_x.curVal(), self.sensor_accel_x.curVal()])
-                    self.sensor_x_kalman.push(self.limitValue(self.kf.x[0], 0))
-                    self.vel_x.push(self.kf.x[1])
-                    self.accel_x.push(self.kf.x[2])
+                    self.ukf.predict()
+                    self.ukf.update([self.sensor_x.curVal(), self.sensor_y.curVal()])
+                    self.kalman_x.push(self.limitValue(self.ukf.x[0], 0))
+                    self.kalman_dx.push(self.ukf.x[1])
+                    self.kalman_y.push(self.limitValue(self.ukf.x[2], 0))
+                    self.kalman_dy.push(self.ukf.x[3])
 
                     # Collect many samples to get the average sensor value for offset calibration
                     if (self.calibrating):
@@ -284,7 +286,7 @@ class robot():
         self.ukf.Q[0:2, 0:2] = Q_discrete_white_noise(dim=2, dt=KAL_DT, var=Q_VAR)
         self.ukf.Q[2:4, 2:4] = Q_discrete_white_noise(dim=2, dt=KAL_DT, var=Q_VAR)
 
-     def f_cv(x, dt):
+    def f_cv(self, x, dt):
         """ state transition function for a
         constant velocity aircraft"""
 
@@ -294,7 +296,7 @@ class robot():
                       [0,  0, 0,  1]])
         return np.dot(F, x)
 
-    def h_cv(x):
+    def h_cv(self, x):
         return np.array([x[0], x[2]])
 
     def startLog(self):
