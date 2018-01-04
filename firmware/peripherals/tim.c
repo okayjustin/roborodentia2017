@@ -332,7 +332,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
 {
 
-  GPIO_InitTypeDef GPIO_InitStruct;
+  //GPIO_InitTypeDef GPIO_InitStruct;
   if(timHandle->Instance==TIM1)
   {
   /* USER CODE BEGIN TIM1_MspPostInit 0 */
@@ -344,12 +344,12 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     PA10     ------> TIM1_CH3
     PA11     ------> TIM1_CH4 
     */
-    GPIO_InitStruct.Pin = MOTOR_N_PWM_Pin|MOTOR_S_PWM_Pin|MOTOR_W_PWM_Pin|MOTOR_E_PWM_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    //GPIO_InitStruct.Pin = MOTOR_N_PWM_Pin|MOTOR_S_PWM_Pin|MOTOR_W_PWM_Pin|MOTOR_E_PWM_Pin;
+    //GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    //GPIO_InitStruct.Pull = GPIO_NOPULL;
+    //GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    //GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+    //HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TIM1_MspPostInit 1 */
 
@@ -367,19 +367,19 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     PB0     ------> TIM3_CH3
     PB1     ------> TIM3_CH4 
     */
-    GPIO_InitStruct.Pin = SERVO_ARM_Pin|SERVO_DELIVER_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    //GPIO_InitStruct.Pin = SERVO_ARM_Pin|SERVO_DELIVER_Pin;
+    //GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    //GPIO_InitStruct.Pull = GPIO_NOPULL;
+    //GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    //GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+    //HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = SERVO_EXTRA_1_Pin|SERVO_EXTRA_2_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    //GPIO_InitStruct.Pin = SERVO_EXTRA_1_Pin|SERVO_EXTRA_2_Pin;
+    //GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    //GPIO_InitStruct.Pull = GPIO_NOPULL;
+    //GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    //GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+    //HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TIM3_MspPostInit 1 */
 
@@ -394,12 +394,12 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     /**TIM10 GPIO Configuration    
     PB8     ------> TIM10_CH1 
     */
-    GPIO_InitStruct.Pin = MOTOR_VERT_PWM_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF3_TIM10;
-    HAL_GPIO_Init(MOTOR_VERT_PWM_GPIO_Port, &GPIO_InitStruct);
+    //GPIO_InitStruct.Pin = MOTOR_VERT_PWM_Pin;
+    //GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    //GPIO_InitStruct.Pull = GPIO_NOPULL;
+    //GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    //GPIO_InitStruct.Alternate = GPIO_AF3_TIM10;
+    //HAL_GPIO_Init(MOTOR_VERT_PWM_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TIM10_MspPostInit 1 */
 
@@ -414,12 +414,12 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     /**TIM11 GPIO Configuration    
     PB9     ------> TIM11_CH1 
     */
-    GPIO_InitStruct.Pin = MOTOR_EXTRA_PWM_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF3_TIM11;
-    HAL_GPIO_Init(MOTOR_EXTRA_PWM_GPIO_Port, &GPIO_InitStruct);
+    //GPIO_InitStruct.Pin = MOTOR_EXTRA_PWM_Pin;
+    //GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    //GPIO_InitStruct.Pull = GPIO_NOPULL;
+    //GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    //GPIO_InitStruct.Alternate = GPIO_AF3_TIM11;
+    //HAL_GPIO_Init(MOTOR_EXTRA_PWM_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TIM11_MspPostInit 1 */
 

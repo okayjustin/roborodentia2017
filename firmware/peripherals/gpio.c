@@ -95,38 +95,66 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;      // Externally pulled up
   HAL_GPIO_Init(RANGEY_INT_GPIO_Port, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = MOTOR_L_PWM_Pin;
+  GPIO_InitStruct.Pin = MOTOR_FL_PWM_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
-  HAL_GPIO_Init(MOTOR_L_PWM_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(MOTOR_FL_PWM_GPIO_Port, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = MOTOR_L_DIR_Pin;
+  GPIO_InitStruct.Pin = MOTOR_FL_DIR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MOTOR_L_DIR_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(MOTOR_FL_DIR_GPIO_Port, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = MOTOR_R_PWM_Pin;
+  GPIO_InitStruct.Pin = MOTOR_BL_PWM_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
-  HAL_GPIO_Init(MOTOR_R_PWM_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(MOTOR_BL_PWM_GPIO_Port, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = MOTOR_R_DIR_Pin;
+  GPIO_InitStruct.Pin = MOTOR_BL_DIR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MOTOR_R_DIR_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(MOTOR_BL_DIR_GPIO_Port, &GPIO_InitStruct);
+  
+  GPIO_InitStruct.Pin = MOTOR_FR_PWM_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+  HAL_GPIO_Init(MOTOR_FR_PWM_GPIO_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = MOTOR_FR_DIR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(MOTOR_FR_DIR_GPIO_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = MOTOR_BR_PWM_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+  HAL_GPIO_Init(MOTOR_BR_PWM_GPIO_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = MOTOR_BR_DIR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(MOTOR_BR_DIR_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BOARD_LED_GPIO_Port, BOARD_LED_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(RANGEX_XSHUT_GPIO_Port, RANGEX_XSHUT_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(RANGEY_XSHUT_GPIO_Port, RANGEY_XSHUT_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(MOTOR_L_DIR_GPIO_Port, MOTOR_L_DIR_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(MOTOR_R_DIR_GPIO_Port, MOTOR_R_DIR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(MOTOR_FL_DIR_GPIO_Port, MOTOR_FL_DIR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(MOTOR_FR_DIR_GPIO_Port, MOTOR_FR_DIR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(MOTOR_BL_DIR_GPIO_Port, MOTOR_BL_DIR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(MOTOR_BR_DIR_GPIO_Port, MOTOR_BR_DIR_Pin, GPIO_PIN_RESET);
 
 }
 

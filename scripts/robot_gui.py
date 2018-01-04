@@ -175,8 +175,8 @@ class App(QtGui.QMainWindow):
                             'Var ratio X: \t%0.2f\n' % self.var_ratio + \
                             'Y: \t\t%d \tmm/s\n' % self.kalman_y_median + \
                             'dY: \t\t%+0.3f \tmm/s/s\n' % self.kalman_dy_median + \
-                            '\nX accel: \t%+0.3f \tmm/s/s\n' % self.sensor_accel_x_median + \
-                            'X accel var: \t%+0.1f \tmm/s/s\n' % self.sensor_accel_x_var + \
+                            '\nX accel: \t%+0.1f \tmm/s/s\n' % self.sensor_accel_x_median + \
+                            'X accel var: \t%d \tmm/s/s\n' % self.sensor_accel_x_var + \
                             'Y accel: \t%+0.1f \tmm/s/s\n' % self.sensor_accel_y_median + \
                             'Z accel: \t%+0.1f \tmm/s/s\n' % self.sensor_accel_z_median + \
                             '\nX gyro: \t%+0.1f \tdps\n' % self.sensor_gyro_x_median + \

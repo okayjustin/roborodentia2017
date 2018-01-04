@@ -108,7 +108,7 @@ void consoleCommand(uint8_t *ptr, int len)
 {
     // V for version
     if (ptr[0] == 'V' || ptr[0] == 'v'){
-        printf("Robojustin v0.1\r\n");
+        printf("Robojustin v0.2\r\n");
     }
 
     // B for sending IMU data
@@ -129,16 +129,26 @@ void consoleCommand(uint8_t *ptr, int len)
         GPIO_PinState PinState;
         uint32_t TIM_Channel;
 
-        // Set variables based on left or right side control
-        if (ptr[1] == 'L' || ptr[1] == 'l'){  // L for left side
-            GPIOx = MOTOR_L_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_L_DIR_Pin;
+        // Set variables based on which motor needs to be controlled. Motor 1 is front left, increments clockwise
+        if (ptr[1] == '0'){  // 0 for front left
+            GPIOx = MOTOR_FL_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_FL_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_1;
+        }
+        else if (ptr[1] == '1'){  // 1 for front right
+            GPIOx = MOTOR_FR_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_FR_DIR_Pin;
             TIM_Channel = TIM_CHANNEL_2;
         }
-        else if (ptr[1] == 'R' || ptr[1] == 'r'){  // L for left side
-            GPIOx = MOTOR_R_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_R_DIR_Pin;
+        else if (ptr[1] == '2'){  // 2 for back right
+            GPIOx = MOTOR_BR_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_BR_DIR_Pin;
             TIM_Channel = TIM_CHANNEL_3;
+        }
+        else if (ptr[1] == '3'){  // 3 for back right
+            GPIOx = MOTOR_BL_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_BL_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_4;
         }
         else {
             return;

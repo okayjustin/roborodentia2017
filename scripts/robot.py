@@ -9,9 +9,10 @@ from filterpy.kalman import KalmanFilter
 from filterpy.common import Q_discrete_white_noise
 from filterpy.kalman import MerweScaledSigmaPoints
 from filterpy.kalman import UnscentedKalmanFilter as UKF
+import pygame as pygame
 
 MAX_PWM_CYCLES = 2047
-BUTTON_PWM_CYCLES = 2000
+BUTTON_PWM_CYCLES = 1700
 
 # CALIBRATION VALUES, offset and scale
 ACC_O_X = -482
@@ -36,6 +37,19 @@ Q_VAR = 0.001  # Process covariance
 
 class robot():
     def __init__(self):
+        # pygame setup
+        pygame.joystick.init()
+        self.controller_connected = False
+        if (pygame.joystick.get_count() == 1):
+            pygame.init()
+            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick.init()
+            print(self.joystick.get_name())
+            self.controller_connected = True
+        self.joystickAxes = [0.0, 0.0, 0.0, 0.0]
+        self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
+
+        # robot setup
         self.max_hist_len = 500
 
         self.dt = RunningStat(self.max_hist_len)
@@ -171,6 +185,20 @@ class robot():
                             self.sensor_gyro_offset_y = self.sensor_gyro_y.mean
                             self.sensor_gyro_offset_z = self.sensor_gyro_z.mean
 
+
+                    # Process controller
+                    if (self.controller_connected == True):
+                        pygame.event.pump()
+                        # Axis 0: Left stick, left -1.0, right 1.0
+                        # Axis 1: Left stick, up -1.0, down 1.0
+                        # Axis 2: Right stick, left -1.0, right 1.0
+                        # Axis 3: Right stick, up -1.0, down 1.0
+                        self.joystickAxes[0] = self.joystick.get_axis(0) * -1
+                        self.joystickAxes[1] = self.joystick.get_axis(1) * -1
+                        self.joystickAxes[2] = self.joystick.get_axis(2) * -1
+                        self.joystickAxes[3] = self.joystick.get_axis(3) * -1
+                        self.mechanumCommand(self.joystickAxes)
+
             except OSError:
                 self.ser_available = False
 
@@ -180,35 +208,83 @@ class robot():
             if (angle <    0.0): angle += 360.0
         return angle
 
+    def mechanumCommand(self, joystickAxes):
+        # Cartesian joystick vals to polar
+        magnitude = np.sqrt(joystickAxes[0]**2 + joystickAxes[1]**2)
+        angle = np.arctan2(joystickAxes[1], joystickAxes[0])
+        rotation = joystickAxes[2]
+        self.motorSpeeds[0] = magnitude * np.sin(angle + np.pi / 4) - rotation
+        self.motorSpeeds[1] = magnitude * np.cos(angle + 5 * np.pi / 4) + rotation
+        self.motorSpeeds[2] = magnitude * np.sin(angle + np.pi / 4) + rotation
+        self.motorSpeeds[3] = magnitude * np.cos(angle + 5 * np.pi / 4) - rotation
+
+        # Normalize speeds if any of them end up greater than 1
+        max_speed = 0.0
+        for speed in self.motorSpeeds:
+            if (abs(speed) > max_speed):
+                max_speed = abs(speed)
+        if (max_speed > 1.0):
+            self.motorSpeeds = self.motorSpeeds / max_speed
+        print(self.motorSpeeds)
+
+        # Send motor control commands
+        for motorNum in range(0,4):
+            if (self.motorSpeeds[motorNum] >= 0):
+                self.botCmdMotor(motorNum, direction = 1, speed = int(MAX_PWM_CYCLES * self.motorSpeeds[motorNum]))
+            else:
+                self.botCmdMotor(motorNum, direction = -1, speed = int(MAX_PWM_CYCLES * (1 + self.motorSpeeds[motorNum])))
+
     def botCmdForwardButton(self):
-        self.writeSerialSequence(['MLDF\r', 'MRDF\r', 'MLS%d\r' % BUTTON_PWM_CYCLES, 'MRS%d\r' % BUTTON_PWM_CYCLES])
+        self.botCmdForward(BUTTON_PWM_CYCLES)
 
     def botCmdStopButton(self):
-        self.writeSerialSequence(['MLDF\r', 'MRDF\r','MLS0\r', 'MRS0\r'])
+        self.botCmdStop()
 
     def botCmdReverseButton(self):
-        self.writeSerialSequence(['MLDR\r', 'MRDR\r', 'MLS%d\r' % (MAX_PWM_CYCLES - BUTTON_PWM_CYCLES), 'MRS%d\r' % (MAX_PWM_CYCLES - BUTTON_PWM_CYCLES)])
+        self.botCmdReverse(MAX_PWM_CYCLES - BUTTON_PWM_CYCLES)
 
     def botCmdForward(self, pwmCycles):
         if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
             raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
-        self.writeSerialSequence(['MLDF\r', 'MRDF\r', 'MLS%d\r' % pwmCycles, 'MRS%d\r' % pwmCycles])
+        for motorNum in range(0,4):
+            self.botCmdMotor(motorNum, direction = 1, speed = pwmCycles)
 
     def botCmdStop(self):
-        self.writeSerialSequence(['MLDF\r', 'MRDF\r','MLS0\r', 'MRS0\r'])
+        for motorNum in range(0,4):
+            self.botCmdMotor(motorNum, direction = 1, speed = 0)
 
     def botCmdReverse(self, pwmCycles):
         if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
             raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
-        self.writeSerialSequence(['MLDR\r', 'MRDR\r', 'MLS%d\r' % (MAX_PWM_CYCLES - pwmCycles), 'MRS%d\r' % (MAX_PWM_CYCLES - pwmCycles)])
+        for motorNum in range(0,4):
+            self.botCmdMotor(motorNum, direction = -1, speed = pwmCycles)
 
     def botCmdRotate(self, direction, pwmCycles):
         if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
             raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
         if (direction == 1):       # Counterclockwise (+theta)
-            self.writeSerialSequence(['MLDR\r', 'MRDF\r', 'MLS%d\r' % (MAX_PWM_CYCLES - pwmCycles), 'MRS%d\r' % pwmCycles])
+            self.botCmdMotor(0, direction = -1, speed = MAX_PWM_CYCLES - pwmCycles)
+            self.botCmdMotor(1, direction = 1, speed = pwmCycles)
+            self.botCmdMotor(2, direction = 1, speed = pwmCycles)
+            self.botCmdMotor(3, direction = -1, speed = MAX_PWM_CYCLES - pwmCycles)
         if (direction == -1):       # Clockwise (-theta)
-            self.writeSerialSequence(['MLDF\r', 'MRDR\r', 'MLS%d\r' % pwmCycles, 'MRS%d\r' % (MAX_PWM_CYCLES - pwmCycles)])
+            self.botCmdMotor(0, direction = 1, speed = pwmCycles)
+            self.botCmdMotor(1, direction = -1, speed = MAX_PWM_CYCLES - pwmCycles)
+            self.botCmdMotor(2, direction = -1, speed = MAX_PWM_CYCLES - pwmCycles)
+            self.botCmdMotor(3, direction = 1, speed = pwmCycles)
+
+    # motorNum: 0 front left, 1 front right, 2 back right, 3 back left
+    # direction (optional): -1 reverse, 1 forward
+    # speed (optional): 0 to 2047, duty cycle value out of 2047
+    def botCmdMotor(self, motorNum, direction = 0, speed = -1):
+        cmdSequence = []
+        if (direction == 1):
+            cmdSequence.append('M' + str(motorNum) + 'DF\r')
+        elif (direction == -1):
+            cmdSequence.append('M' + str(motorNum) + 'DR\r')
+        if ((speed >= 0) and (speed <= MAX_PWM_CYCLES)):
+            cmdSequence.append('M' + str(motorNum) + 'S' + str(speed) + '\r')
+        self.writeSerialSequence(cmdSequence)
 
     def angleControlTest(self, desired_angle):
         hyst = 20

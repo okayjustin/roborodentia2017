@@ -19,10 +19,10 @@
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
 
-//#define I2C1_SDA_Pin GPIO_PIN_7 used for motor
+//#define I2C1_SDA_Pin GPIO_PIN_7 used for motor instead
 //#define I2C1_SDA_GPIO_Port GPIOB
-#define I2C1_SCL_Pin GPIO_PIN_6
-#define I2C1_SCL_GPIO_Port GPIOB
+//#define I2C1_SCL_Pin GPIO_PIN_6 used for motor instead
+//#define I2C1_SCL_GPIO_Port GPIOB
 
 #define I2C2_SDA_Pin GPIO_PIN_12
 #define I2C2_SDA_GPIO_Port GPIOC
@@ -53,37 +53,47 @@
 #define RANGEY_INT_Pin GPIO_PIN_1
 #define RANGEY_INT_GPIO_Port GPIOC
 
-#define MOTOR_L_PWM_GPIO_Port GPIOB
-#define MOTOR_L_PWM_Pin GPIO_PIN_7 
-#define MOTOR_L_DIR_GPIO_Port GPIOA
-#define MOTOR_L_DIR_Pin GPIO_PIN_8 
+#define MOTOR_FL_PWM_GPIO_Port GPIOB
+#define MOTOR_FL_PWM_Pin GPIO_PIN_6 
+#define MOTOR_FL_DIR_GPIO_Port GPIOA
+#define MOTOR_FL_DIR_Pin GPIO_PIN_12 
 
-#define MOTOR_R_PWM_GPIO_Port GPIOB
-#define MOTOR_R_PWM_Pin GPIO_PIN_8 
-#define MOTOR_R_DIR_GPIO_Port GPIOA
-#define MOTOR_R_DIR_Pin GPIO_PIN_9 
+#define MOTOR_BL_PWM_GPIO_Port GPIOB
+#define MOTOR_BL_PWM_Pin GPIO_PIN_9 
+#define MOTOR_BL_DIR_GPIO_Port GPIOC
+#define MOTOR_BL_DIR_Pin GPIO_PIN_5 
+
+#define MOTOR_FR_PWM_GPIO_Port GPIOB
+#define MOTOR_FR_PWM_Pin GPIO_PIN_7 
+#define MOTOR_FR_DIR_GPIO_Port GPIOA
+#define MOTOR_FR_DIR_Pin GPIO_PIN_8 
+
+#define MOTOR_BR_PWM_GPIO_Port GPIOB
+#define MOTOR_BR_PWM_Pin GPIO_PIN_8 
+#define MOTOR_BR_DIR_GPIO_Port GPIOA
+#define MOTOR_BR_DIR_Pin GPIO_PIN_9 
 
 // Planned GPIO
-#define SERVO_ARM_Pin GPIO_PIN_6
-#define SERVO_ARM_GPIO_Port GPIOA
-#define SERVO_DELIVER_Pin GPIO_PIN_7
-#define SERVO_DELIVER_GPIO_Port GPIOA
-#define SERVO_EXTRA_1_Pin GPIO_PIN_0
-#define SERVO_EXTRA_1_GPIO_Port GPIOB
-#define SERVO_EXTRA_2_Pin GPIO_PIN_1
-#define SERVO_EXTRA_2_GPIO_Port GPIOB
-#define MOTOR_N_PWM_Pin GPIO_PIN_8
-#define MOTOR_N_PWM_GPIO_Port GPIOA
-#define MOTOR_S_PWM_Pin GPIO_PIN_9
-#define MOTOR_S_PWM_GPIO_Port GPIOA
-#define MOTOR_W_PWM_Pin GPIO_PIN_10
-#define MOTOR_W_PWM_GPIO_Port GPIOA
-#define MOTOR_E_PWM_Pin GPIO_PIN_11
-#define MOTOR_E_PWM_GPIO_Port GPIOA
-#define MOTOR_VERT_PWM_Pin GPIO_PIN_8
-#define MOTOR_VERT_PWM_GPIO_Port GPIOB
-#define MOTOR_EXTRA_PWM_Pin GPIO_PIN_9
-#define MOTOR_EXTRA_PWM_GPIO_Port GPIOB
+//#define SERVO_ARM_Pin GPIO_PIN_6
+//#define SERVO_ARM_GPIO_Port GPIOA
+//#define SERVO_DELIVER_Pin GPIO_PIN_7
+//#define SERVO_DELIVER_GPIO_Port GPIOA
+//#define SERVO_EXTRA_1_Pin GPIO_PIN_0
+//#define SERVO_EXTRA_1_GPIO_Port GPIOB
+//#define SERVO_EXTRA_2_Pin GPIO_PIN_1
+//#define SERVO_EXTRA_2_GPIO_Port GPIOB
+//#define MOTOR_N_PWM_Pin GPIO_PIN_8
+//#define MOTOR_N_PWM_GPIO_Port GPIOA
+//#define MOTOR_S_PWM_Pin GPIO_PIN_9
+//#define MOTOR_S_PWM_GPIO_Port GPIOA
+//#define MOTOR_W_PWM_Pin GPIO_PIN_10
+//#define MOTOR_W_PWM_GPIO_Port GPIOA
+//#define MOTOR_E_PWM_Pin GPIO_PIN_11
+//#define MOTOR_E_PWM_GPIO_Port GPIOA
+//#define MOTOR_VERT_PWM_Pin GPIO_PIN_8
+//#define MOTOR_VERT_PWM_GPIO_Port GPIOB
+//#define MOTOR_EXTRA_PWM_Pin GPIO_PIN_9
+//#define MOTOR_EXTRA_PWM_GPIO_Port GPIOB
 
 
 int _write (int fd, char *ptr, int len); 
