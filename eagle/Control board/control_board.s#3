@@ -534,6 +534,58 @@ In this library the device names are the same as the pin names of the symbols, t
 <part name="U$17" library="custom" deviceset="NC" device=""/>
 <part name="U$18" library="custom" deviceset="NC" device=""/>
 <part name="SB1" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB2" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB3" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB4" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB5" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB6" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB7" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB8" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB9" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB10" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB11" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB12" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB13" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB14" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB15" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB16" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB17" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB18" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB19" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB20" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB21" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB22" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB23" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB24" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB25" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB26" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB27" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB28" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB29" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB30" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB31" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB32" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB33" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB34" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB35" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB36" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB37" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB38" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB39" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB40" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB41" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB42" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB43" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB44" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB45" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB46" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB47" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB48" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB49" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB50" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB51" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB52" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
+<part name="SB53" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -560,6 +612,58 @@ In this library the device names are the same as the pin names of the symbols, t
 <instance part="U$17" gate="G$1" x="193.04" y="152.4" rot="R90"/>
 <instance part="U$18" gate="G$1" x="198.12" y="152.4" rot="R90"/>
 <instance part="SB1" gate="G$1" x="127" y="144.78"/>
+<instance part="SB2" gate="G$1" x="127" y="139.7"/>
+<instance part="SB3" gate="G$1" x="127" y="134.62"/>
+<instance part="SB4" gate="G$1" x="127" y="129.54"/>
+<instance part="SB5" gate="G$1" x="127" y="124.46"/>
+<instance part="SB6" gate="G$1" x="127" y="119.38"/>
+<instance part="SB7" gate="G$1" x="127" y="114.3"/>
+<instance part="SB8" gate="G$1" x="127" y="109.22"/>
+<instance part="SB9" gate="G$1" x="127" y="104.14"/>
+<instance part="SB10" gate="G$1" x="127" y="99.06"/>
+<instance part="SB11" gate="G$1" x="127" y="93.98"/>
+<instance part="SB12" gate="G$1" x="127" y="88.9"/>
+<instance part="SB13" gate="G$1" x="127" y="83.82"/>
+<instance part="SB14" gate="G$1" x="127" y="78.74"/>
+<instance part="SB15" gate="G$1" x="127" y="73.66"/>
+<instance part="SB16" gate="G$1" x="127" y="68.58"/>
+<instance part="SB17" gate="G$1" x="127" y="58.42"/>
+<instance part="SB18" gate="G$1" x="127" y="53.34"/>
+<instance part="SB19" gate="G$1" x="127" y="48.26"/>
+<instance part="SB20" gate="G$1" x="127" y="43.18"/>
+<instance part="SB21" gate="G$1" x="127" y="38.1"/>
+<instance part="SB22" gate="G$1" x="127" y="33.02"/>
+<instance part="SB23" gate="G$1" x="127" y="27.94"/>
+<instance part="SB24" gate="G$1" x="127" y="22.86"/>
+<instance part="SB25" gate="G$1" x="127" y="17.78"/>
+<instance part="SB26" gate="G$1" x="127" y="12.7"/>
+<instance part="SB27" gate="G$1" x="127" y="7.62"/>
+<instance part="SB28" gate="G$1" x="127" y="-2.54"/>
+<instance part="SB29" gate="G$1" x="127" y="-7.62"/>
+<instance part="SB30" gate="G$1" x="127" y="-12.7"/>
+<instance part="SB31" gate="G$1" x="127" y="-17.78"/>
+<instance part="SB32" gate="G$1" x="254" y="27.94"/>
+<instance part="SB33" gate="G$1" x="254" y="33.02"/>
+<instance part="SB34" gate="G$1" x="254" y="43.18"/>
+<instance part="SB35" gate="G$1" x="254" y="48.26"/>
+<instance part="SB36" gate="G$1" x="254" y="58.42"/>
+<instance part="SB37" gate="G$1" x="254" y="68.58"/>
+<instance part="SB38" gate="G$1" x="254" y="73.66"/>
+<instance part="SB39" gate="G$1" x="254" y="78.74"/>
+<instance part="SB40" gate="G$1" x="254" y="83.82"/>
+<instance part="SB41" gate="G$1" x="254" y="88.9"/>
+<instance part="SB42" gate="G$1" x="254" y="93.98"/>
+<instance part="SB43" gate="G$1" x="254" y="99.06"/>
+<instance part="SB44" gate="G$1" x="254" y="104.14"/>
+<instance part="SB45" gate="G$1" x="254" y="109.22"/>
+<instance part="SB46" gate="G$1" x="254" y="114.3"/>
+<instance part="SB47" gate="G$1" x="254" y="119.38"/>
+<instance part="SB48" gate="G$1" x="254" y="124.46"/>
+<instance part="SB49" gate="G$1" x="254" y="129.54"/>
+<instance part="SB50" gate="G$1" x="254" y="134.62"/>
+<instance part="SB51" gate="G$1" x="254" y="139.7"/>
+<instance part="SB52" gate="G$1" x="254" y="144.78"/>
+<instance part="SB53" gate="G$1" x="152.4" y="162.56"/>
 </instances>
 <busses>
 </busses>
@@ -598,6 +702,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="68.58" x2="132.08" y2="68.58" width="0.1524" layer="91"/>
 <label x="132.08" y="68.58" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA15"/>
+<pinref part="SB16" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB10_CONN" class="0">
@@ -605,6 +710,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="7.62" x2="132.08" y2="7.62" width="0.1524" layer="91"/>
 <label x="132.08" y="7.62" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB10"/>
+<pinref part="SB27" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB15_CONN" class="0">
@@ -612,6 +718,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="-17.78" x2="132.08" y2="-17.78" width="0.1524" layer="91"/>
 <label x="132.08" y="-17.78" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB15"/>
+<pinref part="SB31" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="RESET_CONN" class="0">
@@ -619,6 +726,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="27.94" x2="228.6" y2="27.94" width="0.1524" layer="91"/>
 <label x="248.92" y="27.94" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="RESET"/>
+<pinref part="SB32" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC15_CONN" class="0">
@@ -626,6 +734,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="68.58" x2="228.6" y2="68.58" width="0.1524" layer="91"/>
 <label x="248.92" y="68.58" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC15"/>
+<pinref part="SB37" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PA0_CONN" class="0">
@@ -641,6 +750,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="139.7" x2="132.08" y2="139.7" width="0.1524" layer="91"/>
 <label x="132.08" y="139.7" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA1"/>
+<pinref part="SB2" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA2_CONN" class="0">
@@ -648,6 +758,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="134.62" x2="132.08" y2="134.62" width="0.1524" layer="91"/>
 <label x="132.08" y="134.62" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA2"/>
+<pinref part="SB3" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA3_CONN" class="0">
@@ -655,6 +766,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="129.54" x2="132.08" y2="129.54" width="0.1524" layer="91"/>
 <label x="132.08" y="129.54" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA3"/>
+<pinref part="SB4" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA4_CONN" class="0">
@@ -662,6 +774,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="124.46" x2="132.08" y2="124.46" width="0.1524" layer="91"/>
 <label x="132.08" y="124.46" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA4"/>
+<pinref part="SB5" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA5_CONN" class="0">
@@ -669,6 +782,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="119.38" x2="132.08" y2="119.38" width="0.1524" layer="91"/>
 <label x="132.08" y="119.38" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA5"/>
+<pinref part="SB6" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA6_CONN" class="0">
@@ -676,6 +790,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="114.3" x2="132.08" y2="114.3" width="0.1524" layer="91"/>
 <label x="132.08" y="114.3" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA6"/>
+<pinref part="SB7" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA7_CONN" class="0">
@@ -683,6 +798,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="109.22" x2="132.08" y2="109.22" width="0.1524" layer="91"/>
 <label x="132.08" y="109.22" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA7"/>
+<pinref part="SB8" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA8_CONN" class="0">
@@ -690,6 +806,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="104.14" x2="132.08" y2="104.14" width="0.1524" layer="91"/>
 <label x="132.08" y="104.14" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA8"/>
+<pinref part="SB9" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA9_CONN" class="0">
@@ -697,6 +814,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="99.06" x2="132.08" y2="99.06" width="0.1524" layer="91"/>
 <label x="132.08" y="99.06" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA9"/>
+<pinref part="SB10" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA10_CONN" class="0">
@@ -704,6 +822,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="93.98" x2="132.08" y2="93.98" width="0.1524" layer="91"/>
 <label x="132.08" y="93.98" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA10"/>
+<pinref part="SB11" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA11_CONN" class="0">
@@ -711,6 +830,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="88.9" x2="132.08" y2="88.9" width="0.1524" layer="91"/>
 <label x="132.08" y="88.9" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA11"/>
+<pinref part="SB12" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA12_CONN" class="0">
@@ -718,6 +838,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="83.82" x2="132.08" y2="83.82" width="0.1524" layer="91"/>
 <label x="132.08" y="83.82" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA12"/>
+<pinref part="SB13" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA13_CONN" class="0">
@@ -725,6 +846,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="78.74" x2="132.08" y2="78.74" width="0.1524" layer="91"/>
 <label x="132.08" y="78.74" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA13"/>
+<pinref part="SB14" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PA14_CONN" class="0">
@@ -732,6 +854,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="73.66" x2="132.08" y2="73.66" width="0.1524" layer="91"/>
 <label x="132.08" y="73.66" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PA14"/>
+<pinref part="SB15" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB0_CONN" class="0">
@@ -739,6 +862,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="58.42" x2="132.08" y2="58.42" width="0.1524" layer="91"/>
 <label x="132.08" y="58.42" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB0"/>
+<pinref part="SB17" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB1_CONN" class="0">
@@ -746,6 +870,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="53.34" x2="132.08" y2="53.34" width="0.1524" layer="91"/>
 <label x="132.08" y="53.34" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB1"/>
+<pinref part="SB18" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB2_CONN" class="0">
@@ -753,6 +878,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="48.26" x2="132.08" y2="48.26" width="0.1524" layer="91"/>
 <label x="132.08" y="48.26" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB2"/>
+<pinref part="SB19" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB3_CONN" class="0">
@@ -760,6 +886,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="43.18" x2="132.08" y2="43.18" width="0.1524" layer="91"/>
 <label x="132.08" y="43.18" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB3"/>
+<pinref part="SB20" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB4_CONN" class="0">
@@ -767,6 +894,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="38.1" x2="132.08" y2="38.1" width="0.1524" layer="91"/>
 <label x="132.08" y="38.1" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB4"/>
+<pinref part="SB21" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB5_CONN" class="0">
@@ -774,6 +902,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="33.02" x2="132.08" y2="33.02" width="0.1524" layer="91"/>
 <label x="132.08" y="33.02" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB5"/>
+<pinref part="SB22" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB6_CONN" class="0">
@@ -781,6 +910,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="27.94" x2="132.08" y2="27.94" width="0.1524" layer="91"/>
 <label x="132.08" y="27.94" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB6"/>
+<pinref part="SB23" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB7_CONN" class="0">
@@ -788,6 +918,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="22.86" x2="132.08" y2="22.86" width="0.1524" layer="91"/>
 <label x="132.08" y="22.86" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB7"/>
+<pinref part="SB24" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB8_CONN" class="0">
@@ -795,6 +926,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="17.78" x2="132.08" y2="17.78" width="0.1524" layer="91"/>
 <label x="132.08" y="17.78" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB8"/>
+<pinref part="SB25" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB9_CONN" class="0">
@@ -802,6 +934,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="12.7" x2="132.08" y2="12.7" width="0.1524" layer="91"/>
 <label x="132.08" y="12.7" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB9"/>
+<pinref part="SB26" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB12_CONN" class="0">
@@ -809,6 +942,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="-2.54" x2="132.08" y2="-2.54" width="0.1524" layer="91"/>
 <label x="132.08" y="-2.54" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB12"/>
+<pinref part="SB28" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB13_CONN" class="0">
@@ -816,6 +950,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="-7.62" x2="132.08" y2="-7.62" width="0.1524" layer="91"/>
 <label x="132.08" y="-7.62" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB13"/>
+<pinref part="SB29" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PB14_CONN" class="0">
@@ -823,6 +958,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="152.4" y1="-12.7" x2="132.08" y2="-12.7" width="0.1524" layer="91"/>
 <label x="132.08" y="-12.7" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="PB14"/>
+<pinref part="SB30" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 <net name="PC0_CONN" class="0">
@@ -830,6 +966,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="144.78" x2="228.6" y2="144.78" width="0.1524" layer="91"/>
 <label x="248.92" y="144.78" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC0"/>
+<pinref part="SB52" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC1_CONN" class="0">
@@ -837,6 +974,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="139.7" x2="228.6" y2="139.7" width="0.1524" layer="91"/>
 <label x="248.92" y="139.7" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC1"/>
+<pinref part="SB51" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC2_CONN" class="0">
@@ -844,6 +982,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="134.62" x2="228.6" y2="134.62" width="0.1524" layer="91"/>
 <label x="248.92" y="134.62" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC2"/>
+<pinref part="SB50" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC3_CONN" class="0">
@@ -851,6 +990,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="129.54" x2="228.6" y2="129.54" width="0.1524" layer="91"/>
 <label x="248.92" y="129.54" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC3"/>
+<pinref part="SB49" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC4_CONN" class="0">
@@ -858,6 +998,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="124.46" x2="228.6" y2="124.46" width="0.1524" layer="91"/>
 <label x="248.92" y="124.46" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC4"/>
+<pinref part="SB48" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC5_CONN" class="0">
@@ -865,6 +1006,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="119.38" x2="228.6" y2="119.38" width="0.1524" layer="91"/>
 <label x="248.92" y="119.38" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC5"/>
+<pinref part="SB47" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC6_CONN" class="0">
@@ -872,6 +1014,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="114.3" x2="228.6" y2="114.3" width="0.1524" layer="91"/>
 <label x="248.92" y="114.3" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC6"/>
+<pinref part="SB46" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC7_CONN" class="0">
@@ -879,6 +1022,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="109.22" x2="228.6" y2="109.22" width="0.1524" layer="91"/>
 <label x="248.92" y="109.22" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC7"/>
+<pinref part="SB45" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC8_CONN" class="0">
@@ -886,6 +1030,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="104.14" x2="228.6" y2="104.14" width="0.1524" layer="91"/>
 <label x="248.92" y="104.14" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC8"/>
+<pinref part="SB44" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC9_CONN" class="0">
@@ -893,6 +1038,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="99.06" x2="228.6" y2="99.06" width="0.1524" layer="91"/>
 <label x="248.92" y="99.06" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC9"/>
+<pinref part="SB43" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC10_CONN" class="0">
@@ -900,6 +1046,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="93.98" x2="228.6" y2="93.98" width="0.1524" layer="91"/>
 <label x="248.92" y="93.98" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC10"/>
+<pinref part="SB42" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC11_CONN" class="0">
@@ -907,6 +1054,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="88.9" x2="228.6" y2="88.9" width="0.1524" layer="91"/>
 <label x="248.92" y="88.9" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC11"/>
+<pinref part="SB41" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC12_CONN" class="0">
@@ -914,6 +1062,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="83.82" x2="228.6" y2="83.82" width="0.1524" layer="91"/>
 <label x="248.92" y="83.82" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC12"/>
+<pinref part="SB40" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC13_CONN" class="0">
@@ -921,6 +1070,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="78.74" x2="228.6" y2="78.74" width="0.1524" layer="91"/>
 <label x="248.92" y="78.74" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC13"/>
+<pinref part="SB39" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PC14_CONN" class="0">
@@ -928,6 +1078,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="73.66" x2="228.6" y2="73.66" width="0.1524" layer="91"/>
 <label x="248.92" y="73.66" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PC14"/>
+<pinref part="SB38" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PD2_CONN" class="0">
@@ -935,6 +1086,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="58.42" x2="228.6" y2="58.42" width="0.1524" layer="91"/>
 <label x="248.92" y="58.42" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PD2"/>
+<pinref part="SB36" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PH0_CONN" class="0">
@@ -942,6 +1094,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="48.26" x2="228.6" y2="48.26" width="0.1524" layer="91"/>
 <label x="248.92" y="48.26" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PH0"/>
+<pinref part="SB35" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PH1_CONN" class="0">
@@ -949,6 +1102,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="43.18" x2="228.6" y2="43.18" width="0.1524" layer="91"/>
 <label x="248.92" y="43.18" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="PH1"/>
+<pinref part="SB34" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="BOOT0_CONN" class="0">
@@ -956,6 +1110,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="248.92" y1="33.02" x2="228.6" y2="33.02" width="0.1524" layer="91"/>
 <label x="248.92" y="33.02" size="1.778" layer="95" rot="MR0"/>
 <pinref part="U$1" gate="G$1" pin="BOOT0"/>
+<pinref part="SB33" gate="G$1" pin="P$1"/>
 </segment>
 </net>
 <net name="PP6V_CONN" class="0">
@@ -964,6 +1119,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <wire x1="177.8" y1="152.4" x2="177.8" y2="162.56" width="0.1524" layer="91"/>
 <label x="157.48" y="162.56" size="1.778" layer="95"/>
 <wire x1="177.8" y1="162.56" x2="157.48" y2="162.56" width="0.1524" layer="91"/>
+<pinref part="SB53" gate="G$1" pin="P$2"/>
 </segment>
 </net>
 </nets>
