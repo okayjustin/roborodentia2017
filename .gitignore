@@ -4,6 +4,9 @@
 *.hex
 *.csv
 
+*.b#*
+*.s#*
+
 tags
 
 scripts/__pycache__
