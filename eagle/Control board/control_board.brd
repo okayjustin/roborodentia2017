@@ -2839,13 +2839,13 @@ design rules under a new name.</description>
 </signal>
 <signal name="RF4_G">
 <contactref element="SB72" pad="P$1"/>
-<contactref element="SB1" pad="P$1"/>
-<wire x1="27.051" y1="36.576" x2="36.195" y2="44.45" width="0" layer="19" extent="1-1"/>
+<contactref element="SB12" pad="P$1"/>
+<wire x1="36.195" y1="44.45" x2="86.995" y2="54.356" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="RF5_G">
 <contactref element="SB77" pad="P$1"/>
-<contactref element="SB36" pad="P$2"/>
-<wire x1="27.051" y1="67.056" x2="36.195" y2="55.88" width="0" layer="19" extent="1-1"/>
+<contactref element="SB13" pad="P$1"/>
+<wire x1="36.195" y1="55.88" x2="86.995" y2="56.896" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="RF5_X">
 <contactref element="SB78" pad="P$1"/>
@@ -2894,6 +2894,8 @@ design rules under a new name.</description>
 </signal>
 <signal name="M1_4">
 <contactref element="SB88" pad="P$1"/>
+<contactref element="SB45" pad="P$1"/>
+<wire x1="57.15" y1="18.415" x2="66.929" y2="46.736" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="M1_1">
 <contactref element="SB85" pad="P$1"/>
@@ -2902,6 +2904,8 @@ design rules under a new name.</description>
 </signal>
 <signal name="M1_2">
 <contactref element="SB86" pad="P$1"/>
+<contactref element="SB19" pad="P$1"/>
+<wire x1="57.15" y1="13.335" x2="86.995" y2="44.196" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="M1_3">
 <contactref element="SB87" pad="P$1"/>
@@ -2930,9 +2934,7 @@ design rules under a new name.</description>
 </signal>
 <signal name="M3_1">
 <contactref element="SB90" pad="P$1"/>
-<contactref element="SB46" pad="P$2"/>
 <contactref element="SB7" pad="P$1"/>
-<wire x1="66.929" y1="54.356" x2="86.995" y2="67.056" width="0" layer="19" extent="1-1"/>
 <wire x1="81.28" y1="10.795" x2="66.929" y2="54.356" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="M3_2">
@@ -2942,9 +2944,7 @@ design rules under a new name.</description>
 </signal>
 <signal name="M3_3">
 <contactref element="SB92" pad="P$1"/>
-<contactref element="SB44" pad="P$2"/>
 <contactref element="SB8" pad="P$1"/>
-<wire x1="66.929" y1="51.816" x2="86.995" y2="69.596" width="0" layer="19" extent="1-1"/>
 <wire x1="81.28" y1="15.875" x2="66.929" y2="51.816" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="M3_4">
@@ -2998,14 +2998,13 @@ design rules under a new name.</description>
 <contactref element="C3" pad="2"/>
 <wire x1="32.385" y1="85.305" x2="32.385" y2="89.535" width="0.3048" layer="1"/>
 <wire x1="34.925" y1="85.305" x2="32.385" y2="85.305" width="0.3048" layer="1"/>
+<contactref element="SB50" pad="P$2"/>
+<wire x1="4.953" y1="26.416" x2="32.385" y2="85.305" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="IMU_VCC">
 <contactref element="SB59" pad="P$2"/>
 <contactref element="X8" pad="1"/>
 <wire x1="43.815" y1="73.025" x2="43.815" y2="77.47" width="0.3048" layer="1"/>
-</signal>
-<signal name="N$43">
-<contactref element="SB42" pad="P$2"/>
 </signal>
 <signal name="SW2">
 <contactref element="R6" pad="1"/>
@@ -3013,6 +3012,8 @@ design rules under a new name.</description>
 <contactref element="C4" pad="2"/>
 <wire x1="42.545" y1="89.535" x2="42.545" y2="85.305" width="0.3048" layer="1"/>
 <wire x1="42.545" y1="85.305" x2="45.085" y2="85.305" width="0.3048" layer="1"/>
+<contactref element="SB49" pad="P$2"/>
+<wire x1="4.953" y1="23.876" x2="42.545" y2="85.305" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="SERVO2_VCC">
 <contactref element="X14" pad="1"/>
@@ -3300,9 +3301,6 @@ design rules under a new name.</description>
 </signal>
 <signal name="I2C3_SDA">
 <contactref element="SB21" pad="P$1"/>
-</signal>
-<signal name="N$4">
-<contactref element="SB43" pad="P$1"/>
 </signal>
 </signals>
 <errors>
