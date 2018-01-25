@@ -353,6 +353,7 @@ NC</text>
 <smd name="P$1" x="-0.635" y="0" dx="1.016" dy="0.762" layer="1" rot="R90"/>
 <smd name="P$2" x="0.635" y="0" dx="1.016" dy="0.762" layer="1" rot="R90"/>
 <text x="0" y="1.27" size="1.27" layer="25" font="vector" ratio="16" align="center">&gt;NAME</text>
+<wire x1="-0.635" y1="0" x2="0.635" y2="0" width="0.3048" layer="1"/>
 </package>
 <package name="SOIC16-1.27-10.2X7.5MM">
 <wire x1="-5.08" y1="3.7465" x2="5.08" y2="3.7465" width="0.127" layer="21"/>
