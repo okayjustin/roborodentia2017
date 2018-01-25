@@ -26,40 +26,40 @@
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
-<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="no" active="yes"/>
 <layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="23" name="tOrigins" color="15" fill="1" visible="no" active="yes"/>
+<layer number="24" name="bOrigins" color="15" fill="1" visible="no" active="yes"/>
 <layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="26" name="bNames" color="7" fill="1" visible="no" active="yes"/>
 <layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="28" name="bValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
-<layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
-<layer number="32" name="bCream" color="7" fill="5" visible="no" active="yes"/>
+<layer number="31" name="tCream" color="7" fill="4" visible="yes" active="yes"/>
+<layer number="32" name="bCream" color="7" fill="5" visible="yes" active="yes"/>
 <layer number="33" name="tFinish" color="6" fill="3" visible="no" active="yes"/>
 <layer number="34" name="bFinish" color="6" fill="6" visible="no" active="yes"/>
 <layer number="35" name="tGlue" color="7" fill="4" visible="no" active="yes"/>
 <layer number="36" name="bGlue" color="7" fill="5" visible="no" active="yes"/>
 <layer number="37" name="tTest" color="7" fill="1" visible="no" active="yes"/>
 <layer number="38" name="bTest" color="7" fill="1" visible="no" active="yes"/>
-<layer number="39" name="tKeepout" color="4" fill="11" visible="yes" active="yes"/>
-<layer number="40" name="bKeepout" color="1" fill="11" visible="yes" active="yes"/>
-<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
-<layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
-<layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
+<layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="yes"/>
+<layer number="40" name="bKeepout" color="1" fill="11" visible="no" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="yes"/>
+<layer number="42" name="bRestrict" color="1" fill="10" visible="no" active="yes"/>
+<layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="yes"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
 <layer number="45" name="Holes" color="7" fill="1" visible="no" active="yes"/>
 <layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
 <layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
-<layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
@@ -75,64 +75,64 @@
 <layer number="98" name="Guide" color="6" fill="1" visible="no" active="no"/>
 <layer number="99" name="SpiceOrder" color="7" fill="1" visible="no" active="no"/>
 <layer number="100" name="Muster" color="7" fill="1" visible="no" active="no"/>
-<layer number="101" name="Patch_Top" color="12" fill="4" visible="yes" active="yes"/>
-<layer number="102" name="Vscore" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="101" name="Patch_Top" color="12" fill="4" visible="no" active="yes"/>
+<layer number="102" name="Vscore" color="7" fill="1" visible="no" active="yes"/>
 <layer number="103" name="fp3" color="7" fill="1" visible="no" active="yes"/>
-<layer number="104" name="Name" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="105" name="Beschreib" color="9" fill="1" visible="yes" active="yes"/>
-<layer number="106" name="BGA-Top" color="4" fill="1" visible="yes" active="yes"/>
-<layer number="107" name="BD-Top" color="5" fill="1" visible="yes" active="yes"/>
+<layer number="104" name="Name" color="7" fill="1" visible="no" active="yes"/>
+<layer number="105" name="Beschreib" color="9" fill="1" visible="no" active="yes"/>
+<layer number="106" name="BGA-Top" color="4" fill="1" visible="no" active="yes"/>
+<layer number="107" name="BD-Top" color="5" fill="1" visible="no" active="yes"/>
 <layer number="108" name="fp8" color="7" fill="1" visible="no" active="yes"/>
 <layer number="109" name="fp9" color="7" fill="1" visible="no" active="yes"/>
 <layer number="110" name="fp0" color="7" fill="1" visible="no" active="yes"/>
-<layer number="111" name="LPC17xx" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="112" name="tSilk" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="113" name="IDFDebug" color="4" fill="1" visible="yes" active="yes"/>
-<layer number="114" name="FRNTMAAT1" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="115" name="FRNTMAAT2" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="116" name="Patch_BOT" color="9" fill="4" visible="yes" active="yes"/>
-<layer number="117" name="BACKMAAT1" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="111" name="LPC17xx" color="7" fill="1" visible="no" active="yes"/>
+<layer number="112" name="tSilk" color="7" fill="1" visible="no" active="yes"/>
+<layer number="113" name="IDFDebug" color="4" fill="1" visible="no" active="yes"/>
+<layer number="114" name="FRNTMAAT1" color="7" fill="1" visible="no" active="yes"/>
+<layer number="115" name="FRNTMAAT2" color="7" fill="1" visible="no" active="yes"/>
+<layer number="116" name="Patch_BOT" color="9" fill="4" visible="no" active="yes"/>
+<layer number="117" name="BACKMAAT1" color="7" fill="1" visible="no" active="yes"/>
 <layer number="118" name="Rect_Pads" color="7" fill="1" visible="no" active="no"/>
-<layer number="119" name="KAP_TEKEN" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="120" name="KAP_MAAT1" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="121" name="_tsilk" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="122" name="_bsilk" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="119" name="KAP_TEKEN" color="7" fill="1" visible="no" active="yes"/>
+<layer number="120" name="KAP_MAAT1" color="7" fill="1" visible="no" active="yes"/>
+<layer number="121" name="_tsilk" color="7" fill="1" visible="no" active="yes"/>
+<layer number="122" name="_bsilk" color="7" fill="1" visible="no" active="yes"/>
 <layer number="123" name="tTestmark" color="7" fill="1" visible="no" active="yes"/>
 <layer number="124" name="bTestmark" color="7" fill="1" visible="no" active="yes"/>
-<layer number="125" name="_tNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="126" name="_bNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="127" name="_tValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="128" name="_bValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="129" name="top_silk" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="130" name="SMDSTROOK" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="125" name="_tNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="126" name="_bNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="127" name="_tValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="128" name="_bValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="129" name="top_silk" color="7" fill="1" visible="no" active="yes"/>
+<layer number="130" name="SMDSTROOK" color="7" fill="1" visible="no" active="yes"/>
 <layer number="131" name="tAdjust" color="7" fill="1" visible="no" active="yes"/>
 <layer number="132" name="bAdjust" color="7" fill="1" visible="no" active="yes"/>
-<layer number="133" name="bottom_silk" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="144" name="Drill_legend" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="133" name="bottom_silk" color="7" fill="1" visible="no" active="yes"/>
+<layer number="144" name="Drill_legend" color="7" fill="1" visible="no" active="yes"/>
 <layer number="150" name="Notes" color="7" fill="1" visible="no" active="yes"/>
-<layer number="151" name="HeatSink" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="152" name="_bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="151" name="HeatSink" color="7" fill="1" visible="no" active="yes"/>
+<layer number="152" name="_bDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="153" name="FabDoc1" color="6" fill="1" visible="no" active="no"/>
 <layer number="154" name="FabDoc2" color="2" fill="1" visible="no" active="no"/>
 <layer number="155" name="FabDoc3" color="7" fill="15" visible="no" active="no"/>
-<layer number="199" name="Contour" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="200" name="200bmp" color="1" fill="10" visible="yes" active="yes"/>
+<layer number="199" name="Contour" color="7" fill="1" visible="no" active="yes"/>
+<layer number="200" name="200bmp" color="1" fill="10" visible="no" active="yes"/>
 <layer number="201" name="201bmp" color="2" fill="1" visible="no" active="no"/>
 <layer number="202" name="202bmp" color="3" fill="1" visible="no" active="no"/>
-<layer number="203" name="203bmp" color="4" fill="10" visible="yes" active="yes"/>
-<layer number="204" name="204bmp" color="5" fill="10" visible="yes" active="yes"/>
-<layer number="205" name="205bmp" color="6" fill="10" visible="yes" active="yes"/>
-<layer number="206" name="206bmp" color="7" fill="10" visible="yes" active="yes"/>
-<layer number="207" name="207bmp" color="8" fill="10" visible="yes" active="yes"/>
-<layer number="208" name="208bmp" color="9" fill="10" visible="yes" active="yes"/>
+<layer number="203" name="203bmp" color="4" fill="10" visible="no" active="yes"/>
+<layer number="204" name="204bmp" color="5" fill="10" visible="no" active="yes"/>
+<layer number="205" name="205bmp" color="6" fill="10" visible="no" active="yes"/>
+<layer number="206" name="206bmp" color="7" fill="10" visible="no" active="yes"/>
+<layer number="207" name="207bmp" color="8" fill="10" visible="no" active="yes"/>
+<layer number="208" name="208bmp" color="9" fill="10" visible="no" active="yes"/>
 <layer number="209" name="209bmp" color="7" fill="1" visible="no" active="yes"/>
 <layer number="210" name="210bmp" color="7" fill="1" visible="no" active="yes"/>
-<layer number="211" name="211bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="212" name="212bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="213" name="213bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="214" name="214bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="215" name="215bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="216" name="216bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="211" name="211bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="212" name="212bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="213" name="213bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="214" name="214bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="215" name="215bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="216" name="216bmp" color="7" fill="1" visible="no" active="yes"/>
 <layer number="217" name="217bmp" color="18" fill="1" visible="no" active="no"/>
 <layer number="218" name="218bmp" color="19" fill="1" visible="no" active="no"/>
 <layer number="219" name="219bmp" color="20" fill="1" visible="no" active="no"/>
@@ -141,21 +141,21 @@
 <layer number="222" name="222bmp" color="23" fill="1" visible="no" active="no"/>
 <layer number="223" name="223bmp" color="24" fill="1" visible="no" active="no"/>
 <layer number="224" name="224bmp" color="25" fill="1" visible="no" active="no"/>
-<layer number="225" name="225bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="226" name="226bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="227" name="227bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="228" name="228bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="229" name="229bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="230" name="230bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="231" name="231bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="232" name="Eagle3D_PG2" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="233" name="Eagle3D_PG3" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="248" name="Housing" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="249" name="Edge" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="225" name="225bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="226" name="226bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="227" name="227bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="228" name="228bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="229" name="229bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="230" name="230bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="231" name="231bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="232" name="Eagle3D_PG2" color="7" fill="1" visible="no" active="yes"/>
+<layer number="233" name="Eagle3D_PG3" color="7" fill="1" visible="no" active="yes"/>
+<layer number="248" name="Housing" color="7" fill="1" visible="no" active="yes"/>
+<layer number="249" name="Edge" color="7" fill="1" visible="no" active="yes"/>
 <layer number="250" name="Descript" color="7" fill="1" visible="no" active="no"/>
 <layer number="251" name="SMDround" color="7" fill="1" visible="no" active="no"/>
-<layer number="254" name="cooling" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="255" name="Accent" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="254" name="cooling" color="7" fill="1" visible="no" active="yes"/>
+<layer number="255" name="Accent" color="7" fill="1" visible="no" active="yes"/>
 </layers>
 <board>
 <plain>
@@ -1898,267 +1898,650 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
-<element name="U4" library="custom" package="NUCLEO" value="STM32F446" x="12.7" y="69.596">
+<element name="U4" library="custom" package="NUCLEO" value="STM32F446" x="12.7" y="69.596" smashed="yes">
 <attribute name="VALUE" value="STM32F446" x="12.7" y="69.596" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="41.91" y="103.251" size="1.27" layer="52"/>
 </element>
-<element name="SB1" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="36.576" rot="MR0"/>
-<element name="SB2" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="34.036" rot="MR0"/>
-<element name="SB3" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="26.416" rot="MR180"/>
-<element name="SB4" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="23.876" rot="MR180"/>
-<element name="SB5" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="31.496" rot="MR0"/>
-<element name="SB6" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="56.896" rot="MR180"/>
-<element name="SB7" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="54.356" rot="MR180"/>
-<element name="SB8" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="51.816" rot="MR180"/>
-<element name="SB9" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="41.656" rot="MR180"/>
-<element name="SB10" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="44.196" rot="MR180"/>
-<element name="SB11" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="28.956" rot="MR180"/>
-<element name="SB12" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="54.356" rot="MR0"/>
-<element name="SB13" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="56.896" rot="MR0"/>
-<element name="SB14" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="54.356" rot="MR180"/>
-<element name="SB15" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="51.816" rot="MR180"/>
-<element name="SB16" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="49.276" rot="MR180"/>
-<element name="SB17" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="28.956" rot="MR0"/>
-<element name="SB18" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="41.656" rot="MR0"/>
-<element name="SB19" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="44.196" rot="MR0"/>
-<element name="SB20" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="31.496" rot="MR180"/>
-<element name="SB21" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="36.576" rot="MR180"/>
-<element name="SB22" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="34.036" rot="MR180"/>
-<element name="SB23" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="49.276" rot="MR180"/>
-<element name="SB24" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="44.196" rot="MR180"/>
-<element name="SB25" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="67.056" rot="MR180"/>
-<element name="SB26" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="64.516" rot="MR180"/>
-<element name="SB27" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="39.116" rot="MR180"/>
-<element name="SB28" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="51.816" rot="MR0"/>
-<element name="SB29" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="34.036" rot="MR0"/>
-<element name="SB30" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="36.576" rot="MR0"/>
-<element name="SB31" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="39.116" rot="MR0"/>
+<element name="SB1" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="36.576" smashed="yes" rot="MR0">
+<attribute name="NAME" x="18.923" y="37.846" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB2" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="34.036" smashed="yes" rot="MR0">
+<attribute name="NAME" x="18.923" y="35.306" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB3" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="26.416" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="25.146" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB4" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="23.876" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="22.606" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB5" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="31.496" smashed="yes" rot="MR0">
+<attribute name="NAME" x="18.923" y="32.766" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB6" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="56.896" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="55.626" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB7" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="54.356" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="53.086" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB8" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="51.816" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="50.546" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB9" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="41.656" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="40.386" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB10" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="44.196" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="42.926" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB11" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="28.956" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="27.686" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB12" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="54.356" smashed="yes" rot="MR0">
+<attribute name="NAME" x="79.883" y="55.626" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB13" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="56.896" smashed="yes" rot="MR0">
+<attribute name="NAME" x="79.883" y="58.166" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB14" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="54.356" smashed="yes" rot="MR180">
+<attribute name="NAME" x="8.763" y="53.086" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB15" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="51.816" smashed="yes" rot="MR180">
+<attribute name="NAME" x="8.763" y="50.546" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB16" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="49.276" smashed="yes" rot="MR180">
+<attribute name="NAME" x="8.763" y="48.006" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB17" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="28.956" smashed="yes" rot="MR0">
+<attribute name="NAME" x="18.923" y="30.226" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB18" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="41.656" smashed="yes" rot="MR0">
+<attribute name="NAME" x="79.883" y="42.926" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB19" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="44.196" smashed="yes" rot="MR0">
+<attribute name="NAME" x="79.883" y="45.466" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB20" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="31.496" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="30.226" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB21" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="36.576" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="35.306" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB22" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="34.036" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="32.766" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB23" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="49.276" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="48.006" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB24" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="44.196" smashed="yes" rot="MR180">
+<attribute name="NAME" x="8.763" y="42.926" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB25" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="67.056" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="65.786" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB26" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="64.516" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="63.246" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB27" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="39.116" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="37.846" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB28" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="51.816" smashed="yes" rot="MR0">
+<attribute name="NAME" x="79.883" y="53.086" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB29" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="34.036" smashed="yes" rot="MR0">
+<attribute name="NAME" x="79.883" y="35.306" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB30" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="36.576" smashed="yes" rot="MR0">
+<attribute name="NAME" x="79.883" y="37.846" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB31" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="39.116" smashed="yes" rot="MR0">
+<attribute name="NAME" x="79.883" y="40.386" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
 <element name="SB32" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="54.356" smashed="yes" rot="MR180">
 <attribute name="NAME" x="19.177" y="55.88" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
 </element>
-<element name="SB33" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="61.976" rot="MR0"/>
-<element name="SB34" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="31.496" rot="MR0"/>
-<element name="SB35" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="34.036" rot="MR0"/>
-<element name="SB36" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="67.056" rot="MR180"/>
-<element name="SB37" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="36.576" rot="MR0"/>
-<element name="SB38" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="39.116" rot="MR0"/>
-<element name="SB39" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="41.656" rot="MR0"/>
-<element name="SB40" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="67.056" rot="MR0"/>
-<element name="SB41" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="69.596" rot="MR180"/>
-<element name="SB42" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="69.596" rot="MR0"/>
-<element name="SB44" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="69.596" rot="MR180"/>
-<element name="SB46" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="67.056" rot="MR180"/>
-<element name="SB47" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="64.516" rot="MR180"/>
-<element name="SB48" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="28.956" rot="MR180"/>
-<element name="SB49" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="23.876" rot="MR0"/>
-<element name="SB50" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="26.416" rot="MR0"/>
+<element name="SB33" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="61.976" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="63.246" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB34" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="31.496" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="32.766" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB35" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="34.036" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="35.306" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB36" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="67.056" smashed="yes" rot="MR180">
+<attribute name="NAME" x="18.923" y="65.786" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB37" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="36.576" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="37.846" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB38" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="39.116" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="40.386" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB39" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="41.656" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="42.926" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB40" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="67.056" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="68.326" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB41" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="69.596" smashed="yes" rot="MR180">
+<attribute name="NAME" x="18.923" y="68.326" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB42" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="69.596" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="70.866" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB44" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="69.596" smashed="yes" rot="MR180">
+<attribute name="NAME" x="79.883" y="68.326" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB46" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="67.056" smashed="yes" rot="MR180">
+<attribute name="NAME" x="79.883" y="65.786" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB47" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="64.516" smashed="yes" rot="MR180">
+<attribute name="NAME" x="79.883" y="63.246" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB48" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="79.883" y="28.956" smashed="yes" rot="MR180">
+<attribute name="NAME" x="79.883" y="27.686" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB49" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="23.876" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="25.146" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB50" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="8.763" y="26.416" smashed="yes" rot="MR0">
+<attribute name="NAME" x="8.763" y="27.686" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
 <element name="R1" library="rcl" package="R0603" value="178" x="85.598" y="87.122" smashed="yes">
-<attribute name="NAME" x="86.995" y="86.487" size="1.27" layer="25"/>
+<attribute name="NAME" x="84.836" y="87.884" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="84.963" y="85.217" size="1.27" layer="27"/>
 </element>
 <element name="R2" library="rcl" package="R0603" value="287" x="89.154" y="87.122" smashed="yes">
-<attribute name="NAME" x="87.757" y="87.757" size="1.27" layer="25" rot="R180"/>
+<attribute name="NAME" x="90.551" y="89.154" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="88.519" y="85.217" size="1.27" layer="27"/>
 </element>
 <element name="C1" library="rcl" package="C0603" value="10uF" x="90.932" y="94.869" smashed="yes">
-<attribute name="NAME" x="92.583" y="94.234" size="1.27" layer="25"/>
+<attribute name="NAME" x="89.281" y="95.885" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="90.297" y="92.964" size="1.27" layer="27"/>
 </element>
-<element name="R3" library="rcl" package="R0603" value="100" x="85.598" y="76.2"/>
-<element name="R4" library="rcl" package="R0603" value="301" x="89.154" y="76.2"/>
-<element name="C2" library="rcl" package="C0603" value="10uF" x="90.678" y="81.534" rot="R180"/>
-<element name="PAD1" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="17.272" rot="R180"/>
-<element name="PAD2" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="22.352" rot="R180"/>
-<element name="PAD3" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="27.432" rot="R180"/>
-<element name="PAD4" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="32.512" rot="R180"/>
-<element name="PAD5" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="68.072" rot="R180"/>
-<element name="PAD6" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="73.152" rot="R180"/>
-<element name="PAD7" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="78.232" rot="R180"/>
-<element name="PAD8" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="83.312" rot="R180"/>
-<element name="PAD9" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="52.832"/>
-<element name="PAD10" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="47.752"/>
-<element name="X2" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="4.445" rot="R180"/>
-<element name="SB54" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="37.084" y="66.675" rot="R270"/>
-<element name="SB55" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="9.525" rot="R270"/>
-<element name="SB56" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="9.525" rot="R270"/>
-<element name="SB57" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="9.525" rot="R270"/>
-<element name="SB58" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="9.525" rot="R270"/>
-<element name="X3" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="15.875" rot="R180"/>
-<element name="SB60" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="20.955" rot="R270"/>
-<element name="SB61" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="20.955" rot="R270"/>
-<element name="SB62" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="20.955" rot="R270"/>
-<element name="SB63" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="20.955" rot="R270"/>
-<element name="X4" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="27.305" rot="R180"/>
-<element name="SB65" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="32.385" rot="R270"/>
-<element name="SB66" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="32.385" rot="R270"/>
-<element name="SB67" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="32.385" rot="R270"/>
-<element name="SB68" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="32.385" rot="R270"/>
-<element name="X5" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="38.735" rot="R180"/>
-<element name="SB70" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="43.815" rot="R270"/>
-<element name="SB71" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="43.815" rot="R270"/>
-<element name="SB72" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="43.815" rot="R270"/>
-<element name="SB73" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="43.815" rot="R270"/>
-<element name="X6" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="50.165" rot="R180"/>
-<element name="SB75" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="55.245" rot="R270"/>
-<element name="SB76" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="55.245" rot="R270"/>
-<element name="SB77" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="55.245" rot="R270"/>
-<element name="SB78" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="55.245" rot="R270"/>
-<element name="X7" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="61.595" rot="R180"/>
-<element name="SB80" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="66.675" rot="R270"/>
-<element name="SB81" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="66.675" rot="R270"/>
-<element name="SB82" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="66.675" rot="R270"/>
-<element name="SB83" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="66.675" rot="R270"/>
-<element name="SB51" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="26.416" rot="MR0"/>
-<element name="SB52" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="23.876" rot="MR0"/>
-<element name="SB43" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="70.104" y="69.596" rot="MR180"/>
-<element name="SB45" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="46.736" rot="MR180"/>
-<element name="X8" library="con-jst-xh" package="JST-XH-04-PACKAGE-LONG-PAD" value="JST-XH-04-PIN-LONG-PAD" x="30.734" y="73.025" rot="R180"/>
-<element name="SB59" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="34.544" y="78.105" rot="R270"/>
-<element name="SB64" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="78.105" rot="R270"/>
-<element name="SB69" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="78.105" rot="R270"/>
+<element name="R3" library="rcl" package="R0603" value="100" x="85.598" y="76.2" smashed="yes">
+<attribute name="NAME" x="84.963" y="76.835" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="84.963" y="74.295" size="1.27" layer="27"/>
+</element>
+<element name="R4" library="rcl" package="R0603" value="301" x="89.154" y="76.2" smashed="yes">
+<attribute name="NAME" x="88.519" y="76.835" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="88.519" y="74.295" size="1.27" layer="27"/>
+</element>
+<element name="C2" library="rcl" package="C0603" value="10uF" x="90.678" y="81.534" smashed="yes" rot="R180">
+<attribute name="NAME" x="93.472" y="83.693" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="91.313" y="83.439" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="PAD1" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="17.272" smashed="yes" rot="R180">
+<attribute name="NAME" x="97.409" y="15.367" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="95.885" y="16.072" size="0.0254" layer="27" rot="R180"/>
+</element>
+<element name="PAD2" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="22.352" smashed="yes" rot="R180">
+<attribute name="NAME" x="97.409" y="20.447" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="95.885" y="21.152" size="0.0254" layer="27" rot="R180"/>
+</element>
+<element name="PAD3" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="27.432" smashed="yes" rot="R180">
+<attribute name="NAME" x="97.409" y="25.527" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="95.885" y="26.232" size="0.0254" layer="27" rot="R180"/>
+</element>
+<element name="PAD4" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="32.512" smashed="yes" rot="R180">
+<attribute name="NAME" x="97.409" y="30.607" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="95.885" y="31.312" size="0.0254" layer="27" rot="R180"/>
+</element>
+<element name="PAD5" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="68.072" smashed="yes" rot="R180">
+<attribute name="NAME" x="97.409" y="66.167" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="95.885" y="66.872" size="0.0254" layer="27" rot="R180"/>
+</element>
+<element name="PAD6" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="73.152" smashed="yes" rot="R180">
+<attribute name="NAME" x="97.409" y="71.247" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="95.885" y="71.952" size="0.0254" layer="27" rot="R180"/>
+</element>
+<element name="PAD7" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="78.232" smashed="yes" rot="R180">
+<attribute name="NAME" x="97.409" y="76.327" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="95.885" y="77.032" size="0.0254" layer="27" rot="R180"/>
+</element>
+<element name="PAD8" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="83.312" smashed="yes" rot="R180">
+<attribute name="NAME" x="97.409" y="81.407" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="95.885" y="82.112" size="0.0254" layer="27" rot="R180"/>
+</element>
+<element name="PAD9" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="52.832" smashed="yes">
+<attribute name="NAME" x="94.361" y="54.737" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="95.885" y="54.032" size="0.0254" layer="27"/>
+</element>
+<element name="PAD10" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="47.752" smashed="yes">
+<attribute name="NAME" x="93.726" y="49.657" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="95.885" y="48.952" size="0.0254" layer="27"/>
+</element>
+<element name="X2" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="4.445" smashed="yes" rot="R180">
+<attribute name="NAME" x="39.989" y="6.585" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="39.0365" y="0.5525" size="0.8128" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SB54" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="37.084" y="66.675" smashed="yes" rot="R270">
+<attribute name="NAME" x="38.354" y="66.675" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB55" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="9.525" smashed="yes" rot="R270">
+<attribute name="NAME" x="33.274" y="9.525" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB56" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="9.525" smashed="yes" rot="R270">
+<attribute name="NAME" x="30.734" y="9.525" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB57" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="9.525" smashed="yes" rot="R270">
+<attribute name="NAME" x="28.194" y="9.525" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB58" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="9.525" smashed="yes" rot="R270">
+<attribute name="NAME" x="25.654" y="9.525" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="X3" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="15.875" smashed="yes" rot="R180">
+<attribute name="NAME" x="39.989" y="18.015" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="39.0365" y="11.9825" size="0.8128" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SB60" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="20.955" smashed="yes" rot="R270">
+<attribute name="NAME" x="33.274" y="20.955" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB61" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="20.955" smashed="yes" rot="R270">
+<attribute name="NAME" x="30.734" y="20.955" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB62" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="20.955" smashed="yes" rot="R270">
+<attribute name="NAME" x="28.194" y="20.955" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB63" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="20.955" smashed="yes" rot="R270">
+<attribute name="NAME" x="25.654" y="20.955" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="X4" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="27.305" smashed="yes" rot="R180">
+<attribute name="NAME" x="37.357" y="30.083" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="39.0365" y="23.4125" size="0.8128" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SB65" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="32.385" smashed="yes" rot="R270">
+<attribute name="NAME" x="33.274" y="32.385" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB66" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="32.385" smashed="yes" rot="R270">
+<attribute name="NAME" x="30.734" y="32.385" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB67" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="32.385" smashed="yes" rot="R270">
+<attribute name="NAME" x="28.194" y="32.385" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB68" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="32.385" smashed="yes" rot="R270">
+<attribute name="NAME" x="25.654" y="32.385" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="X5" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="38.735" smashed="yes" rot="R180">
+<attribute name="NAME" x="39.989" y="40.875" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="39.0365" y="34.8425" size="0.8128" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SB70" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="43.815" smashed="yes" rot="R270">
+<attribute name="NAME" x="33.274" y="43.815" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB71" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="43.815" smashed="yes" rot="R270">
+<attribute name="NAME" x="30.734" y="43.815" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB72" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="43.815" smashed="yes" rot="R270">
+<attribute name="NAME" x="28.194" y="43.815" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB73" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="43.815" smashed="yes" rot="R270">
+<attribute name="NAME" x="25.654" y="43.815" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="X6" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="50.165" smashed="yes" rot="R180">
+<attribute name="NAME" x="39.862" y="50.273" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="39.0365" y="46.2725" size="0.8128" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SB75" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="55.245" smashed="yes" rot="R270">
+<attribute name="NAME" x="33.274" y="55.245" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB76" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="55.245" smashed="yes" rot="R270">
+<attribute name="NAME" x="30.734" y="55.245" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB77" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="55.245" smashed="yes" rot="R270">
+<attribute name="NAME" x="28.194" y="55.245" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB78" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="55.245" smashed="yes" rot="R270">
+<attribute name="NAME" x="25.654" y="55.245" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="X7" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="61.595" smashed="yes" rot="R180">
+<attribute name="NAME" x="39.989" y="63.735" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="39.0365" y="57.7025" size="0.8128" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SB80" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="66.675" smashed="yes" rot="R270">
+<attribute name="NAME" x="33.274" y="66.675" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB81" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="66.675" smashed="yes" rot="R270">
+<attribute name="NAME" x="30.734" y="66.675" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB82" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="26.924" y="66.675" smashed="yes" rot="R270">
+<attribute name="NAME" x="28.194" y="66.675" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB83" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="24.384" y="66.675" smashed="yes" rot="R270">
+<attribute name="NAME" x="25.654" y="66.675" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB51" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="26.416" smashed="yes" rot="MR0">
+<attribute name="NAME" x="18.923" y="27.686" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB52" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="18.923" y="23.876" smashed="yes" rot="MR0">
+<attribute name="NAME" x="18.923" y="25.146" size="1.27" layer="26" font="vector" ratio="16" rot="MR0" align="center"/>
+</element>
+<element name="SB43" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="70.104" y="69.596" smashed="yes" rot="MR180">
+<attribute name="NAME" x="70.104" y="68.326" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="SB45" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="69.723" y="46.736" smashed="yes" rot="MR180">
+<attribute name="NAME" x="69.723" y="45.466" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
+</element>
+<element name="X8" library="con-jst-xh" package="JST-XH-04-PACKAGE-LONG-PAD" value="JST-XH-04-PIN-LONG-PAD" x="30.734" y="73.025" smashed="yes" rot="R180">
+<attribute name="NAME" x="37.389" y="75.065" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="36.7365" y="69.1325" size="1.016" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="SB59" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="34.544" y="78.105" smashed="yes" rot="R270">
+<attribute name="NAME" x="35.814" y="78.105" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB64" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="78.105" smashed="yes" rot="R270">
+<attribute name="NAME" x="33.274" y="77.724" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB69" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="29.464" y="78.105" smashed="yes" rot="R270">
+<attribute name="NAME" x="30.734" y="77.724" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
 <element name="X9" library="con-jst-xh" package="JST-XH-07-PACKAGE-LONG-PAD" value="JST-XH-07-PIN-LONG-PAD" x="70.358" y="10.795" smashed="yes" rot="R90">
-<attribute name="NAME" x="66.534" y="0.654" size="1.016" layer="25" ratio="10" rot="R90"/>
+<attribute name="NAME" x="66.534" y="0.654" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="66.4655" y="1.0925" size="0.8128" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="X10" library="con-jst-xh" package="JST-XH-07-PACKAGE-LONG-PAD" value="JST-XH-07-PIN-LONG-PAD" x="79.121" y="10.795" smashed="yes" rot="R90">
-<attribute name="NAME" x="75.17" y="0.654" size="1.016" layer="25" ratio="10" rot="R90"/>
+<attribute name="NAME" x="75.17" y="0.654" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="75.2285" y="1.0925" size="0.8128" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="X11" library="con-jst-xh" package="JST-XH-07-PACKAGE-LONG-PAD" value="JST-XH-07-PIN-LONG-PAD" x="87.884" y="10.795" smashed="yes" rot="R90">
-<attribute name="NAME" x="83.933" y="0.654" size="1.016" layer="25" ratio="10" rot="R90"/>
+<attribute name="NAME" x="83.933" y="0.654" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="83.9915" y="1.0925" size="0.8128" layer="27" ratio="10" rot="R90"/>
 </element>
-<element name="X1" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="43.053" y="85.09" rot="R180"/>
-<element name="R5" library="rcl" package="R0603" value="4.7k" x="48.514" y="86.106" rot="R90"/>
-<element name="C3" library="rcl" package="C0603" value="0.1uF" x="48.514" y="83.058" rot="R90"/>
-<element name="X12" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="57.531" y="85.09" rot="R180"/>
-<element name="R6" library="rcl" package="R0603" value="4.7k" x="62.992" y="86.106" rot="R90"/>
-<element name="C4" library="rcl" package="C0603" value="0.1uF" x="62.992" y="83.058" rot="R90"/>
-<element name="X13" library="con-jst-xh" package="JST-XH-03-PACKAGE-LONG-PAD" value="JST-XH-03-PIN-LONG-PAD" x="87.884" y="30.353" rot="R90"/>
+<element name="X1" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="43.053" y="85.09" smashed="yes" rot="R180">
+<attribute name="NAME" x="41.775" y="87.567" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="46.3555" y="81.1975" size="1.016" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="R5" library="rcl" package="R0603" value="4.7k" x="48.514" y="86.106" smashed="yes" rot="R90">
+<attribute name="NAME" x="50.673" y="85.725" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="50.419" y="85.471" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="C3" library="rcl" package="C0603" value="0.1uF" x="48.514" y="83.058" smashed="yes" rot="R90">
+<attribute name="NAME" x="46.736" y="83.058" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="50.419" y="82.423" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="X12" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="57.531" y="85.09" smashed="yes" rot="R180">
+<attribute name="NAME" x="55.999" y="87.567" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="60.8335" y="81.1975" size="1.016" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="R6" library="rcl" package="R0603" value="4.7k" x="62.992" y="86.106" smashed="yes" rot="R90">
+<attribute name="NAME" x="65.024" y="85.471" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="64.897" y="85.471" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="C4" library="rcl" package="C0603" value="0.1uF" x="62.992" y="83.058" smashed="yes" rot="R90">
+<attribute name="NAME" x="62.484" y="80.518" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="64.897" y="82.423" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="X13" library="con-jst-xh" package="JST-XH-03-PACKAGE-LONG-PAD" value="JST-XH-03-PIN-LONG-PAD" x="87.884" y="30.353" smashed="yes" rot="R90">
+<attribute name="NAME" x="90.518" y="35.568" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="83.9915" y="25.7505" size="1.016" layer="27" ratio="10" rot="R90"/>
+</element>
 <element name="SB94" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="87.884" y="23.495" smashed="yes" rot="R90">
-<attribute name="NAME" x="84.836" y="23.749" size="1.27" layer="25" font="vector" ratio="16" rot="R180" align="center"/>
+<attribute name="NAME" x="85.09" y="23.495" size="1.27" layer="25" font="vector" ratio="16" rot="R180" align="center"/>
 </element>
 <element name="X14" library="con-jst-xh" package="JST-XH-03-PACKAGE-LONG-PAD" value="JST-XH-03-PIN-LONG-PAD" x="87.884" y="49.784" smashed="yes" rot="R90">
-<attribute name="NAME" x="88.527" y="56.04" size="1.016" layer="25" ratio="10" rot="R180"/>
+<attribute name="NAME" x="88.527" y="56.04" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="83.9915" y="45.1815" size="1.016" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="SB96" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="88.392" y="43.815" smashed="yes" rot="R180">
 <attribute name="NAME" x="92.456" y="43.815" size="1.27" layer="25" font="vector" ratio="16" align="center"/>
 </element>
-<element name="X15" library="con-jst-xh" package="JST-XH-08-PACKAGE-LONG-PAD" value="JST-XH-08-PIN-LONG-PAD" x="53.467" y="78.105" rot="R180"/>
-<element name="X16" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="71.501" y="93.599" rot="R90"/>
-<element name="SB98" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="75.311" y="92.964" rot="R270"/>
-<element name="SB99" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="62.357" y="70.993" rot="R90"/>
-<element name="SB100" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="59.817" y="70.993" rot="R90"/>
-<element name="SB101" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="57.277" y="70.993" rot="R90"/>
-<element name="SB102" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="54.737" y="70.993" rot="R90"/>
-<element name="SB103" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="52.197" y="70.993" rot="R90"/>
-<element name="SB104" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="49.657" y="70.993" rot="R90"/>
-<element name="SB105" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="47.117" y="70.993" rot="R90"/>
-<element name="SB106" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="44.577" y="70.993" rot="R90"/>
-<element name="X17" library="con-jst-xh" package="JST-XH-08-PACKAGE-LONG-PAD" value="JST-XH-08-PIN-LONG-PAD" x="53.34" y="26.289"/>
-<element name="X18" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="71.501" y="81.788" rot="R90"/>
-<element name="SB108" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="44.45" y="33.401" rot="R270"/>
-<element name="SB109" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="46.99" y="33.401" rot="R270"/>
-<element name="SB110" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="49.53" y="33.401" rot="R270"/>
-<element name="SB111" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="52.07" y="33.401" rot="R270"/>
-<element name="SB112" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="54.61" y="33.401" rot="R270"/>
-<element name="SB113" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="57.15" y="33.401" rot="R270"/>
-<element name="SB114" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="59.69" y="33.401" rot="R270"/>
-<element name="SB115" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="62.23" y="33.401" rot="R270"/>
-<element name="SW1" library="adafruit" package="EVQ-Q2" value="SPST_TACT-EVQQ2" x="4.699" y="11.811" rot="R270">
+<element name="X15" library="con-jst-xh" package="JST-XH-08-PACKAGE-LONG-PAD" value="JST-XH-08-PIN-LONG-PAD" x="53.467" y="78.105" smashed="yes" rot="R180">
+<attribute name="NAME" x="65.222" y="79.229" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="64.3695" y="74.2125" size="0.8128" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="X16" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="71.501" y="93.599" smashed="yes" rot="R90">
+<attribute name="NAME" x="73.033" y="98.742" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="67.6085" y="90.2965" size="1.016" layer="27" ratio="10" rot="R90"/>
+</element>
+<element name="SB98" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="75.311" y="92.964" smashed="yes" rot="R270">
+<attribute name="NAME" x="75.311" y="96.52" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB99" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="62.357" y="70.993" smashed="yes" rot="R90">
+<attribute name="NAME" x="61.087" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="SB100" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="59.817" y="70.993" smashed="yes" rot="R90">
+<attribute name="NAME" x="58.547" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="SB101" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="57.277" y="70.993" smashed="yes" rot="R90">
+<attribute name="NAME" x="56.007" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="SB102" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="54.737" y="70.993" smashed="yes" rot="R90">
+<attribute name="NAME" x="53.467" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="SB103" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="52.197" y="70.993" smashed="yes" rot="R90">
+<attribute name="NAME" x="50.927" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="SB104" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="49.657" y="70.993" smashed="yes" rot="R90">
+<attribute name="NAME" x="48.387" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="SB105" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="47.117" y="70.993" smashed="yes" rot="R90">
+<attribute name="NAME" x="45.847" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="SB106" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="44.577" y="70.993" smashed="yes" rot="R90">
+<attribute name="NAME" x="43.307" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="X17" library="con-jst-xh" package="JST-XH-08-PACKAGE-LONG-PAD" value="JST-XH-08-PIN-LONG-PAD" x="53.34" y="26.289" smashed="yes">
+<attribute name="NAME" x="60.052" y="23.424" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="42.4375" y="30.1815" size="0.8128" layer="27" ratio="10"/>
+</element>
+<element name="X18" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="71.501" y="81.788" smashed="yes" rot="R90">
+<attribute name="NAME" x="72.144" y="77.787" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="67.6085" y="78.4855" size="1.016" layer="27" ratio="10" rot="R90"/>
+</element>
+<element name="SB108" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="44.45" y="33.401" smashed="yes" rot="R270">
+<attribute name="NAME" x="45.72" y="33.401" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB109" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="46.99" y="33.401" smashed="yes" rot="R270">
+<attribute name="NAME" x="48.26" y="33.401" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB110" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="49.53" y="33.401" smashed="yes" rot="R270">
+<attribute name="NAME" x="50.8" y="33.401" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB111" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="52.07" y="33.401" smashed="yes" rot="R270">
+<attribute name="NAME" x="53.34" y="33.401" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB112" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="54.61" y="33.401" smashed="yes" rot="R270">
+<attribute name="NAME" x="55.88" y="33.401" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB113" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="57.15" y="33.401" smashed="yes" rot="R270">
+<attribute name="NAME" x="58.42" y="33.401" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB114" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="59.69" y="33.401" smashed="yes" rot="R270">
+<attribute name="NAME" x="60.96" y="33.401" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SB115" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="62.23" y="33.401" smashed="yes" rot="R270">
+<attribute name="NAME" x="63.5" y="33.401" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+</element>
+<element name="SW1" library="adafruit" package="EVQ-Q2" value="SPST_TACT-EVQQ2" x="4.699" y="11.811" smashed="yes" rot="R270">
 <attribute name="DIGI" value="P12955SCT-ND" x="4.699" y="11.811" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="8.199" y="14.811" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="-0.101" y="15.011" size="1.27" layer="27" rot="R270"/>
 </element>
 <element name="LED1" library="adafruit" package="CHIPLED_0805" value="GREEN" x="74.676" y="87.122" smashed="yes" rot="R90">
 <attribute name="DIGI" value="732-4971-1-ND" x="74.676" y="87.122" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="77.216" y="89.662" size="1.27" layer="25" rot="R180"/>
+<attribute name="NAME" x="72.898" y="87.757" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="75.946" y="89.662" size="1.27" layer="27" rot="R180"/>
 </element>
 <element name="R7" library="rcl" package="R0603" value="82" x="78.486" y="87.122" smashed="yes" rot="R180">
-<attribute name="NAME" x="76.835" y="86.487" size="1.27" layer="25" rot="R90"/>
+<attribute name="NAME" x="77.089" y="89.281" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="79.121" y="89.027" size="1.27" layer="27" rot="R180"/>
 </element>
-<element name="R8" library="rcl" package="R0603" value="430" x="78.486" y="76.2" rot="R180"/>
-<element name="LED2" library="adafruit" package="CHIPLED_0805" value="GREEN" x="74.676" y="76.2" rot="R90">
-<attribute name="DIGI" value="732-4971-1-ND" x="74.676" y="76.2" size="1.778" layer="27" rot="R90" display="off"/>
+<element name="R8" library="rcl" package="R0603" value="430" x="78.486" y="76.2" smashed="yes" rot="R180">
+<attribute name="NAME" x="79.756" y="75.311" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="79.121" y="78.105" size="1.27" layer="27" rot="R180"/>
 </element>
-<element name="U1" library="custom" package="SOIC16-1.27-10.2X7.5MM" value="TCA9554A" x="55.753" y="61.087" rot="R180">
+<element name="LED2" library="adafruit" package="CHIPLED_0805" value="GREEN" x="74.676" y="76.2" smashed="yes" rot="R90">
+<attribute name="DIGI" value="732-4971-1-ND" x="74.676" y="76.2" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="76.708" y="75.311" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="75.946" y="78.74" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="U1" library="custom" package="SOIC16-1.27-10.2X7.5MM" value="TCA9554A" x="55.753" y="61.087" smashed="yes" rot="R180">
 <attribute name="DIGI" value="296-45456-1-ND" x="55.753" y="61.087" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="VALUE" value="TCA9554A" x="55.753" y="61.087" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="61.087" y="64.77" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="60.833" y="68.072" size="0.889" layer="27" ratio="11" rot="R180"/>
 </element>
-<element name="C5" library="rcl" package="C0603" value="0.1uF" x="61.976" y="55.626" rot="R90"/>
+<element name="C5" library="rcl" package="C0603" value="0.1uF" x="61.976" y="55.626" smashed="yes" rot="R90">
+<attribute name="NAME" x="64.135" y="55.372" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="63.881" y="54.991" size="1.27" layer="27" rot="R90"/>
+</element>
 <element name="SB107" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="59.055" y="53.721" smashed="yes" rot="R90">
-<attribute name="NAME" x="60.325" y="53.721" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+<attribute name="NAME" x="60.452" y="52.197" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
 </element>
-<element name="SB116" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="57.531" y="53.721" rot="R90"/>
+<element name="SB116" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="57.531" y="53.721" smashed="yes" rot="R90">
+<attribute name="NAME" x="56.007" y="52.197" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
 <element name="U5" library="custom" package="SOIC16-1.27-10.2X7.5MM" value="TCA9554A" x="49.276" y="42.037" smashed="yes">
 <attribute name="DIGI" value="296-45456-1-ND" x="37.846" y="57.912" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="55.753" y="41.148" size="0.889" layer="25" ratio="11" rot="R90"/>
+<attribute name="NAME" x="55.753" y="41.148" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="44.196" y="35.052" size="0.889" layer="27" ratio="11"/>
 </element>
-<element name="C6" library="rcl" package="C0603" value="0.1uF" x="42.672" y="46.101" rot="R90"/>
+<element name="C6" library="rcl" package="C0603" value="0.1uF" x="42.672" y="46.101" smashed="yes" rot="R90">
+<attribute name="NAME" x="42.037" y="45.466" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="44.577" y="45.466" size="1.27" layer="27" rot="R90"/>
+</element>
 <element name="SB117" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="45.974" y="49.403" smashed="yes" rot="R270">
-<attribute name="NAME" x="44.45" y="49.657" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+<attribute name="NAME" x="44.45" y="51.181" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
 </element>
 <element name="SB118" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="47.498" y="49.403" smashed="yes" rot="R270">
-<attribute name="NAME" x="49.022" y="49.657" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
+<attribute name="NAME" x="49.149" y="51.181" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
 </element>
-<element name="U6" library="custom" package="SOIC16-1.27-10.2X7.5MM" value="TCA9554A" x="19.939" y="83.439">
+<element name="U6" library="custom" package="SOIC16-1.27-10.2X7.5MM" value="TCA9554A" x="19.939" y="83.439" smashed="yes">
 <attribute name="DIGI" value="296-45456-1-ND" x="8.509" y="99.314" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="14.478" y="80.772" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="14.859" y="76.454" size="0.889" layer="27" ratio="11"/>
 </element>
-<element name="C7" library="rcl" package="C0603" value="0.1uF" x="13.335" y="87.503" rot="R90"/>
-<element name="SB119" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="30.734" y="81.026" rot="R90"/>
-<element name="SB120" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="33.274" y="81.026" rot="R90"/>
-<element name="R9" library="rcl" package="R0603" value="82" x="22.225" y="91.821" rot="R90"/>
-<element name="LED3" library="adafruit" package="CHIPLED_0805" value="GREEN" x="24.257" y="91.694" rot="R180">
+<element name="C7" library="rcl" package="C0603" value="0.1uF" x="13.335" y="87.503" smashed="yes" rot="R90">
+<attribute name="NAME" x="12.7" y="86.868" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="15.24" y="86.868" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="SB119" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="30.734" y="81.026" smashed="yes" rot="R90">
+<attribute name="NAME" x="29.21" y="82.804" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="SB120" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="33.274" y="81.026" smashed="yes" rot="R90">
+<attribute name="NAME" x="32.004" y="82.804" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
+</element>
+<element name="R9" library="rcl" package="R0603" value="82" x="22.225" y="91.821" smashed="yes" rot="R90">
+<attribute name="NAME" x="22.733" y="93.726" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="24.13" y="91.186" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="LED3" library="adafruit" package="CHIPLED_0805" value="GREEN" x="24.257" y="91.694" smashed="yes" rot="R180">
 <attribute name="DIGI" value="732-4971-1-ND" x="24.257" y="91.694" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="25.4" y="94.742" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="21.717" y="92.964" size="1.27" layer="27" rot="R270"/>
 </element>
-<element name="R10" library="rcl" package="R0603" value="82" x="20.193" y="91.821" rot="R90"/>
-<element name="LED4" library="adafruit" package="CHIPLED_0805" value="GREEN" x="18.161" y="91.694" rot="R180">
+<element name="R10" library="rcl" package="R0603" value="82" x="20.193" y="91.821" smashed="yes" rot="R90">
+<attribute name="NAME" x="20.828" y="93.599" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="22.098" y="91.186" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="LED4" library="adafruit" package="CHIPLED_0805" value="GREEN" x="18.161" y="91.694" smashed="yes" rot="R180">
 <attribute name="DIGI" value="732-4971-1-ND" x="18.161" y="91.694" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="15.621" y="94.742" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="15.621" y="92.964" size="1.27" layer="27" rot="R270"/>
 </element>
-<element name="SW2" library="adafruit" package="EVQ-Q2" value="SPST_TACT-EVQQ2" x="16.002" y="11.811" rot="R270">
+<element name="SW2" library="adafruit" package="EVQ-Q2" value="SPST_TACT-EVQQ2" x="16.002" y="11.811" smashed="yes" rot="R270">
 <attribute name="DIGI" value="P12955SCT-ND" x="26.797" y="22.606" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="19.502" y="14.811" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="11.202" y="15.011" size="1.27" layer="27" rot="R270"/>
 </element>
-<element name="R11" library="rcl" package="R0603" value="100" x="50.673" y="83.058" rot="R270"/>
-<element name="R12" library="rcl" package="R0603" value="100" x="65.151" y="83.058" rot="R270"/>
-<element name="X19" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="43.053" y="92.456" rot="R180"/>
-<element name="R13" library="rcl" package="R0603" value="4.7k" x="48.514" y="93.472" rot="R90"/>
-<element name="C8" library="rcl" package="C0603" value="0.1uF" x="48.514" y="90.424" rot="R90"/>
-<element name="X20" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="57.531" y="92.456" rot="R180"/>
-<element name="R14" library="rcl" package="R0603" value="4.7k" x="62.992" y="93.472" rot="R90"/>
-<element name="C9" library="rcl" package="C0603" value="0.1uF" x="62.992" y="90.424" rot="R90"/>
-<element name="R15" library="rcl" package="R0603" value="100" x="50.673" y="90.424" rot="R270"/>
-<element name="R16" library="rcl" package="R0603" value="100" x="65.151" y="90.424" rot="R270"/>
-<element name="R17" library="rcl" package="R0603" value="430" x="88.138" y="41.275" rot="R270"/>
-<element name="LED5" library="adafruit" package="CHIPLED_0805" value="GREEN" x="86.868" y="38.862" rot="R90">
+<element name="R11" library="rcl" package="R0603" value="100" x="50.673" y="83.058" smashed="yes" rot="R270">
+<attribute name="NAME" x="51.689" y="84.963" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="48.768" y="83.693" size="1.27" layer="27" rot="R270"/>
+</element>
+<element name="R12" library="rcl" package="R0603" value="100" x="65.151" y="83.058" smashed="yes" rot="R270">
+<attribute name="NAME" x="66.04" y="84.836" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="63.246" y="83.693" size="1.27" layer="27" rot="R270"/>
+</element>
+<element name="X19" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="43.053" y="92.456" smashed="yes" rot="R180">
+<attribute name="NAME" x="41.394" y="95.06" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="46.3555" y="88.5635" size="1.016" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="R13" library="rcl" package="R0603" value="4.7k" x="48.514" y="93.472" smashed="yes" rot="R90">
+<attribute name="NAME" x="50.673" y="92.329" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="50.419" y="92.837" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="C8" library="rcl" package="C0603" value="0.1uF" x="48.514" y="90.424" smashed="yes" rot="R90">
+<attribute name="NAME" x="48.006" y="87.376" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="50.419" y="89.789" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="X20" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="57.531" y="92.456" smashed="yes" rot="R180">
+<attribute name="NAME" x="55.872" y="95.06" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="60.8335" y="88.5635" size="1.016" layer="27" ratio="10" rot="R180"/>
+</element>
+<element name="R14" library="rcl" package="R0603" value="4.7k" x="62.992" y="93.472" smashed="yes" rot="R90">
+<attribute name="NAME" x="65.151" y="92.837" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="64.897" y="92.837" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="C9" library="rcl" package="C0603" value="0.1uF" x="62.992" y="90.424" smashed="yes" rot="R90">
+<attribute name="NAME" x="62.484" y="87.503" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="64.897" y="89.789" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="R15" library="rcl" package="R0603" value="100" x="50.673" y="90.424" smashed="yes" rot="R270">
+<attribute name="NAME" x="51.689" y="92.202" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="48.768" y="91.059" size="1.27" layer="27" rot="R270"/>
+</element>
+<element name="R16" library="rcl" package="R0603" value="100" x="65.151" y="90.424" smashed="yes" rot="R270">
+<attribute name="NAME" x="66.04" y="92.329" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="63.246" y="91.059" size="1.27" layer="27" rot="R270"/>
+</element>
+<element name="R17" library="rcl" package="R0603" value="430" x="88.138" y="41.275" smashed="yes" rot="R270">
+<attribute name="NAME" x="89.154" y="40.64" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="86.233" y="41.91" size="1.27" layer="27" rot="R270"/>
+</element>
+<element name="LED5" library="adafruit" package="CHIPLED_0805" value="GREEN" x="86.868" y="38.862" smashed="yes" rot="R90">
 <attribute name="DIGI" value="732-4971-1-ND" x="86.868" y="38.862" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="90.805" y="37.846" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="88.138" y="41.402" size="1.27" layer="27" rot="R180"/>
 </element>
-<element name="Q1" library="custom" package="SOT416FL" value="RE1C002UN" x="85.344" y="41.656" rot="R270">
+<element name="Q1" library="custom" package="SOT416FL" value="RE1C002UN" x="85.344" y="41.656" smashed="yes" rot="R270">
 <attribute name="VALUE" value="RE1C002UN" x="85.344" y="41.656" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="DIGI" value="RE1C002UNTCLCT-ND" x="85.344" y="41.656" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="84.709" y="42.545" size="1.27" layer="25" font="vector" ratio="16"/>
 </element>
-<element name="R18" library="rcl" package="R0603" value="82" x="10.287" y="77.089" rot="R90"/>
-<element name="LED6" library="adafruit" package="CHIPLED_0805" value="GREEN" x="8.255" y="77.089" rot="R180">
+<element name="R18" library="rcl" package="R0603" value="82" x="10.287" y="77.089" smashed="yes" rot="R90">
+<attribute name="NAME" x="10.795" y="78.994" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="12.192" y="76.454" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="LED6" library="adafruit" package="CHIPLED_0805" value="GREEN" x="8.255" y="77.089" smashed="yes" rot="R180">
 <attribute name="DIGI" value="732-4971-1-ND" x="8.255" y="77.089" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="5.842" y="79.756" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="5.715" y="78.359" size="1.27" layer="27" rot="R270"/>
 </element>
-<element name="Q2" library="custom" package="SOT416FL" value="RE1C002UN" x="7.747" y="73.533">
+<element name="Q2" library="custom" package="SOT416FL" value="RE1C002UN" x="7.747" y="73.533" smashed="yes">
 <attribute name="DIGI" value="RE1C002UNTCLCT-ND" x="1.397" y="79.248" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="9.652" y="73.406" size="1.27" layer="25" font="vector" ratio="16"/>
 </element>
-<element name="R19" library="rcl" package="R0603" value="3.3k" x="64.135" y="52.07" rot="R270"/>
-<element name="R20" library="rcl" package="R0603" value="3.3k" x="61.976" y="52.07" rot="R270"/>
-<element name="R21" library="rcl" package="R0603" value="3.3k" x="35.814" y="81.153" rot="R180"/>
-<element name="R22" library="rcl" package="R0603" value="3.3k" x="40.767" y="67.437" rot="R90"/>
-<element name="U7" library="custom" package="TO252" value="AZ1085CD" x="80.772" y="92.456" rot="R90">
+<element name="R19" library="rcl" package="R0603" value="3.3k" x="64.135" y="52.07" smashed="yes" rot="R270">
+<attribute name="NAME" x="63.5" y="50.546" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="62.23" y="52.705" size="1.27" layer="27" rot="R270"/>
+</element>
+<element name="R20" library="rcl" package="R0603" value="3.3k" x="61.976" y="52.07" smashed="yes" rot="R270">
+<attribute name="NAME" x="61.468" y="50.546" size="1.27" layer="25" ratio="16" rot="R270"/>
+<attribute name="VALUE" x="60.071" y="52.705" size="1.27" layer="27" rot="R270"/>
+</element>
+<element name="R21" library="rcl" package="R0603" value="3.3k" x="35.814" y="81.153" smashed="yes" rot="R180">
+<attribute name="NAME" x="37.719" y="79.883" size="1.27" layer="25" ratio="16"/>
+<attribute name="VALUE" x="36.449" y="83.058" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="R22" library="rcl" package="R0603" value="3.3k" x="40.767" y="67.437" smashed="yes" rot="R90">
+<attribute name="NAME" x="41.275" y="69.215" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="VALUE" x="42.672" y="66.802" size="1.27" layer="27" rot="R90"/>
+</element>
+<element name="U7" library="custom" package="TO252" value="AZ1085CD" x="80.772" y="92.456" smashed="yes" rot="R90">
 <attribute name="DIGI" value="AZ1085CD-ADJTRG1DICT-ND" x="80.772" y="92.456" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="81.026" y="96.973" size="1.27" layer="25" font="vector" ratio="16" rot="R180" align="center"/>
 </element>
-<element name="U2" library="custom" package="TO252" value="AZ1085CD" x="80.772" y="81.534" rot="R90">
+<element name="U2" library="custom" package="TO252" value="AZ1085CD" x="80.772" y="81.534" smashed="yes" rot="R90">
 <attribute name="DIGI" value="AZ1085CD-ADJTRG1DICT-ND" x="80.772" y="81.534" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="76.272" y="81.534" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
 </element>
 <element name="C10" library="rcl" package="C0603" value="22uF" x="82.042" y="87.122" smashed="yes" rot="R180">
-<attribute name="NAME" x="80.391" y="87.757" size="1.27" layer="25"/>
+<attribute name="NAME" x="81.534" y="85.217" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="82.677" y="89.027" size="1.27" layer="27" rot="R180"/>
 </element>
-<element name="C11" library="rcl" package="C0603" value="22uF" x="82.042" y="76.2" rot="R180"/>
+<element name="C11" library="rcl" package="C0603" value="22uF" x="82.042" y="76.2" smashed="yes" rot="R180">
+<attribute name="NAME" x="84.201" y="75.438" size="1.27" layer="25" ratio="16" rot="R180"/>
+<attribute name="VALUE" x="82.677" y="78.105" size="1.27" layer="27" rot="R180"/>
+</element>
 </elements>
 <signals>
 <signal name="GND">
@@ -2224,13 +2607,13 @@ design rules under a new name.</description>
 <contactref element="Q2" pad="P$2"/>
 <contactref element="C10" pad="2"/>
 <contactref element="C11" pad="2"/>
-<polygon width="0.2032" layer="1" isolate="0.2032">
+<polygon width="0.2032" layer="1" isolate="0.254">
 <vertex x="0.127" y="99.949"/>
 <vertex x="99.949" y="99.949"/>
 <vertex x="99.949" y="0"/>
 <vertex x="0.127" y="0"/>
 </polygon>
-<polygon width="0.2032" layer="16" isolate="0.2032">
+<polygon width="0.2032" layer="16" isolate="0.254">
 <vertex x="99.949" y="99.949"/>
 <vertex x="0.127" y="99.949"/>
 <vertex x="0.127" y="0"/>
@@ -2238,6 +2621,280 @@ design rules under a new name.</description>
 </polygon>
 <via x="18.034" y="80.264" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="15.494" y="80.264" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="32.004" y="24.638" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="5.08" y="21.59" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="5.461" y="25.146" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="67.818" y="14.605" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.295" y="16.002" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.295" y="18.542" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.295" y="13.335" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.295" y="10.795" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="15.494" y="74.549" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="20.828" y="76.327" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="32.004" y="70.358" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="32.004" y="58.801" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="24.384" y="58.674" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="59.944" y="82.804" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="61.087" y="75.311" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="60.198" y="89.916" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="69.088" y="91.694" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="60.579" y="86.868" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="32.004" y="47.371" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="65.659" y="32.004" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="5" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="10" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="15" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="20" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="95" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="90" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="85" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="80" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="75" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="70" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="65" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="60" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="55" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="50" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="45" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="40" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="35" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="30" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="25" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="95" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="90" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="80" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="5" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="10" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="15" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="20" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="25" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="30" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="35" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="40" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="45" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="50" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="55" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="60" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="65" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="70" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="75" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="0.8" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="95" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="90" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="80" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="5" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="10" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="15" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="20" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="25" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="30" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="35" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="40" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="45" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="50" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="55" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="60" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="65" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="70" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="75" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="0.8" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="5" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="10" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="15" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="20" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="95" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="90" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="85" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="30" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="25" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="99.2" y="99.2" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="65.151" y="85.217" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="65.151" y="92.583" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="91.821" y="96.266" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="91.821" y="93.345" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.218" y="94.869" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="88.392" y="81.534" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="89.789" y="82.677" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="89.789" y="80.391" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.345" y="79.502" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.345" y="76.962" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.345" y="74.422" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.345" y="72.517" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.345" y="28.575" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.345" y="26.289" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.345" y="23.495" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.345" y="21.209" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="42.672" y="43.942" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="63.373" y="54.737" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.843" y="85.217" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="67.691" y="5.715" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="73.025" y="5.715" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="76.454" y="5.715" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="81.788" y="5.715" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.344" y="5.715" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="90.297" y="6.096" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="6.985" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="2.159" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="13.589" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="25.019" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="29.718" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="36.322" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="47.879" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="52.578" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="59.309" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.544" y="64.008" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="26.924" y="75.819" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="63.246" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="60.706" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="48.006" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="45.466" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="42.926" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="4.699" y="11.811" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="16.002" y="11.811" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="48.006" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="45.466" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="60.706" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="8.636" y="92.456" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="12.319" y="92.456" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="31.496" y="93.98" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.925" y="87.249" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="38.227" y="85.979" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="40.132" y="77.978" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="38.862" y="70.104" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="35.179" y="70.104" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="28.702" y="70.485" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="34.925" y="66.548" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="40.513" y="64.77" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="40.132" y="55.626" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="45.085" y="55.626" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="43.942" y="58.293" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="35.179" y="55.499" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="40.259" y="58.801" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="25.654" y="47.625" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="38.481" y="44.577" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="42.799" y="39.37" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="47.371" y="44.069" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="47.371" y="39.497" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="51.435" y="49.53" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="64.262" y="43.307" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="58.42" y="38.608" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="55.88" y="38.608" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="60.96" y="38.608" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="64.008" y="38.608" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="42.418" y="33.655" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="35.179" y="33.528" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="25.527" y="36.068" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="22.225" y="31.369" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="28.067" y="24.638" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="35.306" y="20.574" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="38.481" y="20.574" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="38.989" y="9.779" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="28.067" y="12.954" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="22.733" y="17.145" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="15.875" y="17.526" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="22.225" y="20.574" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="17.399" y="20.447" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="21.463" y="10.541" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="10.033" y="20.32" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="10.287" y="16.002" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="10.795" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="6.604" y="46.736" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="7.239" y="58.928" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="10.033" y="71.882" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="6.477" y="73.787" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="7.747" y="83.185" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="19.812" y="84.455" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="20.066" y="81.153" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="27.432" y="80.772" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="27.559" y="84.455" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="46.355" y="90.551" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="52.578" y="86.36" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="52.451" y="93.472" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="71.882" y="88.9" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.852" y="92.837" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.471" y="85.344" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="75.438" y="78.613" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="93.599" y="88.519" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="89.154" y="74.041" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="83.82" y="72.644" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="72.136" y="75.946" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="88.392" y="67.564" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="92.964" y="67.691" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="88.392" y="60.071" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="92.964" y="59.944" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="92.837" y="52.705" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="92.837" y="46.355" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.217" y="48.133" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="84.963" y="52.324" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="79.375" y="48.133" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="43.053" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="40.513" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="37.846" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="35.179" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="32.766" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="30.226" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="27.686" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="25.146" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.725" y="27.813" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.93" y="63.246" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="65.786" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="58.166" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="53.086" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="50.546" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="40.386" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="37.846" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="35.306" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="32.766" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="30.226" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="27.686" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="13.97" y="25.146" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="35.56" y="43.053" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="69.469" y="21.336" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="79.756" y="20.193" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.598" y="19.685" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.217" y="17.145" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.09" y="14.605" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="85.09" y="12.065" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="81.534" y="9.652" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="92.964" y="11.176" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="92.837" y="17.653" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="62.484" y="17.653" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="62.484" y="20.066" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="51.689" y="17.653" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="44.196" y="19.939" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="44.323" y="17.399" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="65.405" y="7.493" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="87.884" y="35.941" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="94.869" y="37.719" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="69.215" y="63.119" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="63.246" y="60.96" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="51.562" y="62.484" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="62.23" y="66.421" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="57.531" y="58.674" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="75.692" y="84.709" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="75.184" y="90.678" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="66.294" y="74.549" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="21.844" y="70.739" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="28.194" y="59.182" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="45.72" y="75.311" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="48.26" y="75.311" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="50.927" y="75.311" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="53.467" y="75.311" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="56.007" y="75.311" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="54.864" y="82.677" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="52.07" y="52.959" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="40.894" y="52.959" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="45.847" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="48.26" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="50.927" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="53.34" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="55.753" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="58.293" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="60.833" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="57.15" y="19.939" extent="1-16" drill="0.3" shape="octagon"/>
 </signal>
 <signal name="PA0_CONN">
 <contactref element="U4" pad="P$28"/>
@@ -2709,19 +3366,26 @@ design rules under a new name.</description>
 <wire x1="87.884" y1="3.175" x2="89.789" y2="3.175" width="1.4224" layer="1"/>
 <wire x1="89.789" y1="3.175" x2="95.885" y2="9.271" width="1.4224" layer="1"/>
 <wire x1="95.885" y1="9.271" x2="95.885" y2="17.272" width="1.4224" layer="1"/>
+<wire x1="95.885" y1="9.271" x2="95.885" y2="17.272" width="1.4224" layer="16"/>
+<wire x1="95.885" y1="9.271" x2="89.789" y2="3.175" width="1.4224" layer="16"/>
+<wire x1="89.789" y1="3.175" x2="87.884" y2="3.175" width="1.4224" layer="16"/>
 </signal>
 <signal name="PPBATT">
 <contactref element="PAD4" pad="1"/>
 <contactref element="PAD8" pad="1"/>
 <contactref element="PAD9" pad="1"/>
 <wire x1="95.885" y1="32.512" x2="98.425" y2="35.052" width="1.016" layer="1"/>
-<wire x1="98.425" y1="35.052" x2="98.425" y2="52.578" width="1.016" layer="1"/>
-<wire x1="98.425" y1="52.578" x2="98.171" y2="52.832" width="1.016" layer="1"/>
-<wire x1="95.885" y1="52.832" x2="98.171" y2="52.832" width="1.016" layer="1"/>
-<wire x1="98.171" y1="52.832" x2="98.425" y2="53.086" width="1.016" layer="1"/>
-<wire x1="98.425" y1="53.086" x2="98.425" y2="83.058" width="1.016" layer="1"/>
+<wire x1="95.885" y1="52.832" x2="98.425" y2="52.832" width="1.016" layer="1"/>
 <wire x1="98.425" y1="83.058" x2="98.171" y2="83.312" width="1.016" layer="1"/>
 <wire x1="98.171" y1="83.312" x2="95.885" y2="83.312" width="1.016" layer="1"/>
+<wire x1="98.425" y1="35.052" x2="95.885" y2="32.512" width="1.016" layer="16"/>
+<wire x1="98.425" y1="83.058" x2="98.425" y2="52.832" width="1.016" layer="1"/>
+<wire x1="98.425" y1="35.433" x2="98.425" y2="35.052" width="1.016" layer="1"/>
+<wire x1="98.425" y1="83.058" x2="98.425" y2="35.052" width="1.016" layer="16"/>
+<wire x1="98.171" y1="52.832" x2="95.885" y2="52.832" width="1.016" layer="16"/>
+<wire x1="95.885" y1="83.312" x2="98.171" y2="83.312" width="1.016" layer="16"/>
+<wire x1="98.425" y1="83.058" x2="98.171" y2="83.312" width="1.016" layer="16"/>
+<wire x1="98.425" y1="52.832" x2="98.425" y2="35.433" width="1.016" layer="1"/>
 </signal>
 <signal name="RF1_SCL">
 <contactref element="SB55" pad="P$2"/>
@@ -3613,17 +4277,17 @@ design rules under a new name.</description>
 <wire x1="33.274" y1="41.656" x2="33.274" y2="33.274" width="0.3048" layer="1"/>
 <wire x1="33.274" y1="33.274" x2="33.02" y2="33.02" width="0.3048" layer="1"/>
 <wire x1="33.02" y1="33.02" x2="32.004" y2="33.02" width="0.3048" layer="1"/>
-<via x="40.132" y="41.656" extent="1-16" drill="0.3" shape="octagon"/>
-<wire x1="40.132" y1="41.656" x2="40.132" y2="51.816" width="0.3048" layer="1"/>
-<wire x1="33.274" y1="41.656" x2="40.132" y2="41.656" width="0.3048" layer="16"/>
-<wire x1="40.132" y1="41.656" x2="69.088" y2="41.656" width="0.3048" layer="16"/>
+<via x="39.751" y="41.656" extent="1-16" drill="0.3" shape="octagon"/>
+<wire x1="39.751" y1="41.656" x2="39.751" y2="51.816" width="0.3048" layer="1"/>
+<wire x1="33.274" y1="41.656" x2="39.751" y2="41.656" width="0.3048" layer="16"/>
+<wire x1="39.751" y1="41.656" x2="69.088" y2="41.656" width="0.3048" layer="16"/>
 <wire x1="64.135" y1="51.22" x2="64.135" y2="50.419" width="0.3048" layer="1"/>
 <wire x1="64.135" y1="50.419" x2="63.881" y2="50.165" width="0.3048" layer="1"/>
 <wire x1="63.881" y1="50.165" x2="57.785" y2="50.165" width="0.3048" layer="1"/>
 <wire x1="57.785" y1="50.165" x2="57.531" y2="50.419" width="0.3048" layer="1"/>
 <wire x1="57.531" y1="50.419" x2="57.531" y2="51.816" width="0.3048" layer="1"/>
-<via x="40.132" y="51.816" extent="1-16" drill="0.3" shape="octagon"/>
-<wire x1="40.132" y1="51.816" x2="47.498" y2="51.816" width="0.3048" layer="16"/>
+<via x="39.751" y="51.816" extent="1-16" drill="0.3" shape="octagon"/>
+<wire x1="39.751" y1="51.816" x2="47.498" y2="51.816" width="0.3048" layer="16"/>
 </signal>
 <signal name="I2C3_SDA">
 <contactref element="SB21" pad="P$1"/>
