@@ -8930,7 +8930,6 @@ Source: http://www.osram.convergy.de/</description>
 <part name="SB48" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
 <part name="SB49" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
 <part name="SB50" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
-<part name="SB53" library="custom" deviceset="SOLDER_BRIDGE" device=""/>
 <part name="R1" library="rcl" deviceset="R-US_" device="R0603" value="178"/>
 <part name="R2" library="rcl" deviceset="R-US_" device="R0603" value="287"/>
 <part name="C1" library="rcl" deviceset="C-EU" device="C0603" value="10uF"/>
@@ -9495,7 +9494,6 @@ Source: http://www.osram.convergy.de/</description>
 <instance part="SB48" gate="G$1" x="157.48" y="205.74"/>
 <instance part="SB49" gate="G$1" x="157.48" y="210.82"/>
 <instance part="SB50" gate="G$1" x="157.48" y="215.9"/>
-<instance part="SB53" gate="G$1" x="53.34" y="243.84"/>
 <instance part="SB51" gate="G$1" x="154.94" y="220.98" rot="MR0"/>
 <instance part="SB52" gate="G$1" x="154.94" y="226.06" rot="MR0"/>
 <instance part="SB43" gate="G$1" x="154.94" y="180.34" rot="MR0"/>
@@ -9971,20 +9969,12 @@ Source: http://www.osram.convergy.de/</description>
 <pinref part="SB33" gate="G$1" pin="P$1"/>
 </segment>
 </net>
-<net name="PP7V_CONN" class="0">
-<segment>
-<pinref part="U4" gate="G$1" pin="VIN"/>
-<wire x1="78.74" y1="233.68" x2="78.74" y2="243.84" width="0.1524" layer="91"/>
-<label x="60.96" y="243.84" size="1.778" layer="95"/>
-<wire x1="78.74" y1="243.84" x2="55.88" y2="243.84" width="0.1524" layer="91"/>
-<pinref part="SB53" gate="G$1" pin="P$2"/>
-</segment>
-</net>
 <net name="PP7V" class="0">
 <segment>
-<pinref part="SB53" gate="G$1" pin="P$1"/>
-<wire x1="48.26" y1="243.84" x2="33.02" y2="243.84" width="0.1524" layer="91"/>
-<label x="33.02" y="243.84" size="1.778" layer="95"/>
+<label x="68.58" y="243.84" size="1.778" layer="95"/>
+<pinref part="U4" gate="G$1" pin="VIN"/>
+<wire x1="78.74" y1="233.68" x2="78.74" y2="243.84" width="0.1524" layer="91"/>
+<wire x1="68.58" y1="243.84" x2="78.74" y2="243.84" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="M1_1" class="0">
