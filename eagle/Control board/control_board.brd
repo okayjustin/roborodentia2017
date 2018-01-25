@@ -167,6 +167,67 @@
 <hole x="96" y="4" drill="3.4"/>
 <hole x="96" y="96" drill="3.4"/>
 <hole x="4" y="96" drill="3.4"/>
+<text x="52.197" y="9.525" size="1.27" layer="21" ratio="16" align="center">Control Board v1
+Roborodentia 2017
+Justin Ng
+1/24/18
+Cal Poly SLO</text>
+<text x="41.783" y="88.265" size="1.27" layer="21" ratio="16" align="center">SW1</text>
+<text x="41.783" y="95.631" size="1.27" layer="21" ratio="16" align="center">SW3</text>
+<text x="56.388" y="95.631" size="1.27" layer="21" ratio="16" align="center">SW4</text>
+<text x="56.388" y="88.265" size="1.27" layer="21" ratio="16" align="center">SW2</text>
+<text x="37.973" y="72.898" size="1.27" layer="21" ratio="16" rot="R90" align="center">IMU</text>
+<text x="40.386" y="4.572" size="1.27" layer="21" ratio="16" rot="R270" align="center">RF1</text>
+<text x="40.386" y="16.129" size="1.27" layer="21" ratio="16" rot="R270" align="center">RF2</text>
+<text x="40.386" y="27.432" size="1.27" layer="21" ratio="16" rot="R270" align="center">RF3</text>
+<text x="40.386" y="38.481" size="1.27" layer="21" ratio="16" rot="R270" align="center">RF4</text>
+<text x="40.386" y="49.022" size="1.27" layer="21" ratio="16" rot="R270" align="center">RF5</text>
+<text x="40.386" y="61.976" size="1.27" layer="21" ratio="16" rot="R270" align="center">RF6</text>
+<text x="65.913" y="5.715" size="1.27" layer="21" ratio="16" rot="R90" align="center">M1</text>
+<text x="74.676" y="5.715" size="1.27" layer="21" ratio="16" rot="R90" align="center">M2</text>
+<text x="83.439" y="5.715" size="1.27" layer="21" ratio="16" rot="R90" align="center">M3</text>
+<text x="37.211" y="7.874" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="37.211" y="19.304" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="37.211" y="30.734" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="37.211" y="42.164" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="37.211" y="53.594" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="37.211" y="65.024" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="34.671" y="76.327" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="45.847" y="88.392" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="45.847" y="95.758" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="58.928" y="95.758" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="58.928" y="88.392" size="1.27" layer="21" ratio="16" align="center">v</text>
+<text x="74.803" y="80.518" size="1.27" layer="21" ratio="16" align="center">&lt;</text>
+<text x="87.757" y="91.948" size="1.27" layer="21" ratio="16" rot="R180" align="center">v</text>
+<text x="87.757" y="81.026" size="1.27" layer="21" ratio="16" rot="R180" align="center">v</text>
+<text x="91.313" y="47.117" size="1.27" layer="21" ratio="16" align="center">&lt;</text>
+<text x="91.313" y="27.686" size="1.27" layer="21" ratio="16" align="center">&lt;</text>
+<text x="65.913" y="3.175" size="1.27" layer="21" ratio="16" rot="R90" align="center">v</text>
+<text x="74.676" y="3.175" size="1.27" layer="21" ratio="16" rot="R90" align="center">v</text>
+<text x="83.439" y="3.302" size="1.27" layer="21" ratio="16" rot="R90" align="center">v</text>
+<text x="91.313" y="32.385" size="1.27" layer="21" ratio="16" rot="R90" align="center">SERVO1</text>
+<text x="91.313" y="51.562" size="1.27" layer="21" ratio="16" rot="R90" align="center">SERVO2</text>
+<text x="65.659" y="76.454" size="1.27" layer="21" ratio="16" rot="R90" align="center">IR1</text>
+<text x="56.642" y="22.86" size="1.27" layer="21" ratio="16" rot="R180" align="center">IR2</text>
+<text x="44.45" y="22.987" size="1.27" layer="21" ratio="16" rot="R90" align="center">&gt;</text>
+<text x="62.484" y="73.914" size="1.27" layer="21" ratio="16" rot="R90" align="center">&gt;</text>
+<text x="8.763" y="11.938" size="1.27" layer="21" ratio="16" rot="R270" align="center">RESET</text>
+<text x="11.938" y="11.938" size="1.27" layer="21" ratio="16" rot="R270" align="center">DEBUG</text>
+<text x="72.644" y="98.171" size="1.27" layer="21" ratio="16" rot="R180" align="center">IR1</text>
+<text x="69.85" y="76.962" size="1.27" layer="21" ratio="16" rot="R180" align="center">IR2</text>
+<text x="74.549" y="92.202" size="1.27" layer="21" ratio="16" align="center">&lt;</text>
+<text x="96.012" y="80.772" size="1.27" layer="21" ratio="16" align="center">GND</text>
+<text x="96.012" y="75.692" size="1.27" layer="21" ratio="16" align="center">GND</text>
+<text x="96.012" y="50.292" size="1.27" layer="21" ratio="16" align="center">GND</text>
+<text x="96.012" y="29.972" size="1.27" layer="21" ratio="16" align="center">GND</text>
+<text x="96.012" y="24.892" size="1.27" layer="21" ratio="16" align="center">GND</text>
+<text x="96.012" y="35.052" size="1.27" layer="21" ratio="16" align="center">BATT</text>
+<text x="96.012" y="19.685" size="1.27" layer="21" ratio="16" align="center">+12V</text>
+<text x="96.012" y="55.372" size="1.27" layer="21" ratio="16" align="center">BATT</text>
+<text x="96.139" y="85.852" size="1.27" layer="21" ratio="16" align="center">BATT</text>
+<text x="96.139" y="70.485" size="1.27" layer="21" ratio="16" align="center">+7V</text>
+<text x="70.993" y="87.122" size="1.27" layer="21" ratio="16" align="center">3V3</text>
+<text x="74.803" y="74.295" size="1.27" layer="21" ratio="16" align="center">5V</text>
 </plain>
 <libraries>
 <library name="custom">
@@ -2071,47 +2132,36 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="91.313" y="83.439" size="1.27" layer="27" rot="R180"/>
 </element>
 <element name="PAD1" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="17.272" smashed="yes" rot="R180">
-<attribute name="NAME" x="97.409" y="15.367" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="95.885" y="16.072" size="0.0254" layer="27" rot="R180"/>
 </element>
 <element name="PAD2" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="22.352" smashed="yes" rot="R180">
-<attribute name="NAME" x="97.409" y="20.447" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="95.885" y="21.152" size="0.0254" layer="27" rot="R180"/>
 </element>
 <element name="PAD3" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="27.432" smashed="yes" rot="R180">
-<attribute name="NAME" x="97.409" y="25.527" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="95.885" y="26.232" size="0.0254" layer="27" rot="R180"/>
 </element>
 <element name="PAD4" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="32.512" smashed="yes" rot="R180">
-<attribute name="NAME" x="97.409" y="30.607" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="95.885" y="31.312" size="0.0254" layer="27" rot="R180"/>
 </element>
 <element name="PAD5" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="68.072" smashed="yes" rot="R180">
-<attribute name="NAME" x="97.409" y="66.167" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="95.885" y="66.872" size="0.0254" layer="27" rot="R180"/>
 </element>
 <element name="PAD6" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="73.152" smashed="yes" rot="R180">
-<attribute name="NAME" x="97.409" y="71.247" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="95.885" y="71.952" size="0.0254" layer="27" rot="R180"/>
 </element>
 <element name="PAD7" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="78.232" smashed="yes" rot="R180">
-<attribute name="NAME" x="97.409" y="76.327" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="95.885" y="77.032" size="0.0254" layer="27" rot="R180"/>
 </element>
 <element name="PAD8" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="83.312" smashed="yes" rot="R180">
-<attribute name="NAME" x="97.409" y="81.407" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="95.885" y="82.112" size="0.0254" layer="27" rot="R180"/>
 </element>
 <element name="PAD9" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="52.832" smashed="yes">
-<attribute name="NAME" x="94.361" y="54.737" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="95.885" y="54.032" size="0.0254" layer="27"/>
 </element>
 <element name="PAD10" library="wirepad" package="3,17/1,1" value="WIREPAD3,17/1,1" x="95.885" y="47.752" smashed="yes">
-<attribute name="NAME" x="93.726" y="49.657" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="95.885" y="48.952" size="0.0254" layer="27"/>
 </element>
 <element name="X2" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="4.445" smashed="yes" rot="R180">
-<attribute name="NAME" x="39.989" y="6.585" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="39.0365" y="0.5525" size="0.8128" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="SB54" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="37.084" y="66.675" smashed="yes" rot="R270">
@@ -2130,7 +2180,6 @@ design rules under a new name.</description>
 <attribute name="NAME" x="25.654" y="9.525" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
 </element>
 <element name="X3" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="15.875" smashed="yes" rot="R180">
-<attribute name="NAME" x="39.989" y="18.015" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="39.0365" y="11.9825" size="0.8128" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="SB60" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="20.955" smashed="yes" rot="R270">
@@ -2146,7 +2195,6 @@ design rules under a new name.</description>
 <attribute name="NAME" x="25.654" y="20.955" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
 </element>
 <element name="X4" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="27.305" smashed="yes" rot="R180">
-<attribute name="NAME" x="37.357" y="30.083" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="39.0365" y="23.4125" size="0.8128" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="SB65" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="32.385" smashed="yes" rot="R270">
@@ -2162,7 +2210,6 @@ design rules under a new name.</description>
 <attribute name="NAME" x="25.654" y="32.385" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
 </element>
 <element name="X5" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="38.735" smashed="yes" rot="R180">
-<attribute name="NAME" x="39.989" y="40.875" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="39.0365" y="34.8425" size="0.8128" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="SB70" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="43.815" smashed="yes" rot="R270">
@@ -2178,7 +2225,6 @@ design rules under a new name.</description>
 <attribute name="NAME" x="25.654" y="43.815" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
 </element>
 <element name="X6" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="50.165" smashed="yes" rot="R180">
-<attribute name="NAME" x="39.862" y="50.273" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="39.0365" y="46.2725" size="0.8128" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="SB75" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="55.245" smashed="yes" rot="R270">
@@ -2194,7 +2240,6 @@ design rules under a new name.</description>
 <attribute name="NAME" x="25.654" y="55.245" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
 </element>
 <element name="X7" library="con-jst-xh" package="JST-XH-06-PACKAGE-LONG-PAD" value="JST-XH-06-PIN-LONG-PAD" x="30.734" y="61.595" smashed="yes" rot="R180">
-<attribute name="NAME" x="39.989" y="63.735" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="39.0365" y="57.7025" size="0.8128" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="SB80" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="32.004" y="66.675" smashed="yes" rot="R270">
@@ -2222,7 +2267,6 @@ design rules under a new name.</description>
 <attribute name="NAME" x="69.723" y="45.466" size="1.27" layer="26" font="vector" ratio="16" rot="MR180" align="center"/>
 </element>
 <element name="X8" library="con-jst-xh" package="JST-XH-04-PACKAGE-LONG-PAD" value="JST-XH-04-PIN-LONG-PAD" x="30.734" y="73.025" smashed="yes" rot="R180">
-<attribute name="NAME" x="37.389" y="75.065" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="36.7365" y="69.1325" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="SB59" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="34.544" y="78.105" smashed="yes" rot="R270">
@@ -2235,19 +2279,15 @@ design rules under a new name.</description>
 <attribute name="NAME" x="30.734" y="77.724" size="1.27" layer="25" font="vector" ratio="16" rot="R270" align="center"/>
 </element>
 <element name="X9" library="con-jst-xh" package="JST-XH-07-PACKAGE-LONG-PAD" value="JST-XH-07-PIN-LONG-PAD" x="70.358" y="10.795" smashed="yes" rot="R90">
-<attribute name="NAME" x="66.534" y="0.654" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="66.4655" y="1.0925" size="0.8128" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="X10" library="con-jst-xh" package="JST-XH-07-PACKAGE-LONG-PAD" value="JST-XH-07-PIN-LONG-PAD" x="79.121" y="10.795" smashed="yes" rot="R90">
-<attribute name="NAME" x="75.17" y="0.654" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="75.2285" y="1.0925" size="0.8128" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="X11" library="con-jst-xh" package="JST-XH-07-PACKAGE-LONG-PAD" value="JST-XH-07-PIN-LONG-PAD" x="87.884" y="10.795" smashed="yes" rot="R90">
-<attribute name="NAME" x="83.933" y="0.654" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="83.9915" y="1.0925" size="0.8128" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="X1" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="43.053" y="85.09" smashed="yes" rot="R180">
-<attribute name="NAME" x="41.775" y="87.567" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="46.3555" y="81.1975" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="R5" library="rcl" package="R0603" value="4.7k" x="48.514" y="86.106" smashed="yes" rot="R90">
@@ -2259,7 +2299,6 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="50.419" y="82.423" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="X12" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="57.531" y="85.09" smashed="yes" rot="R180">
-<attribute name="NAME" x="55.999" y="87.567" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="60.8335" y="81.1975" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="R6" library="rcl" package="R0603" value="4.7k" x="62.992" y="86.106" smashed="yes" rot="R90">
@@ -2271,25 +2310,21 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="64.897" y="82.423" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="X13" library="con-jst-xh" package="JST-XH-03-PACKAGE-LONG-PAD" value="JST-XH-03-PIN-LONG-PAD" x="87.884" y="30.353" smashed="yes" rot="R90">
-<attribute name="NAME" x="90.518" y="35.568" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="83.9915" y="25.7505" size="1.016" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="SB94" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="87.884" y="23.495" smashed="yes" rot="R90">
 <attribute name="NAME" x="85.09" y="23.495" size="1.27" layer="25" font="vector" ratio="16" rot="R180" align="center"/>
 </element>
 <element name="X14" library="con-jst-xh" package="JST-XH-03-PACKAGE-LONG-PAD" value="JST-XH-03-PIN-LONG-PAD" x="87.884" y="49.784" smashed="yes" rot="R90">
-<attribute name="NAME" x="88.527" y="56.04" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="83.9915" y="45.1815" size="1.016" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="SB96" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="88.392" y="43.815" smashed="yes" rot="R180">
 <attribute name="NAME" x="92.456" y="43.815" size="1.27" layer="25" font="vector" ratio="16" align="center"/>
 </element>
 <element name="X15" library="con-jst-xh" package="JST-XH-08-PACKAGE-LONG-PAD" value="JST-XH-08-PIN-LONG-PAD" x="53.467" y="78.105" smashed="yes" rot="R180">
-<attribute name="NAME" x="65.222" y="79.229" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="64.3695" y="74.2125" size="0.8128" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="X16" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="71.501" y="93.599" smashed="yes" rot="R90">
-<attribute name="NAME" x="73.033" y="98.742" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="67.6085" y="90.2965" size="1.016" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="SB98" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="75.311" y="92.964" smashed="yes" rot="R270">
@@ -2320,11 +2355,9 @@ design rules under a new name.</description>
 <attribute name="NAME" x="43.307" y="70.993" size="1.27" layer="25" font="vector" ratio="16" rot="R90" align="center"/>
 </element>
 <element name="X17" library="con-jst-xh" package="JST-XH-08-PACKAGE-LONG-PAD" value="JST-XH-08-PIN-LONG-PAD" x="53.34" y="26.289" smashed="yes">
-<attribute name="NAME" x="60.052" y="23.424" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="42.4375" y="30.1815" size="0.8128" layer="27" ratio="10"/>
 </element>
 <element name="X18" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="71.501" y="81.788" smashed="yes" rot="R90">
-<attribute name="NAME" x="72.144" y="77.787" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="67.6085" y="78.4855" size="1.016" layer="27" ratio="10" rot="R90"/>
 </element>
 <element name="SB108" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="44.45" y="33.401" smashed="yes" rot="R270">
@@ -2353,12 +2386,10 @@ design rules under a new name.</description>
 </element>
 <element name="SW1" library="adafruit" package="EVQ-Q2" value="SPST_TACT-EVQQ2" x="4.699" y="11.811" smashed="yes" rot="R270">
 <attribute name="DIGI" value="P12955SCT-ND" x="4.699" y="11.811" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="NAME" x="8.199" y="14.811" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="-0.101" y="15.011" size="1.27" layer="27" rot="R270"/>
 </element>
 <element name="LED1" library="adafruit" package="CHIPLED_0805" value="GREEN" x="74.676" y="87.122" smashed="yes" rot="R90">
 <attribute name="DIGI" value="732-4971-1-ND" x="74.676" y="87.122" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="72.898" y="87.757" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="75.946" y="89.662" size="1.27" layer="27" rot="R180"/>
 </element>
 <element name="R7" library="rcl" package="R0603" value="82" x="78.486" y="87.122" smashed="yes" rot="R180">
@@ -2371,7 +2402,6 @@ design rules under a new name.</description>
 </element>
 <element name="LED2" library="adafruit" package="CHIPLED_0805" value="GREEN" x="74.676" y="76.2" smashed="yes" rot="R90">
 <attribute name="DIGI" value="732-4971-1-ND" x="74.676" y="76.2" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="76.708" y="75.311" size="1.27" layer="25" ratio="16" rot="R180"/>
 <attribute name="VALUE" x="75.946" y="78.74" size="1.27" layer="27" rot="R180"/>
 </element>
 <element name="U1" library="custom" package="SOIC16-1.27-10.2X7.5MM" value="TCA9554A" x="55.753" y="61.087" smashed="yes" rot="R180">
@@ -2392,11 +2422,11 @@ design rules under a new name.</description>
 </element>
 <element name="U5" library="custom" package="SOIC16-1.27-10.2X7.5MM" value="TCA9554A" x="49.276" y="42.037" smashed="yes">
 <attribute name="DIGI" value="296-45456-1-ND" x="37.846" y="57.912" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="55.753" y="41.148" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="NAME" x="43.815" y="40.259" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="44.196" y="35.052" size="0.889" layer="27" ratio="11"/>
 </element>
 <element name="C6" library="rcl" package="C0603" value="0.1uF" x="42.672" y="46.101" smashed="yes" rot="R90">
-<attribute name="NAME" x="42.037" y="45.466" size="1.27" layer="25" ratio="16" rot="R90"/>
+<attribute name="NAME" x="43.18" y="47.752" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="44.577" y="45.466" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="SB117" library="custom" package="SOLDER_BRIDGE" value="SOLDER_BRIDGE" x="45.974" y="49.403" smashed="yes" rot="R270">
@@ -2440,7 +2470,6 @@ design rules under a new name.</description>
 </element>
 <element name="SW2" library="adafruit" package="EVQ-Q2" value="SPST_TACT-EVQQ2" x="16.002" y="11.811" smashed="yes" rot="R270">
 <attribute name="DIGI" value="P12955SCT-ND" x="26.797" y="22.606" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="NAME" x="19.502" y="14.811" size="1.27" layer="25" ratio="16" rot="R270"/>
 <attribute name="VALUE" x="11.202" y="15.011" size="1.27" layer="27" rot="R270"/>
 </element>
 <element name="R11" library="rcl" package="R0603" value="100" x="50.673" y="83.058" smashed="yes" rot="R270">
@@ -2452,7 +2481,6 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="63.246" y="83.693" size="1.27" layer="27" rot="R270"/>
 </element>
 <element name="X19" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="43.053" y="92.456" smashed="yes" rot="R180">
-<attribute name="NAME" x="41.394" y="95.06" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="46.3555" y="88.5635" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="R13" library="rcl" package="R0603" value="4.7k" x="48.514" y="93.472" smashed="yes" rot="R90">
@@ -2464,7 +2492,6 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="50.419" y="89.789" size="1.27" layer="27" rot="R90"/>
 </element>
 <element name="X20" library="con-jst-xh" package="JST-XH-02-PACKAGE-LONG-PAD" value="JST-XH-02-PIN-LONG-PAD" x="57.531" y="92.456" smashed="yes" rot="R180">
-<attribute name="NAME" x="55.872" y="95.06" size="1.27" layer="25" ratio="16"/>
 <attribute name="VALUE" x="60.8335" y="88.5635" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="R14" library="rcl" package="R0603" value="4.7k" x="62.992" y="93.472" smashed="yes" rot="R90">
@@ -2519,7 +2546,7 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="60.071" y="52.705" size="1.27" layer="27" rot="R270"/>
 </element>
 <element name="R21" library="rcl" package="R0603" value="3.3k" x="35.814" y="81.153" smashed="yes" rot="R180">
-<attribute name="NAME" x="37.719" y="79.883" size="1.27" layer="25" ratio="16"/>
+<attribute name="NAME" x="35.687" y="82.296" size="1.27" layer="25" ratio="16" rot="R90"/>
 <attribute name="VALUE" x="36.449" y="83.058" size="1.27" layer="27" rot="R180"/>
 </element>
 <element name="R22" library="rcl" package="R0603" value="3.3k" x="40.767" y="67.437" smashed="yes" rot="R90">
@@ -2607,13 +2634,13 @@ design rules under a new name.</description>
 <contactref element="Q2" pad="P$2"/>
 <contactref element="C10" pad="2"/>
 <contactref element="C11" pad="2"/>
-<polygon width="0.2032" layer="1" isolate="0.254">
+<polygon width="0.254" layer="1" isolate="0.254">
 <vertex x="0.127" y="99.949"/>
 <vertex x="99.949" y="99.949"/>
 <vertex x="99.949" y="0"/>
 <vertex x="0.127" y="0"/>
 </polygon>
-<polygon width="0.2032" layer="16" isolate="0.254">
+<polygon width="0.254" layer="16" isolate="0.254">
 <vertex x="99.949" y="99.949"/>
 <vertex x="0.127" y="99.949"/>
 <vertex x="0.127" y="0"/>
@@ -2759,7 +2786,7 @@ design rules under a new name.</description>
 <via x="74.93" y="60.706" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="8.636" y="92.456" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="12.319" y="92.456" extent="1-16" drill="0.3" shape="octagon"/>
-<via x="31.496" y="93.98" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="29.718" y="91.313" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="34.925" y="87.249" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="38.227" y="85.979" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="40.132" y="77.978" extent="1-16" drill="0.3" shape="octagon"/>
@@ -2805,7 +2832,7 @@ design rules under a new name.</description>
 <via x="7.239" y="58.928" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="10.033" y="71.882" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="6.477" y="73.787" extent="1-16" drill="0.3" shape="octagon"/>
-<via x="7.747" y="83.185" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="6.858" y="87.376" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="19.812" y="84.455" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="20.066" y="81.153" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="27.432" y="80.772" extent="1-16" drill="0.3" shape="octagon"/>
@@ -2895,6 +2922,13 @@ design rules under a new name.</description>
 <via x="58.293" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="60.833" y="28.956" extent="1-16" drill="0.3" shape="octagon"/>
 <via x="57.15" y="19.939" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="68.707" y="94.869" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="74.295" y="95.123" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="36.703" y="91.44" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="29.845" y="96.52" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="36.703" y="96.393" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="6.858" y="81.28" extent="1-16" drill="0.3" shape="octagon"/>
+<via x="32.004" y="12.954" extent="1-16" drill="0.3" shape="octagon"/>
 </signal>
 <signal name="PA0_CONN">
 <contactref element="U4" pad="P$28"/>
