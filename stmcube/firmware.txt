@@ -1,6 +1,6 @@
 Configuration	firmware
-STM32CubeMX 	4.23.0
-Date	01/18/2018
+STM32CubeMX 	4.24.0
+Date	01/23/2018
 MCU	STM32F446RETx
 
 
