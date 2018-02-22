@@ -53,7 +53,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+//#define DATA_PRINT_EN
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,6 +61,8 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+void TimeStamp_Reset();
+uint32_t TimeStamp_Get();
 
 /* USER CODE END PFP */
 
@@ -72,6 +74,13 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+
+    // Initialize all clocks so we don't run into weird clock problems...
+    RCC->AHB1ENR |= 0xFFFFFFFF;
+    RCC->AHB2ENR |= 0xFFFFFFFF;
+    RCC->AHB3ENR |= 0xFFFFFFFF;
+    RCC->APB1ENR |= 0xFFFFFFFF;
+    RCC->APB2ENR |= 0xFFFFFFFF;
 
   /* USER CODE END 1 */
 
@@ -102,18 +111,52 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
-
+    printf("Enabling IMU...\r\n");
+    //IMU_begin();
+    HAL_Delay(100);
+    printf("Initializing rangefinders...\r\n");
+    //VL53L0X_begin();
+    //VL53L0X_SetupSingleShot();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+    uint32_t print_time = 0;
+    uint32_t cur_time = 0;
+    uint32_t dt = 0;  // Units of 0.1 ms based on Timer5
+
+    while (1)
+    {
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
+        HAL_Delay(500);
 
-  }
+        cur_time = TimeStamp_Get();
+        dt = cur_time - print_time;
+        if (dt < 88){
+            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+
+//            gyro_read();
+//            accelerometer_read();
+//            magnetometer_read();
+//            rangefinderRead(0);
+//            rangefinderRead(1);
+        }
+        cur_time = TimeStamp_Get();
+        dt = cur_time - print_time;
+        if (dt > 99){   // Data rate = 100 Hz
+            print_time = cur_time;
+#ifdef DATA_PRINT_EN
+            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+                    dt, magData.orientation, 
+                    rangeMillimeterX, rangeMillimeterY, 
+                    accelData.x, accelData.y, accelData.z, 
+                    gyroData.x, gyroData.y, gyroData.z);
+#endif
+        }
+    }
   /* USER CODE END 3 */
 
 }
@@ -182,7 +225,21 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void TimeStamp_Reset(){
+    HAL_TIM_Base_Start(&htim5);
+    htim5.Instance->CNT=0;
+}
 
+uint32_t TimeStamp_Get(){
+    return htim5.Instance->CNT;
+}
+
+// Redirect printf to UART
+int _write (int fd, char *ptr, int len) 
+{ 
+    transmitUART(ptr, len);
+    return len; 
+}
 /* USER CODE END 4 */
 
 /**
@@ -194,9 +251,15 @@ void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  while(1) 
-  {
-  }
+    while(1) 
+    {
+        printf("Entered error handler.\r\n");
+        while(1) 
+        {
+            HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+            HAL_Delay(500);
+        }
+    }
   /* USER CODE END Error_Handler_Debug */ 
 }
 
