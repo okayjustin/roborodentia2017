@@ -109,6 +109,7 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM12_Init();
   MX_USART2_UART_Init();
+  MX_TIM5_Init();
 
   /* USER CODE BEGIN 2 */
     printf("Enabling IMU...\r\n");
