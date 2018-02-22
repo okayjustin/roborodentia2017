@@ -62,7 +62,11 @@ extern void _Error_Handler(char *, int);
 void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+void serviceUART(void);
+void transmitUART(char *ptr, int len);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
+extern void consoleCommand(uint8_t *ptr, int len);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

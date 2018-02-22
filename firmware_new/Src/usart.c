@@ -44,7 +44,12 @@
 #include "dma.h"
 
 /* USER CODE BEGIN 0 */
+#define RX_BUFFER_MAX_LENGTH 16 
+#define UART_RX_WRITEBACK 0
 
+uint8_t rxBuffer = '\000';
+uint8_t stringBuffer[RX_BUFFER_MAX_LENGTH];
+uint8_t stringBufferIndex;
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart2;
@@ -164,7 +169,50 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+void serviceUART(void)
+{
+    HAL_UART_Receive_DMA(&huart2, &rxBuffer, 1);
+}
 
+// Transmit characters over UART
+void transmitUART(char *ptr, int len)
+{
+    HAL_UART_Transmit(&huart2, (uint8_t *) ptr, len, 0xFFFF);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    uint8_t i;
+
+    // Clear buffer
+    if (stringBufferIndex == 0) {for (i = 0; i < RX_BUFFER_MAX_LENGTH; i++) stringBuffer[i] = 0;}	
+
+    if ((rxBuffer != 10) && (rxBuffer != 13))	//if received data different from ascii 13 (enter)
+    {
+        if (stringBufferIndex < RX_BUFFER_MAX_LENGTH){
+            stringBuffer[stringBufferIndex++] = rxBuffer; //add data to stringBuffer
+        }
+    }
+    else // If received data = 10 or 13
+    {
+        if (stringBufferIndex < RX_BUFFER_MAX_LENGTH){
+            stringBuffer[stringBufferIndex++] = '\0'; //add null char
+        } else {
+            stringBuffer[RX_BUFFER_MAX_LENGTH] = '\0'; //add null char
+        }
+
+        if (UART_RX_WRITEBACK){
+            HAL_UART_Transmit(&huart2, (uint8_t *)&stringBuffer, stringBufferIndex, 0xFFFF);
+            printf("\r\n");
+        }
+        consoleCommand((uint8_t *)&stringBuffer, stringBufferIndex);
+        stringBufferIndex = 0;
+    }
+
+    if (UART_RX_WRITEBACK){
+        HAL_UART_Transmit(&huart2, (uint8_t *)&rxBuffer, 1, 1);
+    }
+}
 /* USER CODE END 1 */
 
 /**

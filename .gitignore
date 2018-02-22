@@ -12,6 +12,7 @@ tags
 
 scripts/__pycache__
 firmware/build/*
+firmware_new/build/*
 arm/build/*
 arm/orig/*
 arm/src/*
