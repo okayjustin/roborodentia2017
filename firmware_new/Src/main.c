@@ -46,7 +46,8 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "imu.h"
+#include "vl53l0x_top.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -97,7 +98,6 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -112,6 +112,7 @@ int main(void)
   MX_TIM5_Init();
 
   /* USER CODE BEGIN 2 */
+    serviceUART();
     printf("Enabling IMU...\r\n");
     //IMU_begin();
     HAL_Delay(100);
@@ -241,6 +242,86 @@ int _write (int fd, char *ptr, int len)
     transmitUART(ptr, len);
     return len; 
 }
+
+// Execute a command from the console
+void consoleCommand(uint8_t *ptr, int len)
+{
+    // V for version
+    if (ptr[0] == 'V' || ptr[0] == 'v'){
+        printf("Robojustin v0.2\r\n");
+    }
+
+    // B for sending IMU data
+    else if (ptr[0] == 'B' || ptr[0] == 'b') {
+        gyro_read();
+        accelerometer_read();
+        magnetometer_read();
+        printf("%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+                accelData.x, accelData.y, accelData.z, 
+                gyroData.x, gyroData.y, gyroData.z,
+                magData.x, magData.y, magData.z);
+    }
+
+    // M for motor control commands
+    else if (ptr[0] == 'M' || ptr[0] == 'm'){  
+        GPIO_TypeDef *GPIOx;
+        uint16_t GPIO_Pin;
+        GPIO_PinState PinState;
+        uint32_t TIM_Channel;
+
+        // Set variables based on which motor needs to be controlled. Motor 1 is front left, increments clockwise
+        if (ptr[1] == '0'){  // 0 for front left
+            GPIOx = MOTOR_FL_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_FL_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_1;
+        }
+        else if (ptr[1] == '1'){  // 1 for front right
+            GPIOx = MOTOR_FR_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_FR_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_2;
+        }
+        else if (ptr[1] == '2'){  // 2 for back right
+            GPIOx = MOTOR_BR_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_BR_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_3;
+        }
+        else if (ptr[1] == '3'){  // 3 for back right
+            GPIOx = MOTOR_BL_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_BL_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_4;
+        }
+        else {
+            return;
+        }
+
+        // Direction control commands
+        if (ptr[2] == 'D' || ptr[2] == 'd'){
+            if (ptr[3] == 'F' || ptr[3] == 'f'){
+                PinState = GPIO_PIN_RESET;
+            }
+            else if (ptr[3] == 'R' || ptr[3] == 'r'){
+                PinState = GPIO_PIN_SET;
+            }
+            else {
+                return;
+            }
+            HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
+        }
+
+        // S for speed command
+        if (ptr[2] == 'S' || ptr[2] == 's'){  
+            TIM_OC_InitTypeDef sConfigOC;
+            sConfigOC.OCMode = TIM_OCMODE_PWM1;
+            sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+            sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+            sConfigOC.Pulse = atoi((char *)ptr + 3); // Accepts 0-2047
+
+            // Alter the PWM duty cycle and start PWM again
+            if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
+            if (HAL_TIM_PWM_Start(&htim4, TIM_Channel) != HAL_OK){ Error_Handler(); }
+        }
+    }
+}            
 /* USER CODE END 4 */
 
 /**

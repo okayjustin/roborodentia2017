@@ -29,19 +29,33 @@ def openSerial():
     print("Failed to connect.")
 
 def closeSerial(ser):
+    print("\r\rClosing port.")
     ser.close()
     ser_available = False
 
 def readSerial(ser):
     try:
         while (1):
-            print(ser.readline())
+            print(ser.readline().decode('utf-8'), end='')
     except KeyboardInterrupt:
         pass
 
+def writeSerial(ser):
+    try:
+        print("\r\rEnter text to send: ", end='')
+        cmd = input()
+        cmd += '\r\n'
+        ser.write(cmd.encode('utf-8'))
+        return True
+    except KeyboardInterrupt:
+        return False
+
 if __name__ == "__main__":
     ser = openSerial()
-    readSerial(ser)
+    serInUse = True
+    while(serInUse == True):
+        readSerial(ser)
+        serInUse = writeSerial(ser)
     closeSerial(ser)
 
 

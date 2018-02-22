@@ -75,6 +75,14 @@ Src/dma.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c_ex.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
 
+C_SOURCES += Src/imu.c \
+			 Src/vl53l0x/vl53l0x_api.c \
+			 Src/vl53l0x/vl53l0x_api_calibration.c \
+			 Src/vl53l0x/vl53l0x_api_core.c \
+			 Src/vl53l0x/vl53l0x_api_strings.c \
+			 Src/vl53l0x_platform.c \
+			 Src/vl53l0x_top.c
+
 # ASM sources
 ASM_SOURCES =  \
 startup_stm32f446xx.s

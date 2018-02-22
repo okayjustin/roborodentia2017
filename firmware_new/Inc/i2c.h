@@ -55,7 +55,11 @@ extern I2C_HandleTypeDef hi2c2;
 extern I2C_HandleTypeDef hi2c3;
 
 /* USER CODE BEGIN Private defines */
-
+typedef enum {
+    I2C_ACK = 0,
+    I2C_NACK,
+    I2C_ERR
+} I2CStatus;
 /* USER CODE END Private defines */
 
 extern void _Error_Handler(char *, int);
@@ -64,7 +68,20 @@ void MX_I2C2_Init(void);
 void MX_I2C3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+typedef void (*i2cTxCallback)(void*, I2CStatus);
+typedef void (*i2cRxCallback)(void*, uint8_t*, uint32_t, I2CStatus);
 
+uint8_t i2cAddRxTransaction(uint8_t addr, uint32_t numBytes, i2cRxCallback callback, void* parameters);
+uint8_t i2cAddTxTransaction(uint8_t addr, uint8_t* txData, uint32_t numBytes, i2cTxCallback callback, void* parameters);
+void serviceI2C(void);
+
+//extern void Error_Handler(char * file, int line);
+
+// I2C write command(I2C handle, 7-bit address, data array, number of data bytes) 
+void I2C_Scan (I2C_HandleTypeDef *hi2c);
+void I2C_Read  (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t size);
+void I2C_Write (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t size);
+void I2C_WriteRead (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *wr_data, uint16_t wr_size, uint8_t *rd_data, uint16_t rd_size);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

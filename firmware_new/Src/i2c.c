@@ -288,6 +288,105 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 
 /* USER CODE BEGIN 1 */
 
+// I2C scan command(I2C handle), prints out all I2C addresses that ACK 
+void  I2C_Scan (I2C_HandleTypeDef *hi2c) {
+    uint8_t addr;
+    int i2c_time_out = 10;
+    for (addr = 0; addr < 128; addr++){
+        if (HAL_I2C_Master_Receive(hi2c, addr << 1 | 1, NULL, 1, i2c_time_out) == HAL_OK){
+            printf("Found I2C device at 7-bit address (decimal): %d\r\n", addr);
+        }
+        HAL_Delay(10);
+    }
+}
+
+// I2C read command(I2C handle, 7-bit address, data array, number of data bytes) 
+void I2C_Read (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t size) {
+    int i2c_time_out = 10 + size * 1;
+    if (HAL_I2C_Master_Receive(hi2c, addr << 1 | 1, data, size, i2c_time_out) != HAL_OK){
+        printf("Error in I2C_Read\r\n");
+        Error_Handler();
+    }
+
+//    while ( HAL_I2C_Master_Receive_DMA(hi2c, addr << 1 | 1 , (uint8_t*)data, size) != HAL_OK){
+//        if (HAL_I2C_GetError(hi2c) != HAL_I2C_ERROR_AF){
+//            printf("Error in I2C_Read\r\n");
+//            Error_Handler();
+//        }
+//    }
+}
+
+// I2C write command(I2C handle, 7-bit address, data array, number of data bytes) 
+void I2C_Write (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *data, uint16_t size) {
+    int i2c_time_out = 10 + size * 1;
+    if (HAL_I2C_Master_Transmit(hi2c, addr << 1 | 0, data, size, i2c_time_out) != HAL_OK){
+        printf("Error in I2C_Write\r\n");
+        Error_Handler();
+    }
+
+//    while ( HAL_I2C_Master_Transmit_DMA(hi2c, addr << 1 | 0 , (uint8_t*)data, size) != HAL_OK){
+//        if (HAL_I2C_GetError(hi2c) != HAL_I2C_ERROR_AF){
+//            printf("Error in I2C_Write\r\n");
+//            Error_Handler();
+//        }
+//    }
+}
+
+// I2C write then read command
+void I2C_WriteRead (I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t *wr_data, uint16_t wr_size, uint8_t *rd_data, uint16_t rd_size)
+{
+    I2C_Write(hi2c, addr, wr_data, wr_size);
+    I2C_Read(hi2c, addr, rd_data, rd_size);
+}
+
+void HAL_I2C_MasterRxCpltCallback (I2C_HandleTypeDef *hi2c)
+{
+}
+
+void HAL_I2C_MasterTxCpltCallback (I2C_HandleTypeDef *hi2c)
+{
+//    uint8_t data[16];
+//    data[0] = 0x20;
+//    data[1] = 0x0F;
+//    I2C_Write(&hi2c1, 0x1E, data, 2);
+}
+
+void HAL_I2C_ErrorCallback (I2C_HandleTypeDef *hi2c)
+{
+    printf("I2C error callback\r\n");
+}
+
+void HAL_I2C_AbortCpltCallback (I2C_HandleTypeDef * hi2c)
+{
+    printf("I2C abort callback\r\n");
+}
+
+
+// Interrupt handler for events
+void I2C2_EV_IRQHandler()
+{
+    HAL_I2C_EV_IRQHandler(&hi2c2);
+}
+
+// Interrupt handler for errors
+void I2C2_ER_IRQHandler()
+{
+    printf("Error in I2C2_ER_IRQHandler\r\n");
+    HAL_I2C_ER_IRQHandler(&hi2c2);
+}
+
+// Interrupt handler for events
+void I2C3_EV_IRQHandler()
+{
+    HAL_I2C_EV_IRQHandler(&hi2c3);
+}
+
+// Interrupt handler for errors
+void I2C3_ER_IRQHandler()
+{
+    printf("Error in I2C3_ER_IRQHandler\r\n");
+    HAL_I2C_ER_IRQHandler(&hi2c3);
+}
 /* USER CODE END 1 */
 
 /**
