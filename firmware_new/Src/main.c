@@ -46,6 +46,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
+#include <stdlib.h>
 #include "imu.h"
 #include "vl53l0x_top.h"
 /* USER CODE END Includes */
@@ -54,7 +55,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-//#define DATA_PRINT_EN
+#define DATA_PRINT_EN
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -107,14 +108,15 @@ int main(void)
   MX_I2C3_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_TIM5_Init();
   MX_TIM12_Init();
   MX_USART2_UART_Init();
-  MX_TIM5_Init();
 
   /* USER CODE BEGIN 2 */
+    TimeStamp_Reset();
     serviceUART();
     printf("Enabling IMU...\r\n");
-    //IMU_begin();
+    IMU_begin();
     HAL_Delay(100);
     printf("Initializing rangefinders...\r\n");
     //VL53L0X_begin();
@@ -134,15 +136,18 @@ int main(void)
   /* USER CODE BEGIN 3 */
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
         HAL_Delay(500);
+        if (HAL_I2C_Master_Receive(&hi2c2, 58 << 1 | 1, NULL, 1, 10) == HAL_OK){
+            printf("Found I2C device at 7-bit address (decimal): %d\r\n", 58);
+        }
 
         cur_time = TimeStamp_Get();
         dt = cur_time - print_time;
         if (dt < 88){
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-//            gyro_read();
-//            accelerometer_read();
-//            magnetometer_read();
+            gyro_read();
+            accelerometer_read();
+            magnetometer_read();
 //            rangefinderRead(0);
 //            rangefinderRead(1);
         }
@@ -251,6 +256,18 @@ void consoleCommand(uint8_t *ptr, int len)
         printf("Robojustin v0.2\r\n");
     }
 
+    // I for I2C bus scan
+    else if (ptr[0] == 'I' || ptr[0] == 'i'){
+        // I2C2
+        if (ptr[1] == '2'){
+            I2C_Scan(&hi2c2);
+        }
+        // I2C3
+        if (ptr[1] == '3'){
+            I2C_Scan(&hi2c3);
+        }
+    }
+
     // B for sending IMU data
     else if (ptr[0] == 'B' || ptr[0] == 'b') {
         gyro_read();
@@ -333,14 +350,11 @@ void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+    printf("Entered error handler.\r\n");
     while(1) 
     {
-        printf("Entered error handler.\r\n");
-        while(1) 
-        {
-            HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-            HAL_Delay(500);
-        }
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+        HAL_Delay(100);
     }
   /* USER CODE END Error_Handler_Debug */ 
 }

@@ -44,7 +44,113 @@
 #include "dma.h"
 
 /* USER CODE BEGIN 0 */
+typedef enum {
+    I2C_TYPE_TX,
+    I2C_TYPE_RX
+} I2C_TransferType;
 
+// A single I2C transaction request
+typedef struct {
+    uint8_t ready;
+    uint8_t numBytes;
+    uint8_t addr;
+    I2C_TransferType type;
+    union {
+        i2cTxCallback txCallback;
+        i2cRxCallback rxCallback;
+    };
+    void* cParams;
+} I2CTransaction;
+
+// List of future transactions
+//static I2CTransaction transactionList[I2C_MAX_NUM_TRANSACTIONS];
+
+//// Buffer to hold tx data for future transactions. Treated as a fifo
+//static uint8_t i2cTxDataBuffer[I2C_TRANSACTION_TX_BUF_SIZE];
+//
+//// Buffer to hold rx data for the current transaction
+//static uint8_t i2cRxDataBuffer[I2C_TRANSACTION_RX_BUF_SIZE];
+//
+//// Index into i2cTxDataBuffer
+//static uint32_t i2cRxDataBufferIdx;
+
+// Fifo struct used to treat i2cTxDataBuffer as a fifo
+//static buffer8_t i2cTxDataFifo;
+
+// Bufffer to hold tx data for the current transaction.
+// Data from i2cTxDataBuffer is copied into this buffer
+// before the transaction starts
+//static uint8_t i2cTxNextTransferBuffer[I2C_TRANSACTION_TX_BUF_SIZE];
+
+// Index into i2cTxNextTransferBuffer
+//static uint32_t i2cTxNextTransferIdx;
+
+// The next free transaction number
+//static uint32_t freeTransaction;
+
+// The current transaction, or the next transaction that will occur
+static volatile uint32_t nextTransaction;
+
+// Flag to indicate whether the i2c is active or not
+static volatile uint8_t i2cRunning;
+
+// Flag to indicate if i2c should be serviced
+static volatile uint8_t shouldServiceI2C;
+
+// Status of the current transaction
+static volatile uint8_t i2cStatus;
+
+// Theory of Operation
+//
+// This file control the I2C peripheral which talks to
+// several slave devices on the control board. For a
+// list of all the slave devices, see the control board
+// documentation.
+//
+// Usage:
+// 1. Setup the buffer sizes in config.h
+// 
+// 2. Initialize the I2C peripheral with i2cInit()
+//
+// 3. Call serviceI2C() in the main while (1) loop.
+//    This function must be called between I2C transactions.
+//
+// 4. To write data to an I2C slave use the i2cAddTxTransaction(...)
+//    function.
+//
+// 5. To read data from an I2C slave use the i2cAddRxTransaction(...)
+//    function.
+//
+// Callbacks:
+// After a transaction has been completed a user provided callback
+// will be called. This function is called whether or not the transaction
+// was successful. Note that it is possible to start a new I2C transaction
+// from inside another transaction's callback.
+//
+// Tx Data Callback:
+//  (*i2cTxCallback)(void* parameters, I2CStatus status)
+//
+// The (parameters) parameter is a void* passed direction from the
+// i2cAddTxTransaction function call. This allows the user to use a
+// single callback for multiple purposes.
+// The (status) parameter indicates the status of the transaction.
+// There are three possible status: I2C_ACK, I2C_NACK, I2C_ERR.
+// Only I2C_ACK indicates that the transaction was successful. An I2C_NACK
+// status means that no slave responded to the address and the I2C_ERR
+// status means that some sort of bus error occured during the transaction.
+//
+// Rx Data Callback:
+//  (*i2cRxCallback)(void* parameters,
+//                   uint8_t* rxData,
+//                   uint32_t numBytes,
+//                   I2CStatus status)
+//
+// See "Tx Data Callback" for information on (parameters) and (status).
+// The (rxData) parameter is a pointer to the recieved data. The data
+// is only valid during this callback so any data that needs to be kept
+// must be copied at this time.
+// The (numBytes) parameter contains the number of bytes actually recieved
+// by the slave.
 /* USER CODE END 0 */
 
 I2C_HandleTypeDef hi2c2;
@@ -60,7 +166,7 @@ void MX_I2C2_Init(void)
 
   hi2c2.Instance = I2C2;
   hi2c2.Init.ClockSpeed = 400000;
-  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_16_9;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -79,7 +185,7 @@ void MX_I2C3_Init(void)
 
   hi2c3.Instance = I2C3;
   hi2c3.Init.ClockSpeed = 400000;
-  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_16_9;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -162,7 +268,12 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     __HAL_LINKDMA(i2cHandle,hdmatx,hdma_i2c2_tx);
 
   /* USER CODE BEGIN I2C2_MspInit 1 */
-
+    HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
+    HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
+    HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
+    HAL_NVIC_EnableIRQ(I2C2_EV_IRQn);
   /* USER CODE END I2C2_MspInit 1 */
   }
   else if(i2cHandle->Instance==I2C3)
@@ -230,7 +341,12 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     __HAL_LINKDMA(i2cHandle,hdmatx,hdma_i2c3_tx);
 
   /* USER CODE BEGIN I2C3_MspInit 1 */
-
+    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 1, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+    HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+    HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
+    HAL_NVIC_EnableIRQ(I2C3_EV_IRQn);
   /* USER CODE END I2C3_MspInit 1 */
   }
 }
@@ -289,14 +405,14 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 /* USER CODE BEGIN 1 */
 
 // I2C scan command(I2C handle), prints out all I2C addresses that ACK 
-void  I2C_Scan (I2C_HandleTypeDef *hi2c) {
+void I2C_Scan (I2C_HandleTypeDef *hi2c) {
+    printf("Starting I2C scan...\r\n");
     uint8_t addr;
     int i2c_time_out = 10;
     for (addr = 0; addr < 128; addr++){
         if (HAL_I2C_Master_Receive(hi2c, addr << 1 | 1, NULL, 1, i2c_time_out) == HAL_OK){
             printf("Found I2C device at 7-bit address (decimal): %d\r\n", addr);
         }
-        HAL_Delay(10);
     }
 }
 
