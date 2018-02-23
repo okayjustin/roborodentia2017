@@ -10805,14 +10805,14 @@ GPIO_EXPANDER2</text>
 0x69
 0x19
 0x1E
+0x3A
 
 
 0x52
 0x53
 0x54
 0x38
-0x39
-0x3A</text>
+0x39</text>
 <text x="114.3" y="45.72" size="2.54" layer="97">I2C PULL-UPS</text>
 </plain>
 <instances>
