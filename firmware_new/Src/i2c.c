@@ -273,12 +273,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     HAL_NVIC_SetPriority(I2C2_ER_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
   /* USER CODE BEGIN I2C2_MspInit 1 */
-    HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
-    HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
-    HAL_NVIC_EnableIRQ(I2C2_ER_IRQn);
-    HAL_NVIC_EnableIRQ(I2C2_EV_IRQn);
+
   /* USER CODE END I2C2_MspInit 1 */
   }
   else if(i2cHandle->Instance==I2C3)
@@ -351,12 +346,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     HAL_NVIC_SetPriority(I2C3_ER_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
   /* USER CODE BEGIN I2C3_MspInit 1 */
-    HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-    HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
-    HAL_NVIC_EnableIRQ(I2C3_ER_IRQn);
-    HAL_NVIC_EnableIRQ(I2C3_EV_IRQn);
+
   /* USER CODE END I2C3_MspInit 1 */
   }
 }
@@ -496,31 +486,6 @@ void HAL_I2C_AbortCpltCallback (I2C_HandleTypeDef * hi2c)
 }
 
 
-// Interrupt handler for events
-void I2C2_EV_IRQHandler()
-{
-    HAL_I2C_EV_IRQHandler(&hi2c2);
-}
-
-// Interrupt handler for errors
-void I2C2_ER_IRQHandler()
-{
-    printf("Error in I2C2_ER_IRQHandler\r\n");
-    HAL_I2C_ER_IRQHandler(&hi2c2);
-}
-
-// Interrupt handler for events
-void I2C3_EV_IRQHandler()
-{
-    HAL_I2C_EV_IRQHandler(&hi2c3);
-}
-
-// Interrupt handler for errors
-void I2C3_ER_IRQHandler()
-{
-    printf("Error in I2C3_ER_IRQHandler\r\n");
-    HAL_I2C_ER_IRQHandler(&hi2c3);
-}
 /* USER CODE END 1 */
 
 /**

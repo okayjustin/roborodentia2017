@@ -123,8 +123,10 @@ int main(void)
     serviceUART();
     printf("Enabling IMU...\r\n");
  //   IMU_begin();
-    HAL_Delay(100);
+    //HAL_Delay(100);
     printf("Initializing rangefinders...\r\n");
+    //HAL_Delay(100);
+
     VL53L0X_begin();
     VL53L0X_SetupSingleShot();
 
@@ -135,6 +137,7 @@ int main(void)
     uint32_t print_time = 0;
     uint32_t cur_time = 0;
     uint32_t dt = 0;  // Units of 0.1 ms based on Timer5
+    HAL_Delay(1000);
 
     while (1)
     {
@@ -373,6 +376,12 @@ void _Error_Handler(char * file, int line)
 void assert_failed(uint8_t* file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
+    printf("Assert failed.\r\n");
+    while(1) 
+    {
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+        HAL_Delay(100);
+    }
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */

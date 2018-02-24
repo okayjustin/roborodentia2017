@@ -44,8 +44,13 @@
 #include "dma.h"
 
 /* USER CODE BEGIN 0 */
+#define TX_BUFFER_MAX_LENGTH 2000 
 #define RX_BUFFER_MAX_LENGTH 16 
 #define UART_RX_WRITEBACK 0
+
+// TX data buffer
+uint8_t txBuffer[TX_BUFFER_MAX_LENGTH];
+volatile uint8_t txInProg = 0;
 
 uint8_t rxBuffer = '\000';
 uint8_t stringBuffer[RX_BUFFER_MAX_LENGTH];
@@ -140,8 +145,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
-    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);                                        
-    HAL_NVIC_EnableIRQ(USART2_IRQn);
+
   /* USER CODE END USART2_MspInit 1 */
   }
 }
@@ -176,11 +180,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 } 
 
 /* USER CODE BEGIN 1 */
- void USART2_IRQHandler(void)
-{ 
-    HAL_UART_IRQHandler(&huart2);
-}
-
 void serviceUART(void)
 {
     HAL_UART_Receive_DMA(&huart2, &rxBuffer, 1);
@@ -188,8 +187,17 @@ void serviceUART(void)
 
 // Transmit characters over UART
 void transmitUART(char *ptr, int len)
-{
-        HAL_UART_Transmit_DMA(&huart2, (uint8_t *) ptr, len);
+{  
+    // Check that the input isn't longer than our buffer
+    if (len > TX_BUFFER_MAX_LENGTH){
+        _Error_Handler(__FILE__, __LINE__);
+    }
+    // Wait until UART TX is finished
+    while(txInProg == 1){}
+    txInProg = 1;
+    // Transfer the data to be sent into the txBuffer
+    memcpy(txBuffer,(uint8_t *)ptr,len);
+    HAL_UART_Transmit_DMA(&huart2, txBuffer, len); 
 }
 
 void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
@@ -200,6 +208,8 @@ void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
     //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
+    // Clear TX in progress flag when complete with transfer
+    txInProg= 0;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
