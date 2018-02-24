@@ -154,7 +154,7 @@ int main(void)
 //            accelerometer_read();
 //            magnetometer_read();
             rangefinderRead(0);
-//            rangefinderRead(1);
+            rangefinderRead(1);
         }
         cur_time = TimeStamp_Get();
         dt = cur_time - print_time;
@@ -163,7 +163,7 @@ int main(void)
 #ifdef DATA_PRINT_EN
             printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
                     dt, magData.orientation, 
-                    rangeMillimeterX, rangeMillimeterY, 
+                    rangeData[0], rangeData[1], 
                     accelData.x, accelData.y, accelData.z, 
                     gyroData.x, gyroData.y, gyroData.z);
 #endif

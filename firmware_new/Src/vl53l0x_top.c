@@ -1,35 +1,57 @@
 #include "vl53l0x_top.h"
 
 void VL53L0X_begin(){
-    rangeMillimeterX = 0;
-    rangeMillimeterY = 0;
+    // Initialize range data to 0mm
+    int i;
+    for (i = 0; i < NUM_RANGEFINDERS; i++){
+        rangeData[i] = 0;
+    }
 
     /** leaky factor for filtered range
      * r(n) = averaged_r(n-1)*leaky +r(n)(1-leaky)
      * */
     LeakyFactorFix8 = (int)( 0.6 *256); //(int)( 0.6 *256);
 
+    // Setup rangefinder device structs
     VL53L0XDevs[0].Id = 0;
     VL53L0XDevs[0].DevLetter = 'a';
     VL53L0XDevs[0].I2cHandle = &hi2c3;
     VL53L0XDevs[0].I2cDevAddr = 0x29;
+    VL53L0XDevs[0].XSHUT_Port = SW1_GPIO_Port;
+    VL53L0XDevs[0].XSHUT_Pin = SW1_Pin;
+    VL53L0XDevs[0].GPIO_Port = RF1_G_GPIO_Port;
+    VL53L0XDevs[0].GPIO_Pin = RF1_G_Pin;
+
     VL53L0XDevs[1].Id = 1;
     VL53L0XDevs[1].DevLetter = 'b';
     VL53L0XDevs[1].I2cHandle = &hi2c3;
     VL53L0XDevs[1].I2cDevAddr = 0x29;
+    VL53L0XDevs[1].XSHUT_Port = SW2_GPIO_Port;
+    VL53L0XDevs[1].XSHUT_Pin = SW2_Pin;
+    VL53L0XDevs[1].GPIO_Port = RF2_G_GPIO_Port;
+    VL53L0XDevs[1].GPIO_Pin = RF2_G_Pin;
+
     VL53L0XDevs[2].Id = 2;
     VL53L0XDevs[2].DevLetter = 'c';
     VL53L0XDevs[2].I2cHandle = &hi2c2;
     VL53L0XDevs[2].I2cDevAddr = 0x29;
+    VL53L0XDevs[2].XSHUT_Port = SW3_GPIO_Port;
+    VL53L0XDevs[2].XSHUT_Pin = SW3_Pin;
+    VL53L0XDevs[2].GPIO_Port = RF4_G_GPIO_Port;
+    VL53L0XDevs[2].GPIO_Pin = RF4_G_Pin;
+
     VL53L0XDevs[3].Id = 3;
     VL53L0XDevs[3].DevLetter = 'd';
     VL53L0XDevs[3].I2cHandle = &hi2c2;
     VL53L0XDevs[3].I2cDevAddr = 0x29;
+    VL53L0XDevs[3].XSHUT_Port = SW4_GPIO_Port;
+    VL53L0XDevs[3].XSHUT_Pin = SW4_Pin;
+    VL53L0XDevs[3].GPIO_Port = RF5_G_GPIO_Port;
+    VL53L0XDevs[3].GPIO_Pin = RF5_G_Pin;
 
     int status;
     VL53L0X_Dev_t *pDev;
-    int i;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < NUM_RANGEFINDERS; i++) {
         printf("Attempting to find rangefinder #%d...\r\n", i);
         uint16_t Id;
         pDev = &VL53L0XDevs[i];
@@ -38,22 +60,7 @@ void VL53L0X_begin(){
         int FinalAddress = RANGE_I2C_ADDR_INITIAL + (2 * (i + 1));
 
         // Enable the device by setting XSHUT pin high
-        switch (pDev->Id){
-        case 0:
-            HAL_GPIO_WritePin(SW1_GPIO_Port, SW1_Pin, 1);
-            break;
-        case 1:
-            HAL_GPIO_WritePin(SW2_GPIO_Port, SW2_Pin, 1);
-            break;
-        case 2:
-            HAL_GPIO_WritePin(SW3_GPIO_Port, SW3_Pin, 1);
-            break;
-        case 3:
-            HAL_GPIO_WritePin(SW4_GPIO_Port, SW4_Pin, 1);
-            break;
-        default:
-            printf("Error: unknown device ID\r\n");
-        }
+        HAL_GPIO_WritePin(pDev->XSHUT_Port, pDev->XSHUT_Pin, 1);
         HAL_Delay(3); // MUST HAVE THIS OR ELSE 2ND SENSOR WONT WORK
 
         /* Set I2C standard mode (400 KHz) before doing the first register access */
@@ -174,32 +181,20 @@ void VL53L0X_SetupSingleShot(){
 
 // Updates the range measurement of a particular rangefinder
 void rangefinderRead(int id){
-    if (id == 0){
-        if (HAL_GPIO_ReadPin(RF1_G_GPIO_Port, RF1_G_Pin)){
-            return; // New data not ready
-        }
-        VL53L0X_ClearInterruptMask(&VL53L0XDevs[0], 0);
-        if (VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[0], &RangingMeasurementDataX)){
-            printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n", id);
-        }
-        if (RangingMeasurementDataX.RangeStatus == 0){ 
-            Sensor_SetNewRange(&VL53L0XDevs[0],&RangingMeasurementDataX);
-            rangeMillimeterX = RangingMeasurementDataX.RangeMilliMeter;
-        }
-    } else {
-        if (HAL_GPIO_ReadPin(RF2_G_GPIO_Port, RF2_G_Pin)){
-            return; // New data not ready
-        }
-        VL53L0X_ClearInterruptMask(&VL53L0XDevs[1], 0);
-        if (VL53L0X_GetRangingMeasurementData(&VL53L0XDevs[1], &RangingMeasurementDataY)){
-            printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n", id);
-        }
-        if (RangingMeasurementDataY.RangeStatus == 0){ 
-            Sensor_SetNewRange(&VL53L0XDevs[1],&RangingMeasurementDataY);
-            rangeMillimeterY = RangingMeasurementDataY.RangeMilliMeter;
-        }
+    VL53L0X_Dev_t *pDev;
+    pDev = &VL53L0XDevs[id];
+
+    if (HAL_GPIO_ReadPin(pDev->GPIO_Port, pDev->GPIO_Pin)){
+        return; // New data not ready
     }
-//    printf("%d,%d\r\n", VL53L0XDevs[i].Id, RangingMeasurementData.RangeMilliMeter);
-//   printf("%d,%lu,%d,%d,%f\r\n", VL53L0XDevs[i].Id, TimeStamp_Get(), RangingMeasurementData.RangeStatus, RangingMeasurementData.RangeMilliMeter, RangingMeasurementData.SignalRateRtnMegaCps / 1.0);
+
+    VL53L0X_ClearInterruptMask(pDev, 0);
+    if (VL53L0X_GetRangingMeasurementData(pDev, &(pDev->RangeData))){
+        printf("VL53L0X_GetRangingMeasurementData failed on device %d\r\n", id);
+    }
+    if (pDev->RangeData.RangeStatus == 0){ 
+        Sensor_SetNewRange(pDev,&(pDev->RangeData));
+        rangeData[id] = pDev->RangeData.RangeMilliMeter;
+    }
 }
 

@@ -70,6 +70,13 @@ typedef struct {
     I2C_HandleTypeDef *I2cHandle;
     uint8_t   I2cDevAddr;
 
+    GPIO_TypeDef* XSHUT_Port;
+    uint16_t XSHUT_Pin;
+    GPIO_TypeDef* GPIO_Port;
+    uint16_t GPIO_Pin;
+
+    VL53L0X_RangingMeasurementData_t RangeData;
+
     char    DevLetter;
 
     int     Id;
