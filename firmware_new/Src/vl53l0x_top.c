@@ -21,6 +21,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[0].XSHUT_Pin = SW1_Pin;
     VL53L0XDevs[0].GPIO_Port = RF1_G_GPIO_Port;
     VL53L0XDevs[0].GPIO_Pin = RF1_G_Pin;
+    VL53L0XDevs[0].TimingBudgetUsecs = 33000;
 
     VL53L0XDevs[1].Id = 1;
     VL53L0XDevs[1].DevLetter = 'b';
@@ -30,6 +31,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[1].XSHUT_Pin = SW2_Pin;
     VL53L0XDevs[1].GPIO_Port = RF2_G_GPIO_Port;
     VL53L0XDevs[1].GPIO_Pin = RF2_G_Pin;
+    VL53L0XDevs[1].TimingBudgetUsecs = 33000;
 
     VL53L0XDevs[2].Id = 2;
     VL53L0XDevs[2].DevLetter = 'c';
@@ -39,6 +41,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[2].XSHUT_Pin = SW3_Pin;
     VL53L0XDevs[2].GPIO_Port = RF4_G_GPIO_Port;
     VL53L0XDevs[2].GPIO_Pin = RF4_G_Pin;
+    VL53L0XDevs[2].TimingBudgetUsecs = 33000;
 
     VL53L0XDevs[3].Id = 3;
     VL53L0XDevs[3].DevLetter = 'd';
@@ -48,6 +51,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[3].XSHUT_Pin = SW4_Pin;
     VL53L0XDevs[3].GPIO_Port = RF5_G_GPIO_Port;
     VL53L0XDevs[3].GPIO_Pin = RF5_G_Pin;
+    VL53L0XDevs[3].TimingBudgetUsecs = 33000;
 
     int status;
     VL53L0X_Dev_t *pDev;
@@ -135,7 +139,7 @@ void VL53L0X_SetupSingleShot(){
     uint32_t refSpadCount;
     uint8_t isApertureSpads;
 
-    for( i=0; i<2; i++){
+    for( i=0; i < NUM_RANGEFINDERS; i++){
         if( VL53L0XDevs[i].Present){
             //printf("Initializing device #%d\r\n", i);
             status=VL53L0X_StaticInit(&VL53L0XDevs[i]);
@@ -159,7 +163,7 @@ void VL53L0X_SetupSingleShot(){
                printf("VL53L0X_SetDeviceMode");
             }
 
-            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i],  33*1000);
+            status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(&VL53L0XDevs[i], VL53L0XDevs[i].TimingBudgetUsecs);
             if( status ){
                printf("VL53L0X_SetMeasurementTimingBudgetMicroSeconds");
             }

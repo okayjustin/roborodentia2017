@@ -122,11 +122,8 @@ int main(void)
     TimeStamp_Reset();
     serviceUART();
     printf("Enabling IMU...\r\n");
- //   IMU_begin();
-    //HAL_Delay(100);
+    IMU_begin();
     printf("Initializing rangefinders...\r\n");
-    //HAL_Delay(100);
-
     VL53L0X_begin();
     VL53L0X_SetupSingleShot();
 
@@ -137,7 +134,6 @@ int main(void)
     uint32_t print_time = 0;
     uint32_t cur_time = 0;
     uint32_t dt = 0;  // Units of 0.1 ms based on Timer5
-    HAL_Delay(1000);
 
     while (1)
     {
@@ -145,25 +141,27 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
-        cur_time = TimeStamp_Get();
-        dt = cur_time - print_time;
+        dt = TimeStamp_Get() - print_time;
         if (dt < 88){
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-//            gyro_read();
-//            accelerometer_read();
-//            magnetometer_read();
+            gyro_read();
+            accelerometer_read();
+            magnetometer_read();
             rangefinderRead(0);
             rangefinderRead(1);
+            rangefinderRead(2);
+            rangefinderRead(3);
         }
         cur_time = TimeStamp_Get();
         dt = cur_time - print_time;
         if (dt > 99){   // Data rate = 100 Hz
             print_time = cur_time;
 #ifdef DATA_PRINT_EN
-            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
                     dt, magData.orientation, 
                     rangeData[0], rangeData[1], 
+                    rangeData[2], rangeData[3], 
                     accelData.x, accelData.y, accelData.z, 
                     gyroData.x, gyroData.y, gyroData.z);
 #endif

@@ -95,6 +95,8 @@ typedef struct {
     uint16_t EffectiveSpadRtnCount;
     uint32_t StartTime;
 
+    uint32_t TimingBudgetUsecs;
+
 } VL53L0X_Dev_t;
 
 
