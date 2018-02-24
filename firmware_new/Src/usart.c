@@ -126,9 +126,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
     hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart2_tx.Init.Mode = DMA_CIRCULAR;
+    hdma_usart2_tx.Init.Mode = DMA_NORMAL;
     hdma_usart2_tx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
-    hdma_usart2_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    hdma_usart2_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
     if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
     {
       _Error_Handler(__FILE__, __LINE__);
@@ -137,7 +137,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
 
   /* USER CODE BEGIN USART2_MspInit 1 */
-
+    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);                                        
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE END USART2_MspInit 1 */
   }
 }
@@ -169,6 +170,11 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+ void USART2_IRQHandler(void)
+{ 
+    HAL_UART_IRQHandler(&huart2);
+}
+
 void serviceUART(void)
 {
     HAL_UART_Receive_DMA(&huart2, &rxBuffer, 1);
@@ -177,7 +183,17 @@ void serviceUART(void)
 // Transmit characters over UART
 void transmitUART(char *ptr, int len)
 {
-    HAL_UART_Transmit(&huart2, (uint8_t *) ptr, len, 0xFFFF);
+        HAL_UART_Transmit_DMA(&huart2, (uint8_t *) ptr, len);
+}
+
+void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
+{
+    //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+    //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)

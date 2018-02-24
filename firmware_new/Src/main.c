@@ -113,14 +113,21 @@ int main(void)
   MX_TIM5_Init();
 
   /* USER CODE BEGIN 2 */
+    // Turn off all the rangefinders
+    HAL_GPIO_WritePin(SW1_GPIO_Port, SW1_Pin, 0);
+    HAL_GPIO_WritePin(SW2_GPIO_Port, SW2_Pin, 0);
+    HAL_GPIO_WritePin(SW3_GPIO_Port, SW3_Pin, 0);
+    HAL_GPIO_WritePin(SW4_GPIO_Port, SW4_Pin, 0);
+
     TimeStamp_Reset();
     serviceUART();
     printf("Enabling IMU...\r\n");
-    IMU_begin();
+ //   IMU_begin();
     HAL_Delay(100);
     printf("Initializing rangefinders...\r\n");
-    //VL53L0X_begin();
-    //VL53L0X_SetupSingleShot();
+    VL53L0X_begin();
+    VL53L0X_SetupSingleShot();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -134,21 +141,16 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-        HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
-        HAL_Delay(500);
-        if (HAL_I2C_Master_Receive(&hi2c2, 58 << 1 | 1, NULL, 1, 10) == HAL_OK){
-            printf("Found I2C device at 7-bit address (decimal): %d\r\n", 58);
-        }
 
         cur_time = TimeStamp_Get();
         dt = cur_time - print_time;
         if (dt < 88){
             HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 
-            gyro_read();
-            accelerometer_read();
-            magnetometer_read();
-//            rangefinderRead(0);
+//            gyro_read();
+//            accelerometer_read();
+//            magnetometer_read();
+            rangefinderRead(0);
 //            rangefinderRead(1);
         }
         cur_time = TimeStamp_Get();
@@ -370,6 +372,8 @@ void _Error_Handler(char * file, int line)
    */
 void assert_failed(uint8_t* file, uint32_t line)
 {
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+        HAL_Delay(1000);
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */

@@ -10,18 +10,26 @@ void VL53L0X_begin(){
     LeakyFactorFix8 = (int)( 0.6 *256); //(int)( 0.6 *256);
 
     VL53L0XDevs[0].Id = 0;
-    VL53L0XDevs[0].DevLetter = 'l';
-    VL53L0XDevs[0].I2cHandle = &hi2c2;
-    VL53L0XDevs[0].I2cDevAddr = 0x52;
+    VL53L0XDevs[0].DevLetter = 'a';
+    VL53L0XDevs[0].I2cHandle = &hi2c3;
+    VL53L0XDevs[0].I2cDevAddr = 0x29;
     VL53L0XDevs[1].Id = 1;
-    VL53L0XDevs[1].DevLetter = 'c';
-    VL53L0XDevs[1].I2cHandle = &hi2c2;
-    VL53L0XDevs[1].I2cDevAddr = 0x52;
+    VL53L0XDevs[1].DevLetter = 'b';
+    VL53L0XDevs[1].I2cHandle = &hi2c3;
+    VL53L0XDevs[1].I2cDevAddr = 0x29;
+    VL53L0XDevs[2].Id = 2;
+    VL53L0XDevs[2].DevLetter = 'c';
+    VL53L0XDevs[2].I2cHandle = &hi2c2;
+    VL53L0XDevs[2].I2cDevAddr = 0x29;
+    VL53L0XDevs[3].Id = 3;
+    VL53L0XDevs[3].DevLetter = 'd';
+    VL53L0XDevs[3].I2cHandle = &hi2c2;
+    VL53L0XDevs[3].I2cDevAddr = 0x29;
 
     int status;
     VL53L0X_Dev_t *pDev;
     int i;
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < 4; i++) {
         printf("Attempting to find rangefinder #%d...\r\n", i);
         uint16_t Id;
         pDev = &VL53L0XDevs[i];
@@ -32,12 +40,16 @@ void VL53L0X_begin(){
         // Enable the device by setting XSHUT pin high
         switch (pDev->Id){
         case 0:
-            // FIX THIS FUNCTION
-            //HAL_GPIO_WritePin(RANGEX_XSHUT_GPIO_Port, RANGEX_XSHUT_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(SW1_GPIO_Port, SW1_Pin, 1);
             break;
         case 1:
-            // FIX THIS FUNCTION
-            //HAL_GPIO_WritePin(RANGEY_XSHUT_GPIO_Port, RANGEY_XSHUT_Pin, GPIO_PIN_SET);
+            HAL_GPIO_WritePin(SW2_GPIO_Port, SW2_Pin, 1);
+            break;
+        case 2:
+            HAL_GPIO_WritePin(SW3_GPIO_Port, SW3_Pin, 1);
+            break;
+        case 3:
+            HAL_GPIO_WritePin(SW4_GPIO_Port, SW4_Pin, 1);
             break;
         default:
             printf("Error: unknown device ID\r\n");
