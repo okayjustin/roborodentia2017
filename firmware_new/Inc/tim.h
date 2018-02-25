@@ -58,8 +58,14 @@ extern TIM_HandleTypeDef htim12;
 
 /* USER CODE BEGIN Private defines */
 #define SERVO1_PULSE_0 1402
+#define SERVO1_PULSE_45 2218
 #define SERVO1_PULSE_90 3034
+#define SERVO1_PULSE_135 3850
 #define SERVO1_PULSE_180 4666
+#define SERVO1_PULSE_1 4530
+#define SERVO1_PULSE_2 3450
+#define SERVO1_PULSE_3 2500
+#define SERVO1_PULSE_4 1360
 
 /* USER CODE END Private defines */
 

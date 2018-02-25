@@ -113,11 +113,6 @@ int main(void)
   MX_TIM5_Init();
 
   /* USER CODE BEGIN 2 */
-    // Turn off all the rangefinders
-    HAL_GPIO_WritePin(SW1_GPIO_Port, SW1_Pin, 0);
-    HAL_GPIO_WritePin(SW2_GPIO_Port, SW2_Pin, 0);
-    HAL_GPIO_WritePin(SW3_GPIO_Port, SW3_Pin, 0);
-    HAL_GPIO_WritePin(SW4_GPIO_Port, SW4_Pin, 0);
 
     TimeStamp_Reset();
     serviceUART();
@@ -125,7 +120,6 @@ int main(void)
     IMU_begin();
     printf("Initializing rangefinders...\r\n");
     VL53L0X_begin();
-    VL53L0X_SetupSingleShot();
 
   /* USER CODE END 2 */
 
@@ -319,15 +313,15 @@ void consoleCommand(uint8_t *ptr, int len)
             TIM_Channel = TIM_CHANNEL_3;
             TIM_Handle = &htim4;
         }
-        else if (ptr[1] == '4'){  // 4 for top launcher motor 
-            GPIOx = MOTOR_LAUNCH_TOP_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_LAUNCH_TOP_DIR_Pin;
+        else if (ptr[1] == '4'){  // 4 for blower fan
+            GPIOx = BLOWER_DIR_GPIO_Port;
+            GPIO_Pin = BLOWER_DIR_Pin;
             TIM_Channel = TIM_CHANNEL_1;
             TIM_Handle = &htim3;
         }
-        else if (ptr[1] == '5'){  // 5 for bottom launcher motor
-            GPIOx = MOTOR_LAUNCH_BOT_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_LAUNCH_BOT_DIR_Pin;
+        else if (ptr[1] == '5'){  // 5 for launcher motors 
+            GPIOx = MOTOR_LAUNCH_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_LAUNCH_DIR_Pin;
             TIM_Channel = TIM_CHANNEL_2;
             TIM_Handle = &htim3;
         }
@@ -370,13 +364,23 @@ void consoleCommand(uint8_t *ptr, int len)
         sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 
         if (ptr[1] == '0'){         // Set servo to 0 degrees
-            sConfigOC.Pulse = SERVO1_PULSE_0;
+            sConfigOC.Pulse = SERVO1_PULSE_1;
         }
-        else if (ptr[1] == '1'){    // Set servo to 90 degrees
-            sConfigOC.Pulse = SERVO1_PULSE_90;
+        else if (ptr[1] == '1'){    // Set servo to 45 degrees
+            sConfigOC.Pulse = SERVO1_PULSE_1;
         }
-        else if (ptr[1] == '2'){    // Set servo to 180 degrees
-            sConfigOC.Pulse = SERVO1_PULSE_180;
+        else if (ptr[1] == '2'){    // Set servo to 90 degrees
+            sConfigOC.Pulse = SERVO1_PULSE_2;
+        }
+        else if (ptr[1] == '3'){    // Set servo to 135 degrees
+            sConfigOC.Pulse = SERVO1_PULSE_3;
+        }
+        else if (ptr[1] == '4'){    // Set servo to 180 degrees
+            sConfigOC.Pulse = SERVO1_PULSE_4;
+        }
+
+        if (ptr[2] == 'S' || ptr[2] == 's'){  
+            sConfigOC.Pulse = atoi((char *)ptr + 3);
         }
 
         // Alter the PWM duty cycle and start PWM again

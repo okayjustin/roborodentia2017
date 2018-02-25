@@ -143,15 +143,16 @@
 #define MOTOR_BL_DIR_GPIO_Port M2_2_GPIO_Port
 #define MOTOR_BL_DIR_Pin M2_2_Pin   
 
-#define MOTOR_LAUNCH_TOP_PWM_GPIO_Port M3_1_GPIO_Port
-#define MOTOR_LAUNCH_TOP_PWM_Pin M3_1_Pin   
-#define MOTOR_LAUNCH_TOP_DIR_GPIO_Port M3_2_GPIO_Port
-#define MOTOR_LAUNCH_TOP_DIR_Pin M3_2_Pin   
+#define BLOWER_PWM_GPIO_Port M3_1_GPIO_Port
+#define BLOWER_PWM_Pin M3_1_Pin   
+#define BLOWER_DIR_GPIO_Port M3_2_GPIO_Port
+#define BLOWER_DIR_Pin M3_2_Pin   
 
-#define MOTOR_LAUNCH_BOT_PWM_GPIO_Port M3_3_GPIO_Port
-#define MOTOR_LAUNCH_BOT_PWM_Pin M3_3_Pin   
-#define MOTOR_LAUNCH_BOT_DIR_GPIO_Port M3_4_GPIO_Port
-#define MOTOR_LAUNCH_BOT_DIR_Pin M3_4_Pin   
+#define MOTOR_LAUNCH_PWM_GPIO_Port M3_3_GPIO_Port
+#define MOTOR_LAUNCH_PWM_Pin M3_3_Pin   
+#define MOTOR_LAUNCH_DIR_GPIO_Port M3_4_GPIO_Port
+#define MOTOR_LAUNCH_DIR_Pin M3_4_Pin   
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
