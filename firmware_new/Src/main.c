@@ -142,30 +142,34 @@ int main(void)
   /* USER CODE BEGIN 3 */
 
         dt = TimeStamp_Get() - print_time;
-        if (dt < 88){
-            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        if (dt < 96) rangefinderRead(0);
+        dt = TimeStamp_Get() - print_time;
+        if (dt < 96) rangefinderRead(1);
+        dt = TimeStamp_Get() - print_time;
+        if (dt < 96) rangefinderRead(2);
+        dt = TimeStamp_Get() - print_time;
+        if (dt < 96) rangefinderRead(3);
+        dt = TimeStamp_Get() - print_time;
+        if (dt < 98) gyro_read();
+        dt = TimeStamp_Get() - print_time;
+        if (dt < 98) accelerometer_read();
+        dt = TimeStamp_Get() - print_time;
+        if (dt < 98) magnetometer_read();
 
-            gyro_read();
-            accelerometer_read();
-            magnetometer_read();
-            rangefinderRead(0);
-            rangefinderRead(1);
-            rangefinderRead(2);
-            rangefinderRead(3);
-        }
+#ifdef DATA_PRINT_EN
         cur_time = TimeStamp_Get();
         dt = cur_time - print_time;
         if (dt > 99){   // Data rate = 100 Hz
             print_time = cur_time;
-#ifdef DATA_PRINT_EN
             printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
                     dt, magData.orientation, 
                     rangeData[0], rangeData[1], 
                     rangeData[2], rangeData[3], 
                     accelData.x, accelData.y, accelData.z, 
                     gyroData.x, gyroData.y, gyroData.z);
-#endif
         }
+#endif
+
     }
   /* USER CODE END 3 */
 
@@ -288,27 +292,50 @@ void consoleCommand(uint8_t *ptr, int len)
         uint16_t GPIO_Pin;
         GPIO_PinState PinState;
         uint32_t TIM_Channel;
+        TIM_HandleTypeDef *TIM_Handle;
 
-        // Set variables based on which motor needs to be controlled. Motor 1 is front left, increments clockwise
+        // Set variables based on which motor needs to be controlled. Motor 0 is front left, increments clockwise
         if (ptr[1] == '0'){  // 0 for front left
             GPIOx = MOTOR_FL_DIR_GPIO_Port;
             GPIO_Pin = MOTOR_FL_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_1;
+            TIM_Channel = TIM_CHANNEL_2;
+            TIM_Handle = &htim4;
         }
         else if (ptr[1] == '1'){  // 1 for front right
             GPIOx = MOTOR_FR_DIR_GPIO_Port;
             GPIO_Pin = MOTOR_FR_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_2;
+            TIM_Channel = TIM_CHANNEL_4;
+            TIM_Handle = &htim4;
         }
         else if (ptr[1] == '2'){  // 2 for back right
             GPIOx = MOTOR_BR_DIR_GPIO_Port;
             GPIO_Pin = MOTOR_BR_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_3;
+            TIM_Channel = TIM_CHANNEL_1;
+            TIM_Handle = &htim4;
         }
-        else if (ptr[1] == '3'){  // 3 for back right
+        else if (ptr[1] == '3'){  // 3 for back left
             GPIOx = MOTOR_BL_DIR_GPIO_Port;
             GPIO_Pin = MOTOR_BL_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_4;
+            TIM_Channel = TIM_CHANNEL_3;
+            TIM_Handle = &htim4;
+        }
+        else if (ptr[1] == '4'){  // 4 for top launcher motor 
+            GPIOx = MOTOR_LAUNCH_TOP_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_LAUNCH_TOP_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_1;
+            TIM_Handle = &htim3;
+        }
+        else if (ptr[1] == '5'){  // 5 for bottom launcher motor
+            GPIOx = MOTOR_LAUNCH_BOT_DIR_GPIO_Port;
+            GPIO_Pin = MOTOR_LAUNCH_BOT_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_2;
+            TIM_Handle = &htim3;
+        }
+        else if (ptr[1] == '6'){  // 6 for servo1
+            GPIOx = SERVO1_DIR_GPIO_Port;
+            GPIO_Pin = SERVO1_DIR_Pin;
+            TIM_Channel = TIM_CHANNEL_1;
+            TIM_Handle = &htim12;
         }
         else {
             return;
@@ -337,8 +364,8 @@ void consoleCommand(uint8_t *ptr, int len)
             sConfigOC.Pulse = atoi((char *)ptr + 3); // Accepts 0-2047
 
             // Alter the PWM duty cycle and start PWM again
-            if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
-            if (HAL_TIM_PWM_Start(&htim4, TIM_Channel) != HAL_OK){ Error_Handler(); }
+            if (HAL_TIM_PWM_ConfigChannel(TIM_Handle, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
+            if (HAL_TIM_PWM_Start(TIM_Handle, TIM_Channel) != HAL_OK){ Error_Handler(); }
         }
     }
 }            

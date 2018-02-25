@@ -198,7 +198,7 @@ void rangefinderRead(int id){
     }
     if (pDev->RangeData.RangeStatus == 0){ 
         Sensor_SetNewRange(pDev,&(pDev->RangeData));
-        rangeData[id] = pDev->RangeData.RangeMilliMeter;
+        rangeData[id] = pDev->LeakyRange;
     }
 }
 
