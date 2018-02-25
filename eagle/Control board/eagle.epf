@@ -362,18 +362,12 @@ UsedLibrary="D:/Documents/GitHub/eagle/Libraries/rcl modified.lbr"
 UsedLibrary="D:/Documents/GitHub/eagle/Libraries/transistor modified.lbr"
 
 [Win_1]
-Type="Control Panel"
-Loc="735 366 1809 1092"
-State=2
-Number=0
-
-[Win_2]
 Type="Board Editor"
-Loc="-7 0 2548 1377"
+Loc="0 0 2555 1377"
 State=2
 Number=2
 File="control_board.brd"
-View="16.5636 58.1392 51.657 94.7999"
+View="26.0607 6.76683 98.8304 82.7865"
 WireWidths=" 0 1.778 1.9304 2.1844 2.54 3.81 6.4516 1.6764 0.8128 0.4064 0.6096 0.3048 0.254 0.2032 1.4224 1.016"
 PadDiameters=" 0.254 0.3048 0.4064 0.6096 0.8128 1.016 1.27 1.4224 1.6764 1.778 1.9304 2.1844 2.54 3.81 6.4516 0"
 PadDrills=" 0.6 0.7 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 2 2.2 2.8 3.2 0.8 0.3"
@@ -413,13 +407,13 @@ AddLevel=2
 PadsSameType=0
 Layer=21
 
-[Win_3]
+[Win_2]
 Type="Schematic Editor"
-Loc="-8 -8 2551 1378"
+Loc="0 0 2559 1386"
 State=1
 Number=1
 File="control_board.sch"
-View="-5.80736 -4.13096 269.759 184.263"
+View="14.8248 52.9417 145.654 244.307"
 WireWidths=" 0 0.3048 0.6096 0.8128 1.016 1.27 1.4224 1.6764 1.778 1.9304 2.1844 2.54 3.81 6.4516 0.4064 0.1524"
 PadDiameters=" 0.254 0.3048 0.4064 0.6096 0.8128 1.016 1.27 1.4224 1.6764 1.778 1.9304 2.1844 2.54 3.81 6.4516 0"
 PadDrills=" 0.5 0.6 0.7 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 2 2.2 2.8 3.2 0.8"
@@ -458,8 +452,14 @@ ArcDirection=0
 AddLevel=2
 PadsSameType=0
 Layer=91
-Views=" 1: -5.80736 -4.13096 269.759 184.263 5: -8.44833 -2.63726 267.118 185.757"
-Sheet="6"
+Views=" 1: -5.80736 -4.13096 269.759 184.263 2: 14.8248 52.9417 145.654 244.307 5: -8.44833 -2.63726 267.118 185.757"
+Sheet="2"
+
+[Win_3]
+Type="Control Panel"
+Loc="735 366 1809 1092"
+State=2
+Number=0
 
 [Desktop]
 Screen="2560 1440"
