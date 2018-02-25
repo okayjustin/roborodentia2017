@@ -331,12 +331,6 @@ void consoleCommand(uint8_t *ptr, int len)
             TIM_Channel = TIM_CHANNEL_2;
             TIM_Handle = &htim3;
         }
-        else if (ptr[1] == '6'){  // 6 for servo1
-            GPIOx = SERVO1_DIR_GPIO_Port;
-            GPIO_Pin = SERVO1_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_1;
-            TIM_Handle = &htim12;
-        }
         else {
             return;
         }
@@ -367,6 +361,27 @@ void consoleCommand(uint8_t *ptr, int len)
             if (HAL_TIM_PWM_ConfigChannel(TIM_Handle, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
             if (HAL_TIM_PWM_Start(TIM_Handle, TIM_Channel) != HAL_OK){ Error_Handler(); }
         }
+    }
+    // S for servo commands
+    else if (ptr[0] == 'S' || ptr[0] == 's'){  
+        TIM_OC_InitTypeDef sConfigOC;
+        sConfigOC.OCMode = TIM_OCMODE_PWM1;
+        sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+        sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+
+        if (ptr[1] == '0'){         // Set servo to 0 degrees
+            sConfigOC.Pulse = SERVO1_PULSE_0;
+        }
+        else if (ptr[1] == '1'){    // Set servo to 90 degrees
+            sConfigOC.Pulse = SERVO1_PULSE_90;
+        }
+        else if (ptr[1] == '2'){    // Set servo to 180 degrees
+            sConfigOC.Pulse = SERVO1_PULSE_180;
+        }
+
+        // Alter the PWM duty cycle and start PWM again
+        if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
+        if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
     }
 }            
 /* USER CODE END 4 */
