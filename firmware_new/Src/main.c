@@ -121,6 +121,9 @@ int main(void)
     printf("Initializing rangefinders...\r\n");
     VL53L0X_begin();
 
+    // Move servo to center position
+    if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -366,16 +369,16 @@ void consoleCommand(uint8_t *ptr, int len)
         if (ptr[1] == '0'){         // Set servo to 0 degrees
             sConfigOC.Pulse = SERVO1_PULSE_1;
         }
-        else if (ptr[1] == '1'){    // Set servo to 45 degrees
+        else if (ptr[1] == '1'){    // Set servo to slot 1 release
             sConfigOC.Pulse = SERVO1_PULSE_1;
         }
-        else if (ptr[1] == '2'){    // Set servo to 90 degrees
+        else if (ptr[1] == '2'){    // Set servo to slot 2 release
             sConfigOC.Pulse = SERVO1_PULSE_2;
         }
-        else if (ptr[1] == '3'){    // Set servo to 135 degrees
+        else if (ptr[1] == '3'){    // Set servo to slot 3 release
             sConfigOC.Pulse = SERVO1_PULSE_3;
         }
-        else if (ptr[1] == '4'){    // Set servo to 180 degrees
+        else if (ptr[1] == '4'){    // Set servo to slot 4 release
             sConfigOC.Pulse = SERVO1_PULSE_4;
         }
 
@@ -386,6 +389,92 @@ void consoleCommand(uint8_t *ptr, int len)
         // Alter the PWM duty cycle and start PWM again
         if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
         if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
+    }
+    // L for launcher macro commands
+    else if (ptr[0] == 'L' || ptr[0] == 'l'){  
+        uint32_t slot_pulse1 = SERVO1_PULSE_90;
+        uint32_t slot_pulse2 = SERVO1_PULSE_90;
+
+        // Fire left side slots
+        if (ptr[1] == 'L' || ptr[1] == 'l'){    
+            slot_pulse1 = SERVO1_PULSE_2;
+            slot_pulse2 = SERVO1_PULSE_1;
+        }
+        // Fire right side slots 
+        else if (ptr[1] == 'R' || ptr[1] == 'r'){    
+            slot_pulse1 = SERVO1_PULSE_3;
+            slot_pulse2 = SERVO1_PULSE_4;
+        }
+        // Stop    
+        else if (ptr[1] == 'S' || ptr[1] == 's'){    
+            // Disable blower and launcher motors
+            HAL_GPIO_WritePin(BLOWER_DIR_GPIO_Port, BLOWER_DIR_Pin, 0);
+            HAL_GPIO_WritePin(MOTOR_LAUNCH_DIR_GPIO_Port, MOTOR_LAUNCH_DIR_Pin, 0);
+        }
+
+        if (ptr[1] == 'L' || ptr[1] == 'l' || ptr[1] == 'R' || ptr[1] == 'r'){
+            uint32_t cur_time = 0;
+            uint32_t cur_time2 = 0;
+            uint32_t wiggle_amt = 100;
+            uint32_t wiggle_period = 1000;
+
+
+            TIM_OC_InitTypeDef sConfigOC;
+            sConfigOC.OCMode = TIM_OCMODE_PWM1;
+            sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+            sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+
+            // Enable blower and launcher motors
+            HAL_GPIO_WritePin(BLOWER_DIR_GPIO_Port, BLOWER_DIR_Pin, 1);
+            HAL_GPIO_WritePin(MOTOR_LAUNCH_DIR_GPIO_Port, MOTOR_LAUNCH_DIR_Pin, 1);
+
+            // Wait for balls to finish firing first slot
+            cur_time = TimeStamp_Get();
+            while (TimeStamp_Get() - cur_time < 9000){
+                // Move servo to release first slot and jiggle it
+                sConfigOC.Pulse = slot_pulse1 + wiggle_amt;
+                if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
+                if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
+
+                cur_time2 = TimeStamp_Get();
+                while (TimeStamp_Get() - cur_time2 < wiggle_period){}
+
+                sConfigOC.Pulse = slot_pulse1 - wiggle_amt;
+                if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
+                if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
+
+                cur_time2 = TimeStamp_Get();
+                while (TimeStamp_Get() - cur_time2 < wiggle_period){}
+            }
+
+            // Wait for balls to finish firing second slot
+            cur_time = TimeStamp_Get();
+            while (TimeStamp_Get() - cur_time < 21000){
+                // Move servo to release first slot and jiggle it
+                sConfigOC.Pulse = slot_pulse2 + wiggle_amt;
+                if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
+                if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
+
+                cur_time2 = TimeStamp_Get();
+                while (TimeStamp_Get() - cur_time2 < wiggle_period){}
+
+                sConfigOC.Pulse = slot_pulse2 - wiggle_amt;
+                if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
+                if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
+
+                cur_time2 = TimeStamp_Get();
+                while (TimeStamp_Get() - cur_time2 < wiggle_period){}
+            }
+
+            // Disable blower and launcher motors
+            HAL_GPIO_WritePin(BLOWER_DIR_GPIO_Port, BLOWER_DIR_Pin, 0);
+            HAL_GPIO_WritePin(MOTOR_LAUNCH_DIR_GPIO_Port, MOTOR_LAUNCH_DIR_Pin, 0);
+
+            // Move servo to center position
+            sConfigOC.Pulse = SERVO1_PULSE_90;
+            if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
+            if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
+        }
     }
 }            
 /* USER CODE END 4 */
