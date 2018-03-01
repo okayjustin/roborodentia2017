@@ -23,6 +23,9 @@ import pprint as pp
 
 from replay_buffer import ReplayBuffer
 
+SCREEN_WIDTH = 1600
+SCREEN_HEIGHT = 1000
+
 # ===========================
 #   Actor and Critic DNNs
 # ===========================
@@ -344,13 +347,17 @@ def main(args):
 
     with tf.Session() as sess:
 
+#        env = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+#        env.setup()
         env = gym.make(args['env'])
         np.random.seed(int(args['random_seed']))
         tf.set_random_seed(int(args['random_seed']))
         env.seed(int(args['random_seed']))
 
         state_dim = env.observation_space.shape[0]
+        print(env.observation_space)
         action_dim = env.action_space.shape[0]
+        print(env.action_space)
         action_bound = env.action_space.high
         # Ensure action bound is symmetric
         assert (env.action_space.high == -env.action_space.low)
