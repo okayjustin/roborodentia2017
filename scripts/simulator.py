@@ -41,18 +41,20 @@ class SimRobot():
         self.y = y
         self.theta = theta
 
-        self.rf1 = SimRangefinder(self,self.len_x/2.0, 0.0, -90.0)
-        self.rf2 = SimRangefinder(self,self.len_x/2.0, len_y/2.0, 90.0)
-        self.rf3 = SimRangefinder(self,self.len_x/2.0, len_y/2.0, 90.0)
-        self.rf4 = SimRangefinder(self,self.len_x/2.0, len_y/2.0, 90.0)
+        self.rf1 = SimRangefinder(self, 0.0, self.len_y/2.0, 90.0)
+        self.rf2 = SimRangefinder(self, -1 * self.len_x/2.0, 0.0, 180.0)
+        self.rf3 = SimRangefinder(self, 0.0, -1 * len_y/2.0, 270.0)
+        self.rf4 = SimRangefinder(self, self.len_x/2.0, 0.0, 0.0)
 
     def updateRFs(self,dummy):
-        self.rf1.getMeas((x,y,theta))
+        self.rf1.getMeas(self)
+        self.rf2.getMeas(self)
+        self.rf3.getMeas(self)
+        self.rf4.getMeas(self)
 
 
 """
 Simulates a rangefinder.
-robot_coors, tuple of (x,y,theta) coordinates
 x: x-position in robot coordinates
 y: y-position in robot coordinates
 theta: orientation in robot coordinates
@@ -61,13 +63,13 @@ max_range: maximum measurement range
 meas_period: amount of time between measurements
 """
 class SimRangefinder():
-    def __init__(self,robot_coors,x,y,theta,max_range=1200.0,meas_period=0.033,meas_var=0.03):
-        self.robot_coors = robot_coors
+    def __init__(self,robot,x,y,theta,max_range=1200.0,meas_period=0.033,meas_var=0.03):
+        self.robot = robot
         self.theta = theta
         self.radius = math.sqrt(math.pow(x,2) + math.pow(y,2))
-        rf_field_theta = (robot_coors[2] + self.theta) * math.pi / 180.0
-        self.x1 = robot_coors[0] + self.radius * math.cos(rf_field_theta)
-        self.y1 = robot_coors[1] + self.radius * math.sin(rf_field_theta)
+        rf_field_theta = (self.robot.theta+self.theta) * math.pi / 180.0
+        self.x1 = self.robot.x + self.radius * math.cos(rf_field_theta)
+        self.y1 = self.robot.y + self.radius * math.sin(rf_field_theta)
         self.x2 = 0
         self.y2 = 0
         self.max_range = max_range
@@ -82,11 +84,14 @@ class SimRangefinder():
     Returns the measurement of the rangefinder in mm.
     robot: robot object
     """
-    def getMeas(self, dummy):
+    def getMeas(self, robot):
+        self.robot = robot
+
         # Calculate the sensor's position and orientation in the field
-        rf_field_theta = (self.robot_coors[2] + self.theta) * math.pi / 180.0
-        self.x1 = self.robot_coors[0] + self.radius * math.cos(rf_field_theta)
-        self.y2 = self.robot_coors[1] + self.radius * math.sin(rf_field_theta)
+        rf_field_theta = (self.robot.theta+self.theta) * math.pi / 180.0
+        print("%f, %f, %f, %f" % (self.robot.x, self.robot.y, self.radius, rf_field_theta))
+        self.x1 = self.robot.x + self.radius * math.cos(rf_field_theta)
+        self.y1 = self.robot.y + self.radius * math.sin(rf_field_theta)
 
         # Calculate cos and sin of the angle
         cosval = math.cos(rf_field_theta)
@@ -101,24 +106,31 @@ class SimRangefinder():
         else:
             self.meas_y = -1 * self.y1
 
-        self.x2 = self.x1 + self.meas_x
-        self.y2 = self.y1 + self.meas_y
 
         # Calculate the two possible measurements
         try:
-            hx = self.meas_x / cosval
-            hy = self.meas_y / sinval
+            hx = self.meas_x / cosval # If the hypotenuse extends to a vertical wall
+            hy = self.meas_y / sinval # If the hypotenuse extends to a horizontal wall
 
             # The correct measurement is the shorter one
             if (hx < hy):
                 self.meas = hx
+                self.x2 = self.x1 + self.meas_x
+                self.y2 = self.y1 + self.meas * sinval
             else:
                 self.meas = hy
+                self.x2 = self.x1 + self.meas * cosval
+                self.y2 = self.y1 + self.meas_y
         except ZeroDivisionError:
             if (cosval != 0):
                 self.meas = self.meas_x / cosval
+                self.x2 = self.x1 + self.meas_x
+                self.y2 = self.y1 + self.meas * sinval
             else:
                 self.meas = self.meas_y / sinval
+                self.x2 = self.x1 + self.meas * cosval
+                self.y2 = self.y1 + self.meas_y
+
 
 
 
@@ -167,6 +179,7 @@ class MyGame(arcade.Window):
         self.all_sprites_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
 
+        # Offset values in pixels to move (0,0) coordinate into field area
         self.xoffset = (SCREEN_WIDTH/2) - FIELD_XMAX / (2 * MM_PER_PIX)
         self.yoffset = (SCREEN_HEIGHT/2) - FIELD_YMAX / (2 * MM_PER_PIX)
 
@@ -222,14 +235,21 @@ class MyGame(arcade.Window):
         self.player_sprite.draw()
 
         # Draw rangefinder sights
-        arcade.draw_line(self.robot.rf1.x1/MM_PER_PIX, self.robot.rf1.y1/MM_PER_PIX, \
-                self.robot.rf1.x2/MM_PER_PIX, self.robot.rf1.y2/MM_PER_PIX, arcade.color.WOOD_BROWN, 3)
+        self.draw_line_mm(self.robot.rf1.x1, self.robot.rf1.y1, self.robot.rf1.x2, self.robot.rf1.y2)
+        self.draw_line_mm(self.robot.rf2.x1, self.robot.rf2.y1, self.robot.rf2.x2, self.robot.rf2.y2)
+        self.draw_line_mm(self.robot.rf3.x1, self.robot.rf3.y1, self.robot.rf3.x2, self.robot.rf3.y2)
+        self.draw_line_mm(self.robot.rf4.x1, self.robot.rf4.y1, self.robot.rf4.x2, self.robot.rf4.y2)
 
         # Print info text
         arcade.draw_text("Robot: (%f,%f)" % (self.robot.x, self.robot.y), 10, 10, arcade.color.BLACK, 12)
         arcade.draw_text("%f %f %f %f %f" %\
                 (self.robot.rf1.meas, self.robot.rf1.x1, self.robot.rf1.y1,\
                 self.robot.rf1.x2, self.robot.rf1.y2), 10, 30, arcade.color.BLACK, 12)
+
+    def draw_line_mm(self,x1,y1,x2,y2):
+        arcade.draw_line(x1/MM_PER_PIX + self.xoffset, y1/MM_PER_PIX + self.yoffset, \
+                x2/MM_PER_PIX + self.xoffset, y2/MM_PER_PIX + self.yoffset,
+                arcade.color.WOOD_BROWN, 3)
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed. """
