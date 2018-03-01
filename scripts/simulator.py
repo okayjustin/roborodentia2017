@@ -22,6 +22,7 @@ MM_PER_PIX = 1.6
 
 MOVEMENT_SPEED = 5
 TIME_STEP = 0.01 # seconds
+FRAME_SKIP = 3
 
 
 """
@@ -85,11 +86,11 @@ class SimRobot():
         x_vel = right_vel * math.cos(math.radians(self.theta)) + front_vel * math.sin(math.radians(self.theta))
         y_vel = right_vel * math.sin(math.radians(self.theta)) + front_vel * math.cos(math.radians(self.theta))
 
-        # Calculate the x and y spacing for collision detection
         # Calculate cos and sin of the angle
         angle = math.radians(self.theta % 180)
         cosval = math.cos(angle)
 
+        # Calculate the x and y spacing for collision detection
         if (cosval >= 0):
             x_space = abs(self.diag_len * math.cos(math.pi - self.diag_angle + angle))
             y_space = abs(self.diag_len * math.sin(self.diag_angle + angle))
@@ -97,9 +98,11 @@ class SimRobot():
             x_space = abs(self.diag_len * math.cos(self.diag_angle + angle))
             y_space = abs(self.diag_len * math.sin(math.pi - self.diag_angle + angle))
 
+        # Assign new x,y location
         self.x = hf.limitValue(self.x + x_vel * TIME_STEP,x_space,FIELD_XMAX - x_space)
         self.y = hf.limitValue(self.y + y_vel * TIME_STEP,y_space,FIELD_YMAX - y_space)
 
+        # Update rangefinder measurements
         self.updateRFs(0)
 
     def updateRFs(self,dummy):
@@ -276,8 +279,6 @@ class MyGame(arcade.Window):
 
 #        self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
-        #arcade.schedule(self.robot.updateRFs, 0.33)
-
         # Set the background color
         arcade.set_background_color(arcade.color.AMAZON)
 
@@ -304,7 +305,7 @@ class MyGame(arcade.Window):
                 (self.robot.rf1.meas, self.robot.rf2.meas, self.robot.rf3.meas, self.robot.rf4.meas),\
                 10, 30, arcade.color.BLACK, 12)
         arcade.draw_text("Robot: x: %8.2f, y: %8.2f, theta: %8.2f)" % \
-                (self.robot.x, self.robot.y, self.robot.theta), 10, 10, arcade.color.BLACK, 12)
+                (self.robot.x, self.robot.y, self.robot.theta % 360), 10, 10, arcade.color.BLACK, 12)
 
     # Input array should be [x1,y1,x2,y2]
     def draw_line_mm(self,dim):
@@ -336,10 +337,14 @@ class MyGame(arcade.Window):
         # example though.)
         #self.physics_engine.update()
 
-        self.time += TIME_STEP
+        # Track frame number to allow skipping
+        self.frame = -1
+        while (self.frame < FRAME_SKIP):
+            self.frame += 1
+            self.time += TIME_STEP
 
-        # Next step of robot simulation
-        self.robot.update([0.4, -0.4, -0.4, 0.4, 0])
+            # Next step of robot simulation
+            self.robot.update([0.9, -0.2, -0.9, 0.9, 0])
 
         # Update graphics vars
         self.player_sprite.position[0] = self.robot.x/MM_PER_PIX + self.xoffset
