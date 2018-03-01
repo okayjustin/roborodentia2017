@@ -20,6 +20,7 @@ SCREEN_HEIGHT = 1000
 MM_PER_PIX = 1.6
 
 MOVEMENT_SPEED = 5
+TIME_STEP = 0.05 # seconds
 
 
 """
@@ -35,16 +36,46 @@ theta: starting angle of the robot origin in field coordinates
 """
 class SimRobot():
     def __init__(self,x,y,len_x=315.0,len_y=275.0,theta=0.0):
+        self.max_wheel_w = 2*math.pi*4 # max wheel rotational velocity in rad/s
         self.len_x = len_x
         self.len_y = len_y
         self.x = x
         self.y = y
         self.theta = theta
 
+        # Converts wheel velocities to tranlational x,y, and rotational velocities
+        r =  30.0   # Wheel radius in mm
+        L1 = 119.35 # Half the distance between the centers of front and back wheels in mm
+        L2 = 125.7  # Half the distance between the centers of left and right wheels in mm
+        self.mecanum_xfer = (r/4) * np.array([[1,1,1,1],[-1,1,-1,1],\
+                [1/(L1+L2),-1/(L1+L2),-1/(L1+L2),1/(L1+L2)]])
+
         self.rf1 = SimRangefinder(self, 0.0, self.len_y/2.0, 90.0)
         self.rf2 = SimRangefinder(self, -1 * self.len_x/2.0, 0.0, 180.0)
         self.rf3 = SimRangefinder(self, 0.0, -1 * len_y/2.0, 270.0)
         self.rf4 = SimRangefinder(self, self.len_x/2.0, 0.0, 0.0)
+
+    """
+    ctrl is a array with the various motor/launcher control inputs, valid range -1 to +1
+    ctrl[0]: Front left motor, +1 rotates towards right
+    ctrl[1]: Back left motor, +1 rotates towards right
+    ctrl[2]: Back right motor, +1 rotates towards right
+    ctrl[3]: Front right motor, +1 rotates towards right
+    ctrl[4]: Launcher
+    """
+    def update(self,ctrl):
+         # Wheel rotational velocities in degrees/sec
+        wheel_w = self.max_wheel_w * np.array([[ctrl[0]],[ctrl[1]],[ctrl[2]],[ctrl[3]]])
+        velocities = np.matmul(self.mecanum_xfer, wheel_w)
+        x_vel = velocities[0][0]
+        y_vel = velocities[1][0]
+        rotation_vel = velocities[2][0]
+
+        self.x = self.x + x_vel * TIME_STEP
+        self.y = self.y + y_vel * TIME_STEP
+        self.theta = self.theta + (rotation_vel * TIME_STEP * 180 / math.pi)
+
+        self.updateRFs(0)
 
     def updateRFs(self,dummy):
         self.rf1.getMeas(self)
@@ -89,7 +120,6 @@ class SimRangefinder():
 
         # Calculate the sensor's position and orientation in the field
         rf_field_theta = (self.robot.theta+self.theta) * math.pi / 180.0
-        print("%f, %f, %f, %f" % (self.robot.x, self.robot.y, self.radius, rf_field_theta))
         self.x1 = self.robot.x + self.radius * math.cos(rf_field_theta)
         self.y1 = self.robot.y + self.radius * math.sin(rf_field_theta)
 
@@ -171,7 +201,7 @@ class MyGame(arcade.Window):
         self.wall_list = None
         self.physics_engine = None
 
-        self.robot = SimRobot(100,100)
+        self.robot = SimRobot(FIELD_XMAX / 2, FIELD_YMAX/2)
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -185,9 +215,8 @@ class MyGame(arcade.Window):
 
         # Set up the player
         self.score = 0
+        self.time = 0
         self.player_sprite = arcade.Sprite("images/robot.png", SPRITE_SCALING)
-        self.player_sprite.center_x = SCREEN_WIDTH / 2
-        self.player_sprite.center_y = SCREEN_HEIGHT / 2
         self.all_sprites_list.append(self.player_sprite)
 
         # Create walls of field
@@ -215,10 +244,9 @@ class MyGame(arcade.Window):
         self.all_sprites_list.append(wall)
         self.wall_list.append(wall)
 
-        self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite,
-                                                         self.wall_list)
+#        self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
-        arcade.schedule(self.robot.updateRFs, 0.33)
+        #arcade.schedule(self.robot.updateRFs, 0.33)
 
         # Set the background color
         arcade.set_background_color(arcade.color.AMAZON)
@@ -241,10 +269,11 @@ class MyGame(arcade.Window):
         self.draw_line_mm(self.robot.rf4.x1, self.robot.rf4.y1, self.robot.rf4.x2, self.robot.rf4.y2)
 
         # Print info text
-        arcade.draw_text("Robot: (%f,%f)" % (self.robot.x, self.robot.y), 10, 10, arcade.color.BLACK, 12)
+        arcade.draw_text("Time: %fs" % (self.time), 10, 50, arcade.color.BLACK, 12)
         arcade.draw_text("%f %f %f %f %f" %\
                 (self.robot.rf1.meas, self.robot.rf1.x1, self.robot.rf1.y1,\
                 self.robot.rf1.x2, self.robot.rf1.y2), 10, 30, arcade.color.BLACK, 12)
+        arcade.draw_text("Robot: (%f,%f)" % (self.robot.x, self.robot.y), 10, 10, arcade.color.BLACK, 12)
 
     def draw_line_mm(self,x1,y1,x2,y2):
         arcade.draw_line(x1/MM_PER_PIX + self.xoffset, y1/MM_PER_PIX + self.yoffset, \
@@ -253,7 +282,6 @@ class MyGame(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed. """
-
         if key == arcade.key.UP:
             self.player_sprite.change_y = MOVEMENT_SPEED
         elif key == arcade.key.DOWN:
@@ -265,7 +293,6 @@ class MyGame(arcade.Window):
 
     def on_key_release(self, key, modifiers):
         """Called when the user releases a key. """
-
         if key == arcade.key.UP or key == arcade.key.DOWN:
             self.player_sprite.change_y = 0
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
@@ -275,19 +302,18 @@ class MyGame(arcade.Window):
         """ Movement and game logic """
         # Call update on all sprites (The sprites don't do much in this
         # example though.)
-        self.physics_engine.update()
+        #self.physics_engine.update()
 
-        # Update robot location
-        self.robot.x = (self.player_sprite.position[0] - self.xoffset) * MM_PER_PIX
-        self.robot.y = (self.player_sprite.position[1] - self.yoffset) * MM_PER_PIX
+        self.time += TIME_STEP
 
-        # Update nn input array
-        self.meas_array = [\
-            self.robot.rf1.meas, \
-            self.robot.rf2.meas \
-#            self.robot.rf3.measurement,
-#            self.robot.rf4.measurement,
-            ]
+        # Next step of robot simulation
+        self.robot.update([1,-0.75,-0.75,1,0])
+
+        # Update graphics vars
+        self.player_sprite.position[0] = self.robot.x/MM_PER_PIX + self.xoffset
+        self.player_sprite.position[1] = self.robot.y/MM_PER_PIX + self.yoffset
+        self.player_sprite.angle = self.robot.theta
+
 
 def main():
     game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
