@@ -20,7 +20,7 @@ SCREEN_HEIGHT = 1000
 MM_PER_PIX = 1.6
 
 MOVEMENT_SPEED = 5
-TIME_STEP = 0.05 # seconds
+TIME_STEP = 0.01 # seconds
 
 
 """
@@ -36,7 +36,6 @@ theta: starting angle of the robot origin in field coordinates
 """
 class SimRobot():
     def __init__(self,x,y,len_x=315.0,len_y=275.0,theta=0.0):
-        self.max_wheel_w = 2*math.pi*4 # max wheel rotational velocity in rad/s
         self.len_x = len_x
         self.len_y = len_y
         self.x = x
@@ -44,12 +43,14 @@ class SimRobot():
         self.theta = theta
 
         # Converts wheel velocities to tranlational x,y, and rotational velocities
+        self.max_wheel_w = 2*math.pi*4 # max wheel rotational velocity in rad/s
         r =  30.0   # Wheel radius in mm
         L1 = 119.35 # Half the distance between the centers of front and back wheels in mm
         L2 = 125.7  # Half the distance between the centers of left and right wheels in mm
         self.mecanum_xfer = (r/4) * np.array([[1,1,1,1],[-1,1,-1,1],\
                 [1/(L1+L2),-1/(L1+L2),-1/(L1+L2),1/(L1+L2)]])
 
+        # Initialize rangefinders
         self.rf1 = SimRangefinder(self, 0.0, self.len_y/2.0, 90.0)
         self.rf2 = SimRangefinder(self, -1 * self.len_x/2.0, 0.0, 180.0)
         self.rf3 = SimRangefinder(self, 0.0, -1 * len_y/2.0, 270.0)
@@ -66,14 +67,19 @@ class SimRobot():
     def update(self,ctrl):
          # Wheel rotational velocities in degrees/sec
         wheel_w = self.max_wheel_w * np.array([[ctrl[0]],[ctrl[1]],[ctrl[2]],[ctrl[3]]])
+
+        # Calculate robot frontwards, rightwards, and rotational velocities
         velocities = np.matmul(self.mecanum_xfer, wheel_w)
-        x_vel = velocities[0][0]
-        y_vel = velocities[1][0]
+        right_vel = velocities[0][0]
+        front_vel = velocities[1][0]
         rotation_vel = velocities[2][0]
 
+        # Calculate the x and y velocity components
+        self.theta = self.theta + (rotation_vel * TIME_STEP * 180 / math.pi)
+        x_vel = right_vel * math.cos(math.radians(self.theta)) + front_vel * math.sin(math.radians(self.theta))
+        y_vel = right_vel * math.sin(math.radians(self.theta)) + front_vel * math.cos(math.radians(self.theta))
         self.x = self.x + x_vel * TIME_STEP
         self.y = self.y + y_vel * TIME_STEP
-        self.theta = self.theta + (rotation_vel * TIME_STEP * 180 / math.pi)
 
         self.updateRFs(0)
 
@@ -160,6 +166,13 @@ class SimRangefinder():
                 self.meas = self.meas_y / sinval
                 self.x2 = self.x1 + self.meas * cosval
                 self.y2 = self.y1 + self.meas_y
+
+        # Limit the sensor range to 10mm up to 1200mm
+        if (self.meas > 1200):
+            self.meas = 1200
+        elif (self.meas < 10):
+            self.meas = 10
+
 
 
 
@@ -270,9 +283,9 @@ class MyGame(arcade.Window):
 
         # Print info text
         arcade.draw_text("Time: %fs" % (self.time), 10, 50, arcade.color.BLACK, 12)
-        arcade.draw_text("%f %f %f %f %f" %\
-                (self.robot.rf1.meas, self.robot.rf1.x1, self.robot.rf1.y1,\
-                self.robot.rf1.x2, self.robot.rf1.y2), 10, 30, arcade.color.BLACK, 12)
+        arcade.draw_text("Rangefinder measurements: %8.2f %8.2f %8.2f %8.2f" %\
+                (self.robot.rf1.meas, self.robot.rf2.meas, self.robot.rf3.meas, self.robot.rf4.meas),\
+                10, 30, arcade.color.BLACK, 12)
         arcade.draw_text("Robot: (%f,%f)" % (self.robot.x, self.robot.y), 10, 10, arcade.color.BLACK, 12)
 
     def draw_line_mm(self,x1,y1,x2,y2):
@@ -307,7 +320,7 @@ class MyGame(arcade.Window):
         self.time += TIME_STEP
 
         # Next step of robot simulation
-        self.robot.update([1,-0.75,-0.75,1,0])
+        self.robot.update([0.4,-0.2,0.3,-0.2,0])
 
         # Update graphics vars
         self.player_sprite.position[0] = self.robot.x/MM_PER_PIX + self.xoffset
