@@ -74,3 +74,18 @@ class RunningStat:
 
     def winMedian(self):
         return np.median(list(islice(self.vals, 0, self.median_window)))
+
+def limitValue(value, min_val = None, max_val = None):
+    if ((max_val != None) and (value > max_val)):
+        return max_val
+    if ((min_val != None) and (value < min_val)):
+        return min_val
+    return value
+
+def checkValue(value, min_val, max_val):
+    if (value > max_val):
+        return 1
+    if (value < min_val):
+        return -1
+    return 0
+

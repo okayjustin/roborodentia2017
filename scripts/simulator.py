@@ -8,6 +8,7 @@ import arcade
 import os
 import numpy as np
 import math
+import helper_funcs as hf
 
 SPRITE_SCALING = 1
 BOX_WIDTH = 16
@@ -38,6 +39,11 @@ class SimRobot():
     def __init__(self,x,y,len_x=315.0,len_y=275.0,theta=0.0):
         self.len_x = len_x
         self.len_y = len_y
+
+        # Magnitude and angle of a line between the center and top right corner
+        self.diag_angle = math.atan(len_y / len_x)
+        self.diag_len = math.sqrt(pow(len_x,2) + pow(len_y,2)) / 2
+
         self.x = x
         self.y = y
         self.theta = theta
@@ -78,8 +84,21 @@ class SimRobot():
         self.theta = self.theta + (rotation_vel * TIME_STEP * 180 / math.pi)
         x_vel = right_vel * math.cos(math.radians(self.theta)) + front_vel * math.sin(math.radians(self.theta))
         y_vel = right_vel * math.sin(math.radians(self.theta)) + front_vel * math.cos(math.radians(self.theta))
-        self.x = self.x + x_vel * TIME_STEP
-        self.y = self.y + y_vel * TIME_STEP
+
+        # Calculate the x and y spacing for collision detection
+        # Calculate cos and sin of the angle
+        angle = math.radians(self.theta % 180)
+        cosval = math.cos(angle)
+
+        if (cosval >= 0):
+            x_space = abs(self.diag_len * math.cos(math.pi - self.diag_angle + angle))
+            y_space = abs(self.diag_len * math.sin(self.diag_angle + angle))
+        else:
+            x_space = abs(self.diag_len * math.cos(self.diag_angle + angle))
+            y_space = abs(self.diag_len * math.sin(math.pi - self.diag_angle + angle))
+
+        self.x = hf.limitValue(self.x + x_vel * TIME_STEP,x_space,FIELD_XMAX - x_space)
+        self.y = hf.limitValue(self.y + y_vel * TIME_STEP,y_space,FIELD_YMAX - y_space)
 
         self.updateRFs(0)
 
@@ -105,10 +124,8 @@ class SimRangefinder():
         self.theta = theta
         self.radius = math.sqrt(math.pow(x,2) + math.pow(y,2))
         rf_field_theta = (self.robot.theta+self.theta) * math.pi / 180.0
-        self.x1 = self.robot.x + self.radius * math.cos(rf_field_theta)
-        self.y1 = self.robot.y + self.radius * math.sin(rf_field_theta)
-        self.x2 = 0
-        self.y2 = 0
+        self.dim = [self.robot.x + self.radius * math.cos(rf_field_theta),\
+            self.robot.y + self.radius * math.sin(rf_field_theta), 0.0, 0.0]
         self.max_range = max_range
         self.meas_period = meas_period
         self.meas_var = meas_var
@@ -126,21 +143,21 @@ class SimRangefinder():
 
         # Calculate the sensor's position and orientation in the field
         rf_field_theta = (self.robot.theta+self.theta) * math.pi / 180.0
-        self.x1 = self.robot.x + self.radius * math.cos(rf_field_theta)
-        self.y1 = self.robot.y + self.radius * math.sin(rf_field_theta)
+        self.dim[0] = self.robot.x + self.radius * math.cos(rf_field_theta)
+        self.dim[1] = self.robot.y + self.radius * math.sin(rf_field_theta)
 
         # Calculate cos and sin of the angle
         cosval = math.cos(rf_field_theta)
         sinval = math.sin(rf_field_theta)
 
         if cosval >= 0:
-            self.meas_x = FIELD_XMAX - self.x1
+            self.meas_x = FIELD_XMAX - self.dim[0]
         else:
-            self.meas_x = -1 * self.x1
+            self.meas_x = -1 * self.dim[0]
         if sinval >= 0:
-            self.meas_y = FIELD_YMAX - self.y1
+            self.meas_y = FIELD_YMAX - self.dim[1]
         else:
-            self.meas_y = -1 * self.y1
+            self.meas_y = -1 * self.dim[1]
 
 
         # Calculate the two possible measurements
@@ -151,21 +168,21 @@ class SimRangefinder():
             # The correct measurement is the shorter one
             if (hx < hy):
                 self.meas = hx
-                self.x2 = self.x1 + self.meas_x
-                self.y2 = self.y1 + self.meas * sinval
+                self.dim[2] = self.dim[0] + self.meas_x
+                self.dim[3] = self.dim[1] + self.meas * sinval
             else:
                 self.meas = hy
-                self.x2 = self.x1 + self.meas * cosval
-                self.y2 = self.y1 + self.meas_y
+                self.dim[2] = self.dim[0] + self.meas * cosval
+                self.dim[3] = self.dim[1] + self.meas_y
         except ZeroDivisionError:
             if (cosval != 0):
                 self.meas = self.meas_x / cosval
-                self.x2 = self.x1 + self.meas_x
-                self.y2 = self.y1 + self.meas * sinval
+                self.dim[2] = self.dim[0] + self.meas_x
+                self.dim[3] = self.dim[1] + self.meas * sinval
             else:
                 self.meas = self.meas_y / sinval
-                self.x2 = self.x1 + self.meas * cosval
-                self.y2 = self.y1 + self.meas_y
+                self.dim[2] = self.dim[0] + self.meas * cosval
+                self.dim[3] = self.dim[1] + self.meas_y
 
         # Limit the sensor range to 10mm up to 1200mm
         if (self.meas > 1200):
@@ -276,21 +293,23 @@ class MyGame(arcade.Window):
         self.player_sprite.draw()
 
         # Draw rangefinder sights
-        self.draw_line_mm(self.robot.rf1.x1, self.robot.rf1.y1, self.robot.rf1.x2, self.robot.rf1.y2)
-        self.draw_line_mm(self.robot.rf2.x1, self.robot.rf2.y1, self.robot.rf2.x2, self.robot.rf2.y2)
-        self.draw_line_mm(self.robot.rf3.x1, self.robot.rf3.y1, self.robot.rf3.x2, self.robot.rf3.y2)
-        self.draw_line_mm(self.robot.rf4.x1, self.robot.rf4.y1, self.robot.rf4.x2, self.robot.rf4.y2)
+        self.draw_line_mm(self.robot.rf1.dim)
+        self.draw_line_mm(self.robot.rf2.dim)
+        self.draw_line_mm(self.robot.rf3.dim)
+        self.draw_line_mm(self.robot.rf4.dim)
 
         # Print info text
         arcade.draw_text("Time: %fs" % (self.time), 10, 50, arcade.color.BLACK, 12)
         arcade.draw_text("Rangefinder measurements: %8.2f %8.2f %8.2f %8.2f" %\
                 (self.robot.rf1.meas, self.robot.rf2.meas, self.robot.rf3.meas, self.robot.rf4.meas),\
                 10, 30, arcade.color.BLACK, 12)
-        arcade.draw_text("Robot: (%f,%f)" % (self.robot.x, self.robot.y), 10, 10, arcade.color.BLACK, 12)
+        arcade.draw_text("Robot: x: %8.2f, y: %8.2f, theta: %8.2f)" % \
+                (self.robot.x, self.robot.y, self.robot.theta), 10, 10, arcade.color.BLACK, 12)
 
-    def draw_line_mm(self,x1,y1,x2,y2):
-        arcade.draw_line(x1/MM_PER_PIX + self.xoffset, y1/MM_PER_PIX + self.yoffset, \
-                x2/MM_PER_PIX + self.xoffset, y2/MM_PER_PIX + self.yoffset,
+    # Input array should be [x1,y1,x2,y2]
+    def draw_line_mm(self,dim):
+        arcade.draw_line(dim[0]/MM_PER_PIX + self.xoffset, dim[1]/MM_PER_PIX + self.yoffset, \
+                dim[2]/MM_PER_PIX + self.xoffset, dim[3]/MM_PER_PIX + self.yoffset,
                 arcade.color.WOOD_BROWN, 3)
 
     def on_key_press(self, key, modifiers):
@@ -320,7 +339,7 @@ class MyGame(arcade.Window):
         self.time += TIME_STEP
 
         # Next step of robot simulation
-        self.robot.update([0.4,-0.2,0.3,-0.2,0])
+        self.robot.update([0.4, -0.4, -0.4, 0.4, 0])
 
         # Update graphics vars
         self.player_sprite.position[0] = self.robot.x/MM_PER_PIX + self.xoffset
