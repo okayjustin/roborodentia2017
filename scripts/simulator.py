@@ -62,6 +62,7 @@ class SimRobot():
         self.rf2 = SimRangefinder(self, -1 * self.len_x/2.0, -40.0, 180.0)
         self.rf3 = SimRangefinder(self, 0.0, -1 * len_y/2.0, 270.0)
         self.rf4 = SimRangefinder(self, self.len_x/2.0, -40.0, 0.0)
+        self.imu = SimIMU()
 
     def update(self,ctrl):
         """ ctrl is a array with the various motor/launcher control inputs, valid range -1 to +1
@@ -102,13 +103,14 @@ class SimRobot():
         self.y = hf.limitValue(self.y + y_vel * TIME_STEP,y_space,FIELD_YMAX - y_space)
 
         # Update rangefinder measurements
-        self.updateRFs(0)
+        self.updateSensors()
 
-    def updateRFs(self,dummy):
+    def updateSensors(self):
         self.rf1.getMeas(self)
         self.rf2.getMeas(self)
         self.rf3.getMeas(self)
         self.rf4.getMeas(self)
+        self.imu.getMeas(self)
 
 
 class SimRangefinder():
@@ -120,7 +122,7 @@ class SimRangefinder():
     max_range: maximum measurement range
     meas_period: amount of time between measurements
     """
-    def __init__(self,robot,x,y,theta,max_range=1200.0,meas_period=0.033,meas_var=0.03):
+    def __init__(self,robot,x,y,theta,max_range=1200.0,meas_period=0.033,sigma=0.03):
         self.theta = theta
         self.position_theta = math.atan2(y,x)
         self.radius = math.sqrt(math.pow(x,2) + math.pow(y,2))
@@ -130,7 +132,7 @@ class SimRangefinder():
         self.max_range = max_range
         self.timebank = 0
         self.meas_period = meas_period
-        self.meas_var = meas_var
+        self.sigma = sigma
         self.meas = 0
 
     def getMeas(self, robot):
@@ -139,11 +141,9 @@ class SimRangefinder():
         """
         # Add some available time to the timebank
         self.timebank += TIME_STEP
-
         # Only make a measurement if there's enough time in the bank
         if (self.timebank < self.meas_period):
             return
-
         # Use up some time from the timebank
         self.timebank -= self.meas_period
 
@@ -166,7 +166,6 @@ class SimRangefinder():
             meas_y = FIELD_YMAX - y1
         else:
             meas_y = -1 * y1
-
 
         # Calculate the two possible measurements
         try:
@@ -192,6 +191,9 @@ class SimRangefinder():
                 x2 = x1 + meas * cosval
                 y2 = y1 + meas_y
 
+        # Add noise to measurement
+        meas += np.random.normal(0, self.sigma)
+
         # Only update if measurement is in range
         if ((meas > 10) and (meas < 1200)):
             self.dim = [x1,y1,x2,y2]
@@ -199,8 +201,23 @@ class SimRangefinder():
 
 
 class SimIMU():
-    def __init__(self,x,y):
-        return
+    def __init__(self,meas_period = 0.01, sigma = 0.1):
+        self.timebank = 0
+        self.meas = 0
+        self.meas_period = meas_period
+        self.sigma = sigma
+
+    def getMeas(self, robot):
+        # Add some available time to the timebank
+        self.timebank += TIME_STEP
+        # Only make a measurement if there's enough time in the bank
+        if (self.timebank < self.meas_period):
+            return
+        # Use up some time from the timebank
+        self.timebank -= self.meas_period
+
+        # Add noise to measurement
+        self.meas = (robot.theta + np.random.normal(0, self.sigma)) % 360
 
 
 class SimMicroSW():
@@ -225,9 +242,8 @@ class MyGame(arcade.Window):
         os.chdir(file_path)
 
         # Set up game interface
-
-        self.observation_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1))#[0.0, 0.0, 0.0, 0.0, 0.0]
-        self.action_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1))#[0.0, 0.0, 0.0, 0.0, 0.0]
+        self.observation_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1))
+        self.action_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1))
 
         # Sprite lists
         self.all_sprites_list = None
@@ -310,9 +326,9 @@ class MyGame(arcade.Window):
 
         # Print info text
         arcade.draw_text("Time: %fs" % (self.time), 10, 50, arcade.color.BLACK, 12)
-        arcade.draw_text("Rangefinder measurements: %8.2f %8.2f %8.2f %8.2f" %\
-                (self.robot.rf1.meas, self.robot.rf2.meas, self.robot.rf3.meas, self.robot.rf4.meas),\
-                10, 30, arcade.color.BLACK, 12)
+        arcade.draw_text("Sensors: RF1: %8.2f, RF2: %8.2f, RF3: %8.2f, RF4: %8.2f, Mag: %3.1f" %\
+                (self.robot.rf1.meas, self.robot.rf2.meas, self.robot.rf3.meas, self.robot.rf4.meas,\
+                self.robot.imu.meas), 10, 30, arcade.color.BLACK, 12)
         arcade.draw_text("Robot: x: %8.2f, y: %8.2f, theta: %8.2f)" % \
                 (self.robot.x, self.robot.y, self.robot.theta), 10, 10, arcade.color.BLACK, 12)
 
