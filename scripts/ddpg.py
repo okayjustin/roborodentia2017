@@ -20,6 +20,7 @@ from gym import wrappers
 import tflearn
 import argparse
 import pprint as pp
+import simulator
 
 from replay_buffer import ReplayBuffer
 
@@ -291,7 +292,7 @@ def train(sess, env, args, actor, critic, actor_noise):
 
             s2, r, terminal, info = env.step(a[0])
 
-            replay_buffer.add(np.reshape(s, (actor.s_dim,)), np.reshape(a, (actor.a_dim,)), r,
+            replay_buffer.add(np.reshape(s, (actor.s_dim,)), np.reshape(a[0], (actor.a_dim,)), r,
                               terminal, np.reshape(s2, (actor.s_dim,)))
 
             # Keep adding experience to the memory until
@@ -347,20 +348,19 @@ def main(args):
 
     with tf.Session() as sess:
 
-#        env = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
-#        env.setup()
-        env = gym.make(args['env'])
+        env = simulator.MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+        env.setup()
+#        env = gym.make(args['env'])
         np.random.seed(int(args['random_seed']))
         tf.set_random_seed(int(args['random_seed']))
         env.seed(int(args['random_seed']))
 
         state_dim = env.observation_space.shape[0]
-        print(env.observation_space)
         action_dim = env.action_space.shape[0]
-        print(env.action_space)
-        action_bound = env.action_space.high
+        action_bound = np.tile(np.transpose(env.action_space.high),[int(args['minibatch_size']),1])
+
         # Ensure action bound is symmetric
-        assert (env.action_space.high == -env.action_space.low)
+        assert ((env.action_space.high == -env.action_space.low).all())
 
         actor = ActorNetwork(sess, state_dim, action_dim, action_bound,
                              float(args['actor_lr']), float(args['tau']),
@@ -373,12 +373,12 @@ def main(args):
 
         actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim))
 
-        if args['use_gym_monitor']:
-            if not args['render_env']:
-                env = wrappers.Monitor(
-                    env, args['monitor_dir'], video_callable=False, force=True)
-            else:
-                env = wrappers.Monitor(env, args['monitor_dir'], force=True)
+#        if args['use_gym_monitor']:
+#            if not args['render_env']:
+#                env = wrappers.Monitor(
+#                    env, args['monitor_dir'], video_callable=False, force=True)
+#            else:
+#                env = wrappers.Monitor(env, args['monitor_dir'], force=True)
 
         train(sess, env, args, actor, critic, actor_noise)
 
@@ -389,8 +389,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
 
     # agent parameters
-    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.0001)
-    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.001)
+    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.000001)
+    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.00001)
     parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99)
     parser.add_argument('--tau', help='soft target update parameter', default=0.001)
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
@@ -407,7 +407,7 @@ if __name__ == '__main__':
     parser.add_argument('--summary-dir', help='directory for storing tensorboard info', default='./results/tf_ddpg')
 
     parser.set_defaults(render_env=False)
-    parser.set_defaults(use_gym_monitor=True)
+#    parser.set_defaults(use_gym_monitor=True)
 
     args = vars(parser.parse_args())
 

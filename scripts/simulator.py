@@ -23,6 +23,7 @@ MM_PER_PIX = 1.6
 
 MOVEMENT_SPEED = 5
 TIME_STEP = 0.01 # seconds
+TIME_MAX = 1 #seconds
 FRAME_SKIP = 0
 
 
@@ -102,8 +103,23 @@ class SimRobot():
         self.x = hf.limitValue(self.x + x_vel * TIME_STEP,x_space,FIELD_XMAX - x_space)
         self.y = hf.limitValue(self.y + y_vel * TIME_STEP,y_space,FIELD_YMAX - y_space)
 
-        # Update rangefinder measurements
-        self.updateSensors()
+        # Update sensor measurements
+        state = self.updateSensors()
+        reward = self.updateReward()
+
+        return state, reward
+
+    def getReward(self):
+        return self.reward
+
+    def updateReward(self):
+        self.reward = 1000 - math.sqrt(pow(self.x-FIELD_XMAX/2,2) + pow(self.y - FIELD_YMAX/2,2))
+        return self.reward
+
+        return self.reward
+
+    def getState(self):
+        return self.state
 
     def updateSensors(self):
         self.rf1.getMeas(self)
@@ -111,6 +127,8 @@ class SimRobot():
         self.rf3.getMeas(self)
         self.rf4.getMeas(self)
         self.imu.getMeas(self)
+        self.state = [self.rf1.meas, self.rf2.meas, self.rf3.meas, self.rf4.meas, self.imu.meas]
+        return self.state
 
 
 class SimRangefinder():
@@ -122,7 +140,7 @@ class SimRangefinder():
     max_range: maximum measurement range
     meas_period: amount of time between measurements
     """
-    def __init__(self,robot,x,y,theta,max_range=1200.0,meas_period=0.033,sigma=0.03):
+    def __init__(self,robot,x,y,theta,max_range=1200.0,meas_period=0.033):
         self.theta = theta
         self.position_theta = math.atan2(y,x)
         self.radius = math.sqrt(math.pow(x,2) + math.pow(y,2))
@@ -132,7 +150,6 @@ class SimRangefinder():
         self.max_range = max_range
         self.timebank = 0
         self.meas_period = meas_period
-        self.sigma = sigma
         self.meas = 0
 
     def getMeas(self, robot):
@@ -192,10 +209,11 @@ class SimRangefinder():
                 y2 = y1 + meas_y
 
         # Add noise to measurement
-        meas += np.random.normal(0, self.sigma)
+        sigma = 2E-05 * pow(meas,2) - 0.0062 * meas + 2.435
+        meas += np.random.normal(0, sigma)
 
         # Only update if measurement is in range
-        if ((meas > 10) and (meas < 1200)):
+        if ((meas > 30) and (meas < 1200)):
             self.dim = [x1,y1,x2,y2]
             self.meas = meas
 
@@ -257,8 +275,39 @@ class MyGame(arcade.Window):
 
         self.robot = SimRobot(FIELD_XMAX / 2, FIELD_YMAX/2)
 
+    def reset(self):
+        # Reset vars
+        self.time = 0
+        self.frame = 0
+
+        # Reinstantiate robot
+        self.robot = SimRobot(FIELD_XMAX / 2, FIELD_YMAX/2)
+        self.frame += 1
+        self.time += TIME_STEP
+
+        # Next step of robot simulation
+        self.robot.update([0.0, 0.0, 0.0, 0.0, 0.0])
+        return self.robot.state
+
     def seed(self, seed):
         self.seed = seed
+
+    def step(self,actions):
+        self.frame += 1
+        self.time += TIME_STEP
+
+        # Next step of robot simulation
+        state, reward = self.robot.update(actions)
+        terminal = self.time > TIME_MAX         # Flag when to reset env
+        info = None
+
+        # Update graphics vars
+        self.player_sprite.position[0] = self.robot.x/MM_PER_PIX + self.xoffset
+        self.player_sprite.position[1] = self.robot.y/MM_PER_PIX + self.yoffset
+        self.player_sprite.angle = self.robot.theta
+        self.on_draw()
+
+        return state, reward, terminal, info
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -301,11 +350,10 @@ class MyGame(arcade.Window):
         self.all_sprites_list.append(wall)
         self.wall_list.append(wall)
 
-#        self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
-
         # Set the background color
         arcade.set_background_color(arcade.color.AMAZON)
-        arcade.run()
+        arcade.open_window(SCREEN_WIDTH,SCREEN_HEIGHT,"Simulation")
+        self.on_draw()
 
     def on_draw(self):
         """
@@ -325,12 +373,15 @@ class MyGame(arcade.Window):
         self.draw_line_mm(self.robot.rf4.dim)
 
         # Print info text
-        arcade.draw_text("Time: %fs" % (self.time), 10, 50, arcade.color.BLACK, 12)
+        arcade.draw_text("Time: %fs" % (self.time), 10, 70, arcade.color.BLACK, 12)
+        arcade.draw_text("Reward: %f" % (self.robot.reward), 10, 50, arcade.color.BLACK, 12)
         arcade.draw_text("Sensors: RF1: %8.2f, RF2: %8.2f, RF3: %8.2f, RF4: %8.2f, Mag: %3.1f" %\
                 (self.robot.rf1.meas, self.robot.rf2.meas, self.robot.rf3.meas, self.robot.rf4.meas,\
                 self.robot.imu.meas), 10, 30, arcade.color.BLACK, 12)
         arcade.draw_text("Robot: x: %8.2f, y: %8.2f, theta: %8.2f)" % \
                 (self.robot.x, self.robot.y, self.robot.theta), 10, 10, arcade.color.BLACK, 12)
+
+        arcade.finish_render()
 
     # Input array should be [x1,y1,x2,y2]
     def draw_line_mm(self,dim):
@@ -358,10 +409,6 @@ class MyGame(arcade.Window):
 
     def update(self, delta_time):
         """ Movement and game logic """
-        # Call update on all sprites (The sprites don't do much in this
-        # example though.)
-        #self.physics_engine.update()
-
         # Track frame number to allow skipping
         self.frame = -1
         while (self.frame < FRAME_SKIP):
