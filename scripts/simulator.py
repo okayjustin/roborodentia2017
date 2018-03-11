@@ -4,6 +4,8 @@ Simulates the robot, playfield, sensors
 Units are in millimeters, degrees, and seconds (for time).
 """
 
+import sys
+import csv
 import arcade
 import os
 import numpy as np
@@ -105,6 +107,8 @@ class Simulator(arcade.Window):
         self.draw_line_mm(self.robot.rf3.dim)
         self.draw_line_mm(self.robot.rf4.dim)
 
+        self.draw_motion_indicators()
+
         # Print info text
         arcade.draw_text("Time: %fs" % (self.robot.time), 10, 70, arcade.color.BLACK, 12)
         arcade.draw_text("Reward: %f" % (self.robot.reward), 10, 50, arcade.color.BLACK, 12)
@@ -119,6 +123,36 @@ class Simulator(arcade.Window):
         arcade.draw_line(dim[0]/MM_PER_PIX + self.xoffset, dim[1]/MM_PER_PIX + self.yoffset, \
                 dim[2]/MM_PER_PIX + self.xoffset, dim[3]/MM_PER_PIX + self.yoffset,
                 arcade.color.WOOD_BROWN, 3)
+
+    def draw_motion_indicators(self):
+        for i in range(0,4):
+            # Calculate location of motor
+            motor_field_theta = math.radians(self.robot.theta) + self.robot.motor_angles[i]
+            x = self.robot.x + self.robot.motor_radius * math.cos(motor_field_theta)
+            y = self.robot.y + self.robot.motor_radius * math.sin(motor_field_theta)
+            x = x/MM_PER_PIX + self.xoffset
+            y = y/MM_PER_PIX + self.yoffset
+
+            # Draw arc around motor
+            self.draw_arrow_arc(x,y,self.robot.action[i])
+
+
+    # Draws a rotational arrow centered at (x,y), direction and scale set by magnitude
+    def draw_arrow_arc(self,x,y,mag):
+        tri_len = 7
+        width = abs(mag * 30)
+        tri_x = x + width
+        if (mag > 0):
+            angle = 0
+            tri_y = y - tri_len * 2
+        else:
+            angle = 90
+            tri_y = y + tri_len * 2
+
+        arcade.draw_arc_outline(x,y,width,width,arcade.color.WHITE,0,270,5,angle)
+        arcade.draw_triangle_filled(tri_x + tri_len, y, \
+                tri_x - tri_len, y, \
+                tri_x, tri_y, arcade.color.WHITE)
 
 #    def on_key_press(self, key, modifiers):
 #        """Called whenever a key is pressed. """
@@ -158,13 +192,21 @@ class Simulator(arcade.Window):
 
 
 def main():
-    # Make cmds
-    max_step = 1000
-    cmdSeq = np.zeros([max_step,5])
-    for i in range(0,max_step):
-        cmdSeq[i] = [-0.2, 0.4, 0.6, 0.7, 0]
+    # Parse the action log
+    action_log_file = sys.argv[1]
+    with open(action_log_file, 'r') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+        action_log = []
+        for row in spamreader:
+            action_log.append(row)
 
-    game = Simulator(SCREEN_WIDTH, SCREEN_HEIGHT, cmdSeq)
+    # Make cmds
+#    max_step = 1000
+#    cmdSeq = np.zeros([max_step,5])
+#    for i in range(0,max_step):
+#        cmdSeq[i] = [-0.2, 0.4, 0.6, 0.7, 0]
+
+    game = Simulator(SCREEN_WIDTH, SCREEN_HEIGHT, action_log)
 
 
 if __name__ == "__main__":

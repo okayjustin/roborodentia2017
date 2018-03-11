@@ -12,6 +12,7 @@ Author: Patrick Emami
 """
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+import subprocess
 
 import tensorflow as tf
 import numpy as np
@@ -274,12 +275,16 @@ def train(sess, env, args, actor, critic, actor_noise):
     # Initialize replay memory
     replay_buffer = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
 
+    peak_reward = 0
+
     for i in range(int(args['max_episodes'])):
 
         s = env.reset()
 
         ep_reward = 0
         ep_ave_max_q = 0
+
+        action_log = []
 
         for j in range(int(args['max_episode_len'])):
 
@@ -289,6 +294,7 @@ def train(sess, env, args, actor, critic, actor_noise):
             # Added exploration noise
             #a = actor.predict(np.reshape(s, (1, 3))) + (1. / (1. + i))
             a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
+            action_log.append(a[0])
 
             s2, r, terminal, info = env.step(a[0])
 
@@ -330,7 +336,16 @@ def train(sess, env, args, actor, critic, actor_noise):
             s = s2
             ep_reward += r
 
+            # End of episode
             if terminal:
+                # Save action log if reward increased
+                if ((ep_reward > peak_reward) or (i % 10 == 0)):
+                    filename = writeActionLog(i,action_log,int(ep_reward),ep_ave_max_q / float(j))
+                    command = 'python3 simulator.py ' + filename
+                    subprocess.call(command, shell=True)
+                    # Update peak reward
+                    if (ep_reward > peak_reward):
+                        peak_reward = ep_reward
 
                 summary_str = sess.run(summary_ops, feed_dict={
                     summary_vars[0]: ep_reward,
@@ -344,11 +359,25 @@ def train(sess, env, args, actor, critic, actor_noise):
                         i, (ep_ave_max_q / float(j))))
                 break
 
+def writeActionLog(ep, action_log, ep_reward, ep_q):
+    filepath = os.path.join(os.getcwd(), "results/action_logs/%d_%d_%f.csv" % (ep, ep_reward, ep_q))
+    directory = os.path.dirname(filepath)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    with open(filepath, 'w') as file:
+        for action_set in action_log:
+            for action in action_set:
+                file.write("%f," % (action))
+            file.write("\n")
+
+    return filepath
+
 def main(args):
 
     with tf.Session() as sess:
 
-        env = robotsim.SimRobot(SCREEN_WIDTH, SCREEN_HEIGHT)
+        env = robotsim.SimRobot()
 #        env = gym.make(args['env'])
         np.random.seed(int(args['random_seed']))
         tf.set_random_seed(int(args['random_seed']))
