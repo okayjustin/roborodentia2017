@@ -20,7 +20,7 @@ from gym import wrappers
 import tflearn
 import argparse
 import pprint as pp
-import simulator
+import robotsim
 
 from replay_buffer import ReplayBuffer
 
@@ -348,8 +348,7 @@ def main(args):
 
     with tf.Session() as sess:
 
-        env = simulator.MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
-        env.setup()
+        env = robotsim.SimRobot(SCREEN_WIDTH, SCREEN_HEIGHT)
 #        env = gym.make(args['env'])
         np.random.seed(int(args['random_seed']))
         tf.set_random_seed(int(args['random_seed']))
