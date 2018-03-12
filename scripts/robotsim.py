@@ -14,8 +14,13 @@ FIELD_YMAX = 1219.2  # Maximum y dimension in mm
 
 MOVEMENT_SPEED = 5
 TIME_STEP = 0.01 # seconds
-TIME_MAX = 1 #seconds
+TIME_MAX = 5 #seconds
 
+class Box():
+     def __init__(self,low,high,shape):
+        self.low = low
+        self.high = high
+        self.shape = shape
 
 class SimRobot():
     """ Simulates a robot with sensors. Robot coordinates are defined as cartesian
@@ -30,19 +35,14 @@ class SimRobot():
     """
     def __init__(self):
         # Set up interface with nn
-        self.observation_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1))
-        self.action_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1))
+        self.observation_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1),dtype=np.float32)
+        self.action_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1),dtype=np.float32)
 
         # Robot dimensions
         self.len_x = 315.0
         self.len_y = 275.0
         self.motor_x = 127.5
         self.motor_y = 117.5
-
-        # Robot position and orientation in the field
-        self.x_start = FIELD_XMAX / 2
-        self.y_start = FIELD_YMAX / 2
-        self.theta = 0
 
         # Magnitude and angle of a line between the center and top right corner
         self.diag_angle = math.atan(self.len_y / self.len_x)
@@ -55,11 +55,16 @@ class SimRobot():
                 -1*motor_angle_temp, motor_angle_temp]
         self.motor_radius = math.sqrt(pow(self.motor_x,2)+pow(self.motor_y,2))
 
+        # Robot start position and orientation in the field
+        self.x_start = FIELD_XMAX / 2
+        self.y_start = FIELD_YMAX / 2
+
         # Sim vars
         self.time = 0
         self.reward = 0
         self.x = self.x_start
         self.y = self.y_start
+        self.theta = 0
         self.terminal = 0
 
         # Converts wheel velocities to tranlational x,y, and rotational velocities
@@ -84,8 +89,9 @@ class SimRobot():
         # Reset vars
         self.time = 0
         self.reward = 0
-        self.x = self.x_start
-        self.y = self.y_start
+        self.x = self.x_start + np.random.normal(0, 300)
+        self.y = self.y_start + np.random.normal(0, 300)
+        self.theta = np.random.normal(0, 20)
         self.terminal = 0
         self.step([0,0,0,0,0])
         return self.state
@@ -114,7 +120,7 @@ class SimRobot():
         rotation_vel = velocities[2][0]
 
         # Calculate the x and y velocity components
-        self.theta = (self.theta + (rotation_vel * TIME_STEP * 180 / math.pi)) % 360.0
+        self.theta = (self.theta + (rotation_vel * TIME_STEP * 180 / math.pi))
         x_vel = right_vel * math.cos(math.radians(self.theta)) + front_vel * math.sin(math.radians(self.theta))
         y_vel = right_vel * math.sin(math.radians(self.theta)) + front_vel * math.cos(math.radians(self.theta))
 
@@ -136,6 +142,8 @@ class SimRobot():
 
         # Update sensor measurements
         self.state = self.updateSensors()
+
+        # Get reward from executing the action
         self.reward = self.updateReward()
 
         # End of sim
@@ -150,10 +158,10 @@ class SimRobot():
     def updateReward(self):
         reward = 0
         # Rewarded for staying near center of field
-        reward += 1.0 - math.sqrt(pow(self.x-FIELD_XMAX/2,2) + pow(self.y - FIELD_YMAX/2,2)) / 2726.2
+        reward += 1.0 - math.sqrt(pow(self.x-FIELD_XMAX/2,2) + pow(self.y - FIELD_YMAX/2,2)) / 1000.0
 
         # Rewarded for keeping angle around 0 degrees
-        reward += abs(self.theta - 180.0) / 90.0 - 1.0
+        reward += 1.0 * (abs(self.theta % 360.0 - 180.0) / 90.0 - 1.0)
 
         self.reward = reward
         return self.reward

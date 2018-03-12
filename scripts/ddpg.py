@@ -22,11 +22,19 @@ import tflearn
 import argparse
 import pprint as pp
 import robotsim
+from timeit import default_timer as timer
+import platform
 
 from replay_buffer import ReplayBuffer
 
 SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 1000
+
+ACTOR_L1_NODES = 1600
+ACTOR_L2_NODES = 1200
+CRITIC_L1_NODES = 1600
+CRITIC_L2_NODES = 1200
+
 
 # ===========================
 #   Actor and Critic DNNs
@@ -85,10 +93,10 @@ class ActorNetwork(object):
 
     def create_actor_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim])
-        net = tflearn.fully_connected(inputs, 400)
+        net = tflearn.fully_connected(inputs, ACTOR_L1_NODES) #400
         net = tflearn.layers.normalization.batch_normalization(net)
         net = tflearn.activations.relu(net)
-        net = tflearn.fully_connected(net, 300)
+        net = tflearn.fully_connected(net, ACTOR_L2_NODES) #300
         net = tflearn.layers.normalization.batch_normalization(net)
         net = tflearn.activations.relu(net)
         # Final layer weights are init to Uniform[-3e-3, 3e-3]
@@ -172,14 +180,14 @@ class CriticNetwork(object):
     def create_critic_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim])
         action = tflearn.input_data(shape=[None, self.a_dim])
-        net = tflearn.fully_connected(inputs, 400)
+        net = tflearn.fully_connected(inputs, CRITIC_L1_NODES) #400
         net = tflearn.layers.normalization.batch_normalization(net)
         net = tflearn.activations.relu(net)
 
         # Add the action tensor in the 2nd hidden layer
         # Use two temp layers to get the corresponding weights and biases
-        t1 = tflearn.fully_connected(net, 300)
-        t2 = tflearn.fully_connected(action, 300)
+        t1 = tflearn.fully_connected(net, CRITIC_L2_NODES) #300
+        t2 = tflearn.fully_connected(action, CRITIC_L2_NODES) #300
 
         net = tflearn.activation(
             tf.matmul(net, t1.W) + tf.matmul(action, t2.W) + t2.b, activation='relu')
@@ -264,7 +272,6 @@ def train(sess, env, args, actor, critic, actor_noise):
 
     # Set up summary Ops
     summary_ops, summary_vars = build_summaries()
-
     sess.run(tf.global_variables_initializer())
     writer = tf.summary.FileWriter(args['summary_dir'], sess.graph)
 
@@ -278,26 +285,36 @@ def train(sess, env, args, actor, critic, actor_noise):
     peak_reward = 0
 
     for i in range(int(args['max_episodes'])):
-
         s = env.reset()
-
+        
         ep_reward = 0
         ep_ave_max_q = 0
 
         action_log = []
+
+        robotsim_time = 0
+        train_time = 0
 
         for j in range(int(args['max_episode_len'])):
 
             if args['render_env']:
                 env.render()
 
+            
             # Added exploration noise
             #a = actor.predict(np.reshape(s, (1, 3))) + (1. / (1. + i))
+            #start = timer()
             a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
             action_log.append(a[0])
-
+            #end = timer()
+            #train_time += end - start
+            
+            #start = timer()
             s2, r, terminal, info = env.step(a[0])
+            #end = timer()
+            #robotsim_time += end - start
 
+            #start = timer()
             replay_buffer.add(np.reshape(s, (actor.s_dim,)), np.reshape(a[0], (actor.a_dim,)), r,
                               terminal, np.reshape(s2, (actor.s_dim,)))
 
@@ -335,13 +352,21 @@ def train(sess, env, args, actor, critic, actor_noise):
 
             s = s2
             ep_reward += r
+            #end = timer()
+            #train_time += end - start
 
             # End of episode
             if terminal:
+                # Print timeits
+                #print("Robot sim time: %f" % robotsim_time)
+                #print("Train time: %f" % train_time)
                 # Save action log if reward increased
-                if ((ep_reward > peak_reward) or (i % 10 == 0)):
+                if ((ep_reward > peak_reward) or (i % 30 == 0)):
                     filename = writeActionLog(i,action_log,int(ep_reward),ep_ave_max_q / float(j))
-                    command = 'python3 simulator.py ' + filename
+                    if (platform.system() == 'Windows'):
+                        command = 'py -3 simulator.py ' + filename
+                    else:
+                        command = 'python3 simulator.py ' + filename
                     subprocess.call(command, shell=True)
                     # Update peak reward
                     if (ep_reward > peak_reward):
@@ -401,13 +426,12 @@ def main(args):
 
         actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim))
 
-#        if args['use_gym_monitor']:
-#            if not args['render_env']:
-#                env = wrappers.Monitor(
-#                    env, args['monitor_dir'], video_callable=False, force=True)
-#            else:
-#                env = wrappers.Monitor(env, args['monitor_dir'], force=True)
-
+        if args['use_gym_monitor']:
+            if not args['render_env']:
+                env = wrappers.Monitor(
+                    env, args['monitor_dir'], video_callable=False, force=True)
+            else:
+                env = wrappers.Monitor(env, args['monitor_dir'], force=True)
         train(sess, env, args, actor, critic, actor_noise)
 
         if args['use_gym_monitor']:
@@ -417,10 +441,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
 
     # agent parameters
-    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.000001)
-    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.00001)
-    parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99)
-    parser.add_argument('--tau', help='soft target update parameter', default=0.001)
+    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.000001) #0.000001
+    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.0001) #=0.00001
+    parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) #0.99
+    parser.add_argument('--tau', help='soft target update parameter', default=0.1)
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
     parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
 
@@ -434,8 +458,8 @@ if __name__ == '__main__':
     parser.add_argument('--monitor-dir', help='directory for storing gym results', default='./results/gym_ddpg')
     parser.add_argument('--summary-dir', help='directory for storing tensorboard info', default='./results/tf_ddpg')
 
-    parser.set_defaults(render_env=False)
-#    parser.set_defaults(use_gym_monitor=True)
+    #parser.set_defaults(render_env=True)
+    #parser.set_defaults(use_gym_monitor=True)
 
     args = vars(parser.parse_args())
 
