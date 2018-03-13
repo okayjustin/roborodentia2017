@@ -12,6 +12,7 @@ import numpy as np
 import math
 import helper_funcs as hf
 import gym
+import time
 import robotsim as rs
 
 SPRITE_SCALING = 1
@@ -184,6 +185,7 @@ class Simulator(arcade.Window):
             if (self.step == self.max_step):
                 quit()
             self.robot.step(self.cmdSeq[self.step])
+            time.sleep(0.01)
 
         # Update graphics vars
         self.player_sprite.position[0] = self.robot.x/MM_PER_PIX + self.xoffset

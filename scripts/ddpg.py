@@ -27,13 +27,10 @@ import platform
 
 from replay_buffer import ReplayBuffer
 
-SCREEN_WIDTH = 1600
-SCREEN_HEIGHT = 1000
-
-ACTOR_L1_NODES = 1600
-ACTOR_L2_NODES = 1200
-CRITIC_L1_NODES = 1600
-CRITIC_L2_NODES = 1200
+ACTOR_L1_NODES = 800
+ACTOR_L2_NODES = 600
+CRITIC_L1_NODES = 800
+CRITIC_L2_NODES = 600
 
 
 # ===========================
@@ -444,7 +441,7 @@ if __name__ == '__main__':
     parser.add_argument('--actor-lr', help='actor network learning rate', default=0.000001) #0.000001
     parser.add_argument('--critic-lr', help='critic network learning rate', default=0.0001) #=0.00001
     parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) #0.99
-    parser.add_argument('--tau', help='soft target update parameter', default=0.1)
+    parser.add_argument('--tau', help='soft target update parameter', default=0.001)
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
     parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
 

@@ -5,7 +5,6 @@ Units are in millimeters, degrees, and seconds (for time).
 """
 
 import numpy as np
-import math
 import helper_funcs as hf
 import gym
 
@@ -45,15 +44,15 @@ class SimRobot():
         self.motor_y = 117.5
 
         # Magnitude and angle of a line between the center and top right corner
-        self.diag_angle = math.atan(self.len_y / self.len_x)
-        self.diag_len = math.sqrt(pow(self.len_x,2) + pow(self.len_y,2)) / 2
+        self.diag_angle = np.arctan(self.len_y / self.len_x)
+        self.diag_len = np.hypot(self.len_x,self.len_y) / 2
 
         # Magnitude and angle of a line between the center and each motor
         # in the order of front left, back left, back right, front right
-        motor_angle_temp = math.atan(self.motor_y/self.motor_x)
-        self.motor_angles = [math.pi - motor_angle_temp, motor_angle_temp + math.pi,\
+        motor_angle_temp = np.arctan(self.motor_y/self.motor_x)
+        self.motor_angles = [np.pi - motor_angle_temp, motor_angle_temp + np.pi,\
                 -1*motor_angle_temp, motor_angle_temp]
-        self.motor_radius = math.sqrt(pow(self.motor_x,2)+pow(self.motor_y,2))
+        self.motor_radius = np.hypot(self.motor_x, self.motor_y)
 
         # Robot start position and orientation in the field
         self.x_start = FIELD_XMAX / 2
@@ -68,7 +67,7 @@ class SimRobot():
         self.terminal = 0
 
         # Converts wheel velocities to tranlational x,y, and rotational velocities
-        self.max_wheel_w = 2*math.pi*4 # max wheel rotational velocity in rad/s
+        self.max_wheel_w = 2*np.pi*4 # max wheel rotational velocity in rad/s
         r =  30.0   # Wheel radius in mm
         L1 = 119.35 # Half the distance between the centers of front and back wheels in mm
         L2 = 125.7  # Half the distance between the centers of left and right wheels in mm
@@ -89,9 +88,9 @@ class SimRobot():
         # Reset vars
         self.time = 0
         self.reward = 0
-        self.x = self.x_start + np.random.normal(0, 300)
-        self.y = self.y_start + np.random.normal(0, 300)
-        self.theta = np.random.normal(0, 20)
+        self.x = self.x_start + np.random.normal(0, 100)
+        self.y = self.y_start + np.random.normal(0, 100)
+        self.theta = np.random.normal(0, 3)
         self.terminal = 0
         self.step([0,0,0,0,0])
         return self.state
@@ -120,21 +119,21 @@ class SimRobot():
         rotation_vel = velocities[2][0]
 
         # Calculate the x and y velocity components
-        self.theta = (self.theta + (rotation_vel * TIME_STEP * 180 / math.pi))
-        x_vel = right_vel * math.cos(math.radians(self.theta)) + front_vel * math.sin(math.radians(self.theta))
-        y_vel = right_vel * math.sin(math.radians(self.theta)) + front_vel * math.cos(math.radians(self.theta))
+        self.theta = (self.theta + (rotation_vel * TIME_STEP * 180 / np.pi))
+        x_vel = right_vel * np.cos(np.radians(self.theta)) + front_vel * np.sin(np.radians(self.theta))
+        y_vel = right_vel * np.sin(np.radians(self.theta)) + front_vel * np.cos(np.radians(self.theta))
 
         # Calculate cos and sin of the angle
-        angle = math.radians(self.theta % 180)
-        cosval = math.cos(angle)
+        angle = np.radians(self.theta % 180)
+        cosval = np.cos(angle)
 
         # Calculate the x and y spacing for collision detection
         if (cosval >= 0):
-            x_space = abs(self.diag_len * math.cos(math.pi - self.diag_angle + angle))
-            y_space = abs(self.diag_len * math.sin(self.diag_angle + angle))
+            x_space = abs(self.diag_len * np.cos(np.pi - self.diag_angle + angle))
+            y_space = abs(self.diag_len * np.sin(self.diag_angle + angle))
         else:
-            x_space = abs(self.diag_len * math.cos(self.diag_angle + angle))
-            y_space = abs(self.diag_len * math.sin(math.pi - self.diag_angle + angle))
+            x_space = abs(self.diag_len * np.cos(self.diag_angle + angle))
+            y_space = abs(self.diag_len * np.sin(np.pi - self.diag_angle + angle))
 
         # Assign new x,y location
         self.x = hf.limitValue(self.x + x_vel * TIME_STEP,x_space,FIELD_XMAX - x_space)
@@ -147,7 +146,9 @@ class SimRobot():
         self.reward = self.updateReward()
 
         # End of sim
-        self.terminal = self.time > TIME_MAX
+        if (self.time > TIME_MAX):
+            self.terminal = 1
+
         info = None
 
         return self.state, self.reward, self.terminal, info
@@ -157,11 +158,18 @@ class SimRobot():
 
     def updateReward(self):
         reward = 0
-        # Rewarded for staying near center of field
-        reward += 1.0 - math.sqrt(pow(self.x-FIELD_XMAX/2,2) + pow(self.y - FIELD_YMAX/2,2)) / 1000.0
-
+        
         # Rewarded for keeping angle around 0 degrees
-        reward += 1.0 * (abs(self.theta % 360.0 - 180.0) / 90.0 - 1.0)
+        reward += abs(self.theta % 360.0 - 180.0) / 90.0 - 1.0
+
+        # if (abs(self.theta % 360.0 - 180.0) < 170.0):
+        #     reward += -1
+        # else:
+        #     # Rewarded for staying near center of field
+        #     distance_from_center = np.hypot(self.x,self.y)
+        #     reward += 1.0 - distance_from_center / 1000.0
+        #     if distance_from_center > 100.0:
+        #         reward += -2
 
         self.reward = reward
         return self.reward
@@ -192,11 +200,11 @@ class SimRangefinder():
     """
     def __init__(self,robot,x,y,theta,max_range=1200.0,meas_period=0.033):
         self.theta = theta
-        self.position_theta = math.atan2(y,x)
-        self.radius = math.sqrt(math.pow(x,2) + math.pow(y,2))
-        rf_field_theta = math.radians(robot.theta) + self.position_theta
-        self.dim = [robot.x + self.radius * math.cos(rf_field_theta),\
-            robot.y + self.radius * math.sin(rf_field_theta), 0.0, 0.0]
+        self.position_theta = np.arctan2(y,x)
+        self.radius = np.hypot(x,y)
+        rf_field_theta = np.radians(robot.theta) + self.position_theta
+        self.dim = [robot.x + self.radius * np.cos(rf_field_theta),\
+            robot.y + self.radius * np.sin(rf_field_theta), 0.0, 0.0]
         self.max_range = max_range
         self.timebank = 0
         self.meas_period = meas_period
@@ -216,14 +224,14 @@ class SimRangefinder():
 
         # Calculate the sensor's position and orientation in the field
         # rf_field_theta is used to calculate where the sensor is but not where its oriented
-        rf_field_theta = math.radians(robot.theta) + self.position_theta
-        x1 = robot.x + self.radius * math.cos(rf_field_theta)
-        y1 = robot.y + self.radius * math.sin(rf_field_theta)
+        rf_field_theta = np.radians(robot.theta) + self.position_theta
+        x1 = robot.x + self.radius * np.cos(rf_field_theta)
+        y1 = robot.y + self.radius * np.sin(rf_field_theta)
 
         # Calculate cos and sin of the angle of where the rangefinder is oriented
-        rf_aim_theta = math.radians(robot.theta + self.theta)
-        cosval = math.cos(rf_aim_theta)
-        sinval = math.sin(rf_aim_theta)
+        rf_aim_theta = np.radians(robot.theta + self.theta)
+        cosval = np.cos(rf_aim_theta)
+        sinval = np.sin(rf_aim_theta)
 
         if cosval >= 0:
             meas_x = FIELD_XMAX - x1
