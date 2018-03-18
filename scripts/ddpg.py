@@ -27,10 +27,10 @@ import platform
 
 from replay_buffer import ReplayBuffer
 
-ACTOR_L1_NODES = 800
-ACTOR_L2_NODES = 600
-CRITIC_L1_NODES = 800
-CRITIC_L2_NODES = 600
+ACTOR_L1_NODES = 160
+ACTOR_L2_NODES = 120
+CRITIC_L1_NODES = 160
+CRITIC_L2_NODES = 120
 
 
 # ===========================
@@ -358,7 +358,7 @@ def train(sess, env, args, actor, critic, actor_noise):
                 #print("Robot sim time: %f" % robotsim_time)
                 #print("Train time: %f" % train_time)
                 # Save action log if reward increased
-                if ((ep_reward > peak_reward) or (i % 30 == 0)):
+                if ((ep_reward > peak_reward) or (i % 25 == 0)):
                     filename = writeActionLog(i,action_log,int(ep_reward),ep_ave_max_q / float(j))
                     if (platform.system() == 'Windows'):
                         command = 'py -3 simulator.py ' + filename
@@ -441,7 +441,7 @@ if __name__ == '__main__':
     parser.add_argument('--actor-lr', help='actor network learning rate', default=0.000001) #0.000001
     parser.add_argument('--critic-lr', help='critic network learning rate', default=0.0001) #=0.00001
     parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) #0.99
-    parser.add_argument('--tau', help='soft target update parameter', default=0.001)
+    parser.add_argument('--tau', help='soft target update parameter', default=0.001) #0.001
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
     parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
 

@@ -13,7 +13,7 @@ FIELD_YMAX = 1219.2  # Maximum y dimension in mm
 
 MOVEMENT_SPEED = 5
 TIME_STEP = 0.01 # seconds
-TIME_MAX = 5 #seconds
+TIME_MAX = 2 #seconds
 
 class Box():
      def __init__(self,low,high,shape):
@@ -34,8 +34,8 @@ class SimRobot():
     """
     def __init__(self):
         # Set up interface with nn
-        self.observation_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1),dtype=np.float32)
-        self.action_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(5,1),dtype=np.float32)
+        self.observation_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(9,1),dtype=np.float32)
+        self.action_space = gym.spaces.box.Box(low=-1.0, high=1.0, shape=(4,1),dtype=np.float32)
 
         # Robot dimensions
         self.len_x = 315.0
@@ -106,22 +106,36 @@ class SimRobot():
         ctrl[3]: Front right motor, +1 rotates towards right
         ctrl[4]: Launcher
         """
+        # Calculate motor voltages for the specified control inputs
+        # ctrl[0]: Desired robot speed, -1 to 1
+        # ctrl[1]: Desired translation angle, -1 to 1, +1 dead right, 0.5 dead up, 0 dead left, -0.5 dead down
+        # ctrl[2]: Desired rotational speed, -1 to 1, +1 CW, -1 CCW
+        vd = ctrl[0]
+        theta_d = np.pi * (ctrl[1] + 1)
+        v_theta = ctrl[2]
+        v = np.zeros([4,1])
+        v[2][0] = vd * np.sin(theta_d + np.pi/4) + v_theta
+        v[3][0] = vd * np.cos(theta_d + np.pi/4) - v_theta
+        v[1][0] = vd * np.cos(theta_d + np.pi/4) + v_theta
+        v[0][0] = vd * np.sin(theta_d + np.pi/4) - v_theta
+
         self.time += TIME_STEP
         self.action = ctrl
 
          # Wheel rotational velocities in degrees/sec
-        wheel_w = self.max_wheel_w * np.array([[ctrl[0]],[ctrl[1]],[ctrl[2]],[ctrl[3]]])
+        #wheel_w = self.max_wheel_w * np.array([[ctrl[0]],[ctrl[1]],[ctrl[2]],[ctrl[3]]])
+        wheel_w = self.max_wheel_w * v
 
         # Calculate robot frontwards, rightwards, and rotational velocities
         velocities = np.matmul(self.mecanum_xfer, wheel_w)
-        right_vel = velocities[0][0]
-        front_vel = velocities[1][0]
-        rotation_vel = velocities[2][0]
+        self.right_vel = velocities[0][0]
+        self.front_vel = velocities[1][0]
+        self.rotation_vel = velocities[2][0]
 
         # Calculate the x and y velocity components
-        self.theta = (self.theta + (rotation_vel * TIME_STEP * 180 / np.pi))
-        x_vel = right_vel * np.cos(np.radians(self.theta)) + front_vel * np.sin(np.radians(self.theta))
-        y_vel = right_vel * np.sin(np.radians(self.theta)) + front_vel * np.cos(np.radians(self.theta))
+        self.theta = (self.theta + (self.rotation_vel * TIME_STEP * 180 / np.pi))
+        self.x_vel = self.right_vel * np.cos(np.radians(self.theta)) + self.front_vel * np.sin(np.radians(self.theta))
+        self.y_vel = self.right_vel * np.sin(np.radians(self.theta)) + self.front_vel * np.cos(np.radians(self.theta))
 
         # Calculate cos and sin of the angle
         angle = np.radians(self.theta % 180)
@@ -136,8 +150,8 @@ class SimRobot():
             y_space = abs(self.diag_len * np.sin(np.pi - self.diag_angle + angle))
 
         # Assign new x,y location
-        self.x = hf.limitValue(self.x + x_vel * TIME_STEP,x_space,FIELD_XMAX - x_space)
-        self.y = hf.limitValue(self.y + y_vel * TIME_STEP,y_space,FIELD_YMAX - y_space)
+        self.x = hf.limitValue(self.x + self.x_vel * TIME_STEP,x_space,FIELD_XMAX - x_space)
+        self.y = hf.limitValue(self.y + self.y_vel * TIME_STEP,y_space,FIELD_YMAX - y_space)
 
         # Update sensor measurements
         self.state = self.updateSensors()
@@ -156,24 +170,30 @@ class SimRobot():
     def getReward(self):
         return self.reward
 
-    def updateReward(self):
-        reward = 0
+    def updateReward(self):      
+        # Normalize theta to +/- pi
+        theta = np.radians(self.theta)
+        theta = np.arctan2(np.sin(theta), np.cos(theta))
         
-        # Rewarded for keeping angle around 0 degrees
-        reward += abs(self.theta % 360.0 - 180.0) / 90.0 - 1.0
+        # Keep angle at 0 with minimal rotation velocity
+        self.reward_theta = -1.0 * pow(theta,2) / 2
 
-        # if (abs(self.theta % 360.0 - 180.0) < 170.0):
-        #     reward += -1
-        # else:
-        #     # Rewarded for staying near center of field
-        #     distance_from_center = np.hypot(self.x,self.y)
-        #     reward += 1.0 - distance_from_center / 1000.0
-        #     if distance_from_center > 100.0:
-        #         reward += -2
+        # Minimize effort
+        self.reward_effort = 0
+        try:
+            for action in self.action:
+                self.reward_effort -= action**2
+        except: 
+            pass
 
-        self.reward = reward
-        return self.reward
+        # Rewarded for staying near center of field
+        distance_from_center = np.hypot(self.x,self.y)
+        self.reward_dist =  -1.0 * (distance_from_center / 1000.0)
+        
+        # Minimize velocities
+        self.reward_vel = -1.0 * (0.00001 * (pow(self.front_vel,2) + pow(self.right_vel,2) + pow(self.rotation_vel,2)))
 
+        self.reward = self.reward_theta + self.reward_effort + self.reward_dist + self.reward_vel
         return self.reward
 
     def getState(self):
@@ -185,7 +205,9 @@ class SimRobot():
         self.rf3.getMeas(self)
         self.rf4.getMeas(self)
         self.imu.getMeas(self)
-        self.state = [self.rf1.meas, self.rf2.meas, self.rf3.meas, self.rf4.meas, self.imu.meas]
+        self.state = [self.rf1.meas, self.rf2.meas, self.rf3.meas, self.rf4.meas, 
+                      self.imu.cos, self.imu.sin,
+                      self.front_vel,self.right_vel, self.rotation_vel]
         return self.state
 
 
@@ -277,9 +299,10 @@ class SimRangefinder():
 
 
 class SimIMU():
-    def __init__(self,meas_period = 0.01, sigma = 0.1):
+    def __init__(self,meas_period = 0.01, sigma = 0.0):
         self.timebank = 0
-        self.meas = 0
+        self.cos = 0
+        self.sin = 0
         self.meas_period = meas_period
         self.sigma = sigma
 
@@ -292,8 +315,13 @@ class SimIMU():
         # Use up some time from the timebank
         self.timebank -= self.meas_period
 
-        # Add noise to measurement
-        self.meas = (robot.theta + np.random.normal(0, self.sigma)) % 360
+        # Add noise to measurement, convert to radians
+        self.meas = (robot.theta + np.random.normal(0, self.sigma)) % 360.0
+        theta = np.radians(self.meas)
+
+        # Get x/y components of theta
+        self.cos = np.cos(theta)
+        self.sin = np.sin(theta)
 
 
 class SimMicroSW():

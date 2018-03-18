@@ -108,11 +108,13 @@ class Simulator(arcade.Window):
         self.draw_line_mm(self.robot.rf3.dim)
         self.draw_line_mm(self.robot.rf4.dim)
 
-        self.draw_motion_indicators()
+        #self.draw_motion_indicators()
+        self.draw_motion_indicators2()
 
         # Print info text
         arcade.draw_text("Time: %fs" % (self.robot.time), 10, 70, arcade.color.BLACK, 12)
-        arcade.draw_text("Reward: %f" % (self.robot.reward), 10, 50, arcade.color.BLACK, 12)
+        arcade.draw_text("Rewards: Theta: %6.1f Effort: %6.1f Dist: %6.1f Vel: %6.1f " % 
+            (self.robot.reward_theta, self.robot.reward_effort,self.robot.reward_dist,self.robot.reward_vel), 10, 50, arcade.color.BLACK, 12)
         arcade.draw_text("Sensors: RF1: %8.2f, RF2: %8.2f, RF3: %8.2f, RF4: %8.2f, Mag: %3.1f" %\
                 (self.robot.rf1.meas, self.robot.rf2.meas, self.robot.rf3.meas, self.robot.rf4.meas,\
                 self.robot.imu.meas), 10, 30, arcade.color.BLACK, 12)
@@ -123,7 +125,7 @@ class Simulator(arcade.Window):
     def draw_line_mm(self,dim):
         arcade.draw_line(dim[0]/MM_PER_PIX + self.xoffset, dim[1]/MM_PER_PIX + self.yoffset, \
                 dim[2]/MM_PER_PIX + self.xoffset, dim[3]/MM_PER_PIX + self.yoffset,
-                arcade.color.WOOD_BROWN, 3)
+                arcade.color.WHITE, 4)
 
     def draw_motion_indicators(self):
         for i in range(0,4):
@@ -137,11 +139,32 @@ class Simulator(arcade.Window):
             # Draw arc around motor
             self.draw_arrow_arc(x,y,self.robot.action[i])
 
+    def draw_motion_indicators2(self):
+        x = self.robot.x/MM_PER_PIX + self.xoffset
+        y = self.robot.y/MM_PER_PIX + self.yoffset
+        self.draw_arrow_arc(x,y,self.robot.action[2])
+        self.draw_radial_arrow(x,y,self.robot.action[0],-1*(self.robot.action[1]+1)*np.pi+np.radians(self.robot.theta))
+
+    def draw_radial_arrow(self,x,y,mag,theta):
+        x2 = x + 100 * mag * np.cos(theta)
+        y2 = y + 100 * mag * np.sin(theta)
+        arcade.draw_line(x, y, x2, y2, arcade.color.WHITE, 5)
+        self.draw_center_triangle_filled(x2,y2,10 if mag > 0 else -10,theta)
+
+    # Draws an equilateral triangle centered at x,y with a vertex at angle theta
+    def draw_center_triangle_filled(self,x,y,mag,theta):
+        x1 = x + mag * np.cos(theta)
+        y1 = y + mag * np.sin(theta)
+        x2 = x + mag * np.cos(theta + 2*np.pi/3)
+        y2 = y + mag * np.sin(theta + 2*np.pi/3)
+        x3 = x + mag * np.cos(theta + 4*np.pi/3)
+        y3 = y + mag * np.sin(theta + 4*np.pi/3)
+        arcade.draw_triangle_filled(x1, y1, x2, y2, x3, y3, arcade.color.WHITE)
 
     # Draws a rotational arrow centered at (x,y), direction and scale set by magnitude
     def draw_arrow_arc(self,x,y,mag):
+        width = abs(mag * 90)
         tri_len = 7
-        width = abs(mag * 30)
         tri_x = x + width
         if (mag > 0):
             angle = 0
@@ -194,19 +217,21 @@ class Simulator(arcade.Window):
 
 
 def main():
-    # Parse the action log
-    action_log_file = sys.argv[1]
-    with open(action_log_file, 'r') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
-        action_log = []
-        for row in spamreader:
-            action_log.append(row)
-
-    # Make cmds
-#    max_step = 1000
-#    cmdSeq = np.zeros([max_step,5])
-#    for i in range(0,max_step):
-#        cmdSeq[i] = [-0.2, 0.4, 0.6, 0.7, 0]
+    quit()
+    try:
+        #Parse the action log
+        action_log_file = sys.argv[1]
+        with open(action_log_file, 'r') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+            action_log = []
+            for row in spamreader:
+                action_log.append(row)
+    except:
+        # Make cmds
+        max_step = 1000
+        action_log = np.zeros([max_step,5])
+        for i in range(0,max_step):
+            action_log[i] = [0.0, 0.0, 0.3, 0.0, 0.0]
 
     game = Simulator(SCREEN_WIDTH, SCREEN_HEIGHT, action_log)
 
