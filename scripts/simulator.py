@@ -25,7 +25,7 @@ MM_PER_PIX = 1.6
 FRAME_SKIP = 0
 
 class Simulator(arcade.Window):
-    def __init__(self, width, height, cmdSeq):
+    def __init__(self, width, height, cmdSeq, robot):
         super().__init__(width, height)
 
         # Set the working directory (where we expect to find files) to the same
@@ -41,13 +41,12 @@ class Simulator(arcade.Window):
         self.wall_list = None
         self.physics_engine = None
 
-        # Setup robot and the command sequence to playbac
-        self.robot = rs.SimRobot()
+        # Setup robot and the command sequence to playback
+        self.robot = robot
         self.step = -1
         self.max_step = len(cmdSeq)
         self.cmdSeq = cmdSeq;
-        self.setup()
-
+        
     def setup(self):
         """ Set up the game and initialize the variables. """
         # Sprite lists
@@ -110,16 +109,19 @@ class Simulator(arcade.Window):
 
         #self.draw_motion_indicators()
         self.draw_motion_indicators2()
+        self.draw_network_output_graph(700,51)
 
         # Print info text
         arcade.draw_text("Time: %fs" % (self.robot.time), 10, 70, arcade.color.BLACK, 12)
-        arcade.draw_text("Rewards: Theta: %6.1f Effort: %6.1f Dist: %6.1f Vel: %6.1f " % 
-            (self.robot.reward_theta, self.robot.reward_effort,self.robot.reward_dist,self.robot.reward_vel), 10, 50, arcade.color.BLACK, 12)
+        arcade.draw_text("Reward: %6.1f Theta: %6.1f Effort: %6.1f Dist: %6.1f Vel: %6.1f  RVel: %6.1f" % 
+            (self.robot.reward,self.robot.reward_theta, self.robot.reward_effort,
+            self.robot.reward_dist,self.robot.reward_vel,self.robot.reward_rvel),
+            10, 50, arcade.color.BLACK, 12)
         arcade.draw_text("Sensors: RF1: %8.2f, RF2: %8.2f, RF3: %8.2f, RF4: %8.2f, Mag: %3.1f" %\
                 (self.robot.rf1.meas, self.robot.rf2.meas, self.robot.rf3.meas, self.robot.rf4.meas,\
                 self.robot.imu.meas), 10, 30, arcade.color.BLACK, 12)
-        arcade.draw_text("Robot: x: %8.2f, y: %8.2f, theta: %8.2f)" % \
-                (self.robot.x, self.robot.y, self.robot.theta), 10, 10, arcade.color.BLACK, 12)
+        arcade.draw_text("Robot: x: %8.2f, y: %8.2f, theta: %8.2f, thetadot: %8.2f)" % \
+                (self.robot.state[0], self.robot.state[2], np.degrees(self.robot.state[4]), self.robot.state[5]), 10, 10, arcade.color.BLACK, 12)
 
     # Input array should be [x1,y1,x2,y2]
     def draw_line_mm(self,dim):
@@ -130,9 +132,9 @@ class Simulator(arcade.Window):
     def draw_motion_indicators(self):
         for i in range(0,4):
             # Calculate location of motor
-            motor_field_theta = math.radians(self.robot.theta) + self.robot.motor_angles[i]
-            x = self.robot.x + self.robot.motor_radius * math.cos(motor_field_theta)
-            y = self.robot.y + self.robot.motor_radius * math.sin(motor_field_theta)
+            motor_field_theta = self.robot.state[4] + self.robot.motor_angles[i]
+            x = self.robot.state[0] + self.robot.motor_radius * math.cos(motor_field_theta)
+            y = self.robot.state[2] + self.robot.motor_radius * math.sin(motor_field_theta)
             x = x/MM_PER_PIX + self.xoffset
             y = y/MM_PER_PIX + self.yoffset
 
@@ -140,10 +142,28 @@ class Simulator(arcade.Window):
             self.draw_arrow_arc(x,y,self.robot.action[i])
 
     def draw_motion_indicators2(self):
-        x = self.robot.x/MM_PER_PIX + self.xoffset
-        y = self.robot.y/MM_PER_PIX + self.yoffset
-        self.draw_arrow_arc(x,y,self.robot.action[2])
-        self.draw_radial_arrow(x,y,self.robot.action[0],-1*(self.robot.action[1]+1)*np.pi+np.radians(self.robot.theta))
+        x = self.robot.state[0]/MM_PER_PIX + self.xoffset
+        y = self.robot.state[2]/MM_PER_PIX + self.yoffset
+        self.draw_arrow_arc(x,y,-self.robot.action)
+        #self.draw_radial_arrow(x,y,self.robot.action[0],-1*(self.robot.action[1]+1)*np.pi+self.robot.theta)
+
+    def draw_network_output_graph(self,x,y):
+        width = 60
+        spacer = 5
+        num_drawn = 0
+        max_height = 45
+        for idx, action in enumerate(self.robot.action):
+            try:
+                x_tmp = x + idx * width
+                height = max_height * action / 2
+                arcade.draw_rectangle_filled(x_tmp, y + height / 2, width - spacer, height, arcade.color.WHITE)
+                arcade.draw_text("%d" % (idx+1), x_tmp, y + 2, arcade.color.BLACK, 12, align='center', anchor_x='center')
+                arcade.draw_text("%+0.2f" % (action), x_tmp, y - 14, arcade.color.BLACK, 12, align='center', anchor_x='center')
+                num_drawn += 1
+            except:
+                pass
+        arcade.draw_rectangle_outline(x + (num_drawn - 1) * width / 2, y, width * num_drawn, max_height * 2 + 2, arcade.color.BLACK)
+        arcade.draw_line(x - width/2, y, x + num_drawn * width - width/2, y, arcade.color.BLACK, 2)
 
     def draw_radial_arrow(self,x,y,mag,theta):
         x2 = x + 100 * mag * np.cos(theta)
@@ -211,30 +231,39 @@ class Simulator(arcade.Window):
             time.sleep(0.01)
 
         # Update graphics vars
-        self.player_sprite.position[0] = self.robot.x/MM_PER_PIX + self.xoffset
-        self.player_sprite.position[1] = self.robot.y/MM_PER_PIX + self.yoffset
-        self.player_sprite.angle = self.robot.theta
+        self.player_sprite.position[0] = self.robot.state[0]/MM_PER_PIX + self.xoffset
+        self.player_sprite.position[1] = self.robot.state[2]/MM_PER_PIX + self.yoffset
+        self.player_sprite.angle = np.degrees(self.robot.state[4])
 
 
 def main():
-    quit()
+    #quit()
     try:
         #Parse the action log
         action_log_file = sys.argv[1]
         with open(action_log_file, 'r') as csvfile:
             spamreader = csv.reader(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
             action_log = []
+            first = True
             for row in spamreader:
-                action_log.append(row)
+                if (first):
+                    first = False
+                    state_start = row
+                else:
+                    action_log.append(row)
     except:
         # Make cmds
         max_step = 1000
-        action_log = np.zeros([max_step,5])
+        state_start = np.array([rs.FIELD_XMAX / 2, 0, rs.FIELD_YMAX / 2, 0, 0, 0])
+
+        #action_log = np.zeros([max_step,4])
+        action_log = np.zeros([max_step,1])
         for i in range(0,max_step):
-            action_log[i] = [0.0, 0.0, 0.3, 0.0, 0.0]
+            action_log[i] = [0.1] #[0.1, 0, 0.0, 0]
 
-    game = Simulator(SCREEN_WIDTH, SCREEN_HEIGHT, action_log)
-
+    robot = rs.SimRobot(state_start)
+    game = Simulator(SCREEN_WIDTH, SCREEN_HEIGHT, action_log, robot)
+    game.setup()
 
 if __name__ == "__main__":
     main()

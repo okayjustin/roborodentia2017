@@ -27,10 +27,10 @@ import platform
 
 from replay_buffer import ReplayBuffer
 
-ACTOR_L1_NODES = 160
-ACTOR_L2_NODES = 120
-CRITIC_L1_NODES = 160
-CRITIC_L2_NODES = 120
+ACTOR_L1_NODES = 400
+ACTOR_L2_NODES = 300
+CRITIC_L1_NODES = 400
+CRITIC_L2_NODES = 300
 
 
 # ===========================
@@ -90,16 +90,16 @@ class ActorNetwork(object):
 
     def create_actor_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim])
-        net = tflearn.fully_connected(inputs, ACTOR_L1_NODES) #400
+        net = tflearn.fully_connected(inputs, ACTOR_L1_NODES, name='ActorInputsNet') #400
         net = tflearn.layers.normalization.batch_normalization(net)
         net = tflearn.activations.relu(net)
-        net = tflearn.fully_connected(net, ACTOR_L2_NODES) #300
+        net = tflearn.fully_connected(net, ACTOR_L2_NODES, name='ActorNetNet') #300
         net = tflearn.layers.normalization.batch_normalization(net)
         net = tflearn.activations.relu(net)
         # Final layer weights are init to Uniform[-3e-3, 3e-3]
         w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
         out = tflearn.fully_connected(
-            net, self.a_dim, activation='tanh', weights_init=w_init)
+            net, self.a_dim, activation='tanh', weights_init=w_init,name='ActorNetOut')
         # Scale output to -action_bound to action_bound
         scaled_out = tf.multiply(out, self.action_bound)
         return inputs, out, scaled_out
@@ -175,16 +175,16 @@ class CriticNetwork(object):
         self.action_grads = tf.gradients(self.out, self.action)
 
     def create_critic_network(self):
-        inputs = tflearn.input_data(shape=[None, self.s_dim])
-        action = tflearn.input_data(shape=[None, self.a_dim])
-        net = tflearn.fully_connected(inputs, CRITIC_L1_NODES) #400
+        inputs = tflearn.input_data(shape=[None, self.s_dim], name='CriticInputs')
+        action = tflearn.input_data(shape=[None, self.a_dim], name='CriticAction')
+        net = tflearn.fully_connected(inputs, CRITIC_L1_NODES, name='CriticInputsNet') #400
         net = tflearn.layers.normalization.batch_normalization(net)
         net = tflearn.activations.relu(net)
 
         # Add the action tensor in the 2nd hidden layer
         # Use two temp layers to get the corresponding weights and biases
-        t1 = tflearn.fully_connected(net, CRITIC_L2_NODES) #300
-        t2 = tflearn.fully_connected(action, CRITIC_L2_NODES) #300
+        t1 = tflearn.fully_connected(net, CRITIC_L2_NODES, name='CriticNetT1') #300
+        t2 = tflearn.fully_connected(action, CRITIC_L2_NODES, name='CriticActionT2') #300
 
         net = tflearn.activation(
             tf.matmul(net, t1.W) + tf.matmul(action, t2.W) + t2.b, activation='relu')
@@ -192,7 +192,7 @@ class CriticNetwork(object):
         # linear layer connected to 1 output representing Q(s,a)
         # Weights are init to Uniform[-3e-3, 3e-3]
         w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
-        out = tflearn.fully_connected(net, 1, weights_init=w_init)
+        out = tflearn.fully_connected(net, 1, weights_init=w_init,name='CriticNetOut')
         return inputs, action, out
 
     def train(self, inputs, action, predicted_q_value):
@@ -250,6 +250,7 @@ class OrnsteinUhlenbeckActionNoise:
 #   Tensorflow Summary Ops
 # ===========================
 
+
 def build_summaries():
     episode_reward = tf.Variable(0.)
     tf.summary.scalar("Reward", episode_reward)
@@ -265,132 +266,184 @@ def build_summaries():
 #   Agent Training
 # ===========================
 
-def train(sess, env, args, actor, critic, actor_noise):
+def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=""):
 
     # Set up summary Ops
     summary_ops, summary_vars = build_summaries()
     sess.run(tf.global_variables_initializer())
+
+    saver = tf.train.Saver()
     writer = tf.summary.FileWriter(args['summary_dir'], sess.graph)
 
     # Initialize target network weights
     actor.update_target_network()
     critic.update_target_network()
 
+    # Restore variables from disk.\
+    if (restore_model != ''):
+        try:
+            saver.restore(sess, restore_model)
+            print("Model restored.")
+        except:
+            print("Can't restore model.")
+            return
+
     # Initialize replay memory
     replay_buffer = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
 
-    peak_reward = 0
+    peak_reward = -9999999999
+    try:
+        for i in range(int(args['max_episodes'])):
+            s = env.reset()
 
-    for i in range(int(args['max_episodes'])):
-        s = env.reset()
-        
-        ep_reward = 0
-        ep_ave_max_q = 0
+            ep_reward = 0
+            ep_ave_max_q = 0
 
-        action_log = []
+            action_log = []
 
-        robotsim_time = 0
-        train_time = 0
+            robotsim_time = 0
+            train_time = 0
+            terminal = False
+            for j in range(int(args['max_episode_len'])):
+                
+                if args['render_env'] and not robot_env:
+                    env.render()
 
-        for j in range(int(args['max_episode_len'])):
+                
+                # Added exploration noise
+                start = timer()
+                a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
+                action = a[0]
 
-            if args['render_env']:
-                env.render()
-
+                action_log.append(action)
+                end = timer()
+                train_time += end - start
+                
+                start = timer()
             
-            # Added exploration noise
-            #a = actor.predict(np.reshape(s, (1, 3))) + (1. / (1. + i))
-            #start = timer()
-            a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
-            action_log.append(a[0])
-            #end = timer()
-            #train_time += end - start
-            
-            #start = timer()
-            s2, r, terminal, info = env.step(a[0])
-            #end = timer()
-            #robotsim_time += end - start
+                s2, r, terminal, info = env.step(action)
 
-            #start = timer()
-            replay_buffer.add(np.reshape(s, (actor.s_dim,)), np.reshape(a[0], (actor.a_dim,)), r,
-                              terminal, np.reshape(s2, (actor.s_dim,)))
+                # print(j, end = ' : ')
+                # print(s2, end = '; ')
+                # print(r, end = '; ')
+                # print(terminal, end = '; ')
+                # print(info)
+                
 
-            # Keep adding experience to the memory until
-            # there are at least minibatch size samples
-            if replay_buffer.size() > int(args['minibatch_size']):
-                s_batch, a_batch, r_batch, t_batch, s2_batch = \
-                    replay_buffer.sample_batch(int(args['minibatch_size']))
+                end = timer()
+                robotsim_time += end - start
 
-                # Calculate targets
-                target_q = critic.predict_target(
-                    s2_batch, actor.predict_target(s2_batch))
+                start = timer()
+                replay_buffer.add(np.reshape(s, (actor.s_dim,)), np.reshape(action, (actor.a_dim,)), r,
+                                  terminal, np.reshape(s2, (actor.s_dim,)))
 
-                y_i = []
-                for k in range(int(args['minibatch_size'])):
-                    if t_batch[k]:
-                        y_i.append(r_batch[k])
-                    else:
-                        y_i.append(r_batch[k] + critic.gamma * target_q[k])
+                # Keep adding experience to the memory until
+                # there are at least minibatch size samples
+                if replay_buffer.size() > int(args['minibatch_size']):
+                    s_batch, a_batch, r_batch, t_batch, s2_batch = \
+                        replay_buffer.sample_batch(int(args['minibatch_size']))
 
-                # Update the critic given the targets
-                predicted_q_value, _ = critic.train(
-                    s_batch, a_batch, np.reshape(y_i, (int(args['minibatch_size']), 1)))
+                    # Calculate targets
+                    target_q = critic.predict_target(
+                        s2_batch, actor.predict_target(s2_batch))
 
-                ep_ave_max_q += np.amax(predicted_q_value)
+                    y_i = []
+                    for k in range(int(args['minibatch_size'])):
+                        if t_batch[k]:
+                            y_i.append(r_batch[k])
+                        else:
+                            y_i.append(r_batch[k] + critic.gamma * target_q[k])
 
-                # Update the actor policy using the sampled gradient
-                a_outs = actor.predict(s_batch)
-                grads = critic.action_gradients(s_batch, a_outs)
-                actor.train(s_batch, grads[0])
+                    # Update the critic given the targets
+                    predicted_q_value, _ = critic.train(
+                        s_batch, a_batch, np.reshape(y_i, (int(args['minibatch_size']), 1)))
 
-                # Update target networks
-                actor.update_target_network()
-                critic.update_target_network()
+                    ep_ave_max_q += np.amax(predicted_q_value)
 
-            s = s2
-            ep_reward += r
-            #end = timer()
-            #train_time += end - start
+                    # Update the actor policy using the sampled gradient
+                    a_outs = actor.predict(s_batch)
+                    grads = critic.action_gradients(s_batch, a_outs)
+                    actor.train(s_batch, grads[0])
 
-            # End of episode
-            if terminal:
-                # Print timeits
-                #print("Robot sim time: %f" % robotsim_time)
-                #print("Train time: %f" % train_time)
-                # Save action log if reward increased
-                if ((ep_reward > peak_reward) or (i % 25 == 0)):
-                    filename = writeActionLog(i,action_log,int(ep_reward),ep_ave_max_q / float(j))
+                    # Update target networks
+                    actor.update_target_network()
+                    critic.update_target_network()
+
+                s = s2
+                ep_reward += r
+                end = timer()
+                train_time += end - start
+
+                # End of episode
+                if terminal:               
+                    break
+
+            # Print timeits
+            total_time = robotsim_time + train_time
+            # print("Robot: %fs (%d%%)   |      Train: %fs (%d%%)" % 
+            #     (robotsim_time, 100*robotsim_time/total_time, train_time, 100*train_time/total_time))
+            summary_str = sess.run(summary_ops, feed_dict={
+                summary_vars[0]: ep_reward,
+                summary_vars[1]: ep_ave_max_q / float(j)
+            })
+
+            writer.add_summary(summary_str, i)
+            writer.flush()
+
+            print('| Reward: {:d} | Episode: {:d} | Qmax: {:.4f}'.format(int(ep_reward), \
+                    i, (ep_ave_max_q / float(j))))
+
+            # Save action log if reward increased
+            if ((ep_reward > peak_reward) or (i % 25 == 0)):
+                if (robot_env):
+                    filename = writeActionLog(i,action_log,int(ep_reward),ep_ave_max_q / float(j), env.init_state)
                     if (platform.system() == 'Windows'):
                         command = 'py -3 simulator.py ' + filename
                     else:
                         command = 'python3 simulator.py ' + filename
                     subprocess.call(command, shell=True)
-                    # Update peak reward
-                    if (ep_reward > peak_reward):
-                        peak_reward = ep_reward
+                # Update peak reward
+                if (ep_reward > peak_reward):
+                    # Save model
+                    save_path = saver.save(sess, "./results/models/model.ckpt")
+                    print("Model saved in path: %s" % save_path)
+                    peak_reward = ep_reward
 
-                summary_str = sess.run(summary_ops, feed_dict={
-                    summary_vars[0]: ep_reward,
-                    summary_vars[1]: ep_ave_max_q / float(j)
-                })
+    except KeyboardInterrupt:
+         # Save model
+        save_path = saver.save(sess, "./results/models/model.ckpt")
+        print("Model saved in path: %s" % save_path)
+        return
+        
 
-                writer.add_summary(summary_str, i)
-                writer.flush()
 
-                print('| Reward: {:d} | Episode: {:d} | Qmax: {:.4f}'.format(int(ep_reward), \
-                        i, (ep_ave_max_q / float(j))))
-                break
 
-def writeActionLog(ep, action_log, ep_reward, ep_q):
+def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
     filepath = os.path.join(os.getcwd(), "results/action_logs/%d_%d_%f.csv" % (ep, ep_reward, ep_q))
     directory = os.path.dirname(filepath)
     if not os.path.exists(directory):
         os.makedirs(directory)
 
     with open(filepath, 'w') as file:
+        # Write init state
+        first = True
+        for state_var in robot_init_state:            
+            if (first):
+                file.write("%f" % (state_var))    
+                first = False
+            else:
+                file.write(",%f" % (state_var))
+        file.write("\n")
+
+        # Write actions
         for action_set in action_log:
+            first = True
             for action in action_set:
-                file.write("%f," % (action))
+                if (first):
+                    file.write("%f" % (action))    
+                    first = False
+                else:
+                    file.write(",%f" % (action))
             file.write("\n")
 
     return filepath
@@ -398,9 +451,11 @@ def writeActionLog(ep, action_log, ep_reward, ep_q):
 def main(args):
 
     with tf.Session() as sess:
+        if (int(args['robot']) == 1):
+            env = robotsim.SimRobot()
+        else:
+            env = gym.make(args['env'])
 
-        env = robotsim.SimRobot()
-#        env = gym.make(args['env'])
         np.random.seed(int(args['random_seed']))
         tf.set_random_seed(int(args['random_seed']))
         env.seed(int(args['random_seed']))
@@ -421,16 +476,20 @@ def main(args):
                                float(args['gamma']),
                                actor.get_num_trainable_vars())
 
+        # Remove unused items in graph collection to remove warnings
+        tf.get_default_graph().clear_collection('data_preprocessing')
+        tf.get_default_graph().clear_collection('data_augmentation')
+
         actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim))
 
-        if args['use_gym_monitor']:
+        if args['use_gym_monitor'] and (int(args['robot']) != 1):
             if not args['render_env']:
                 env = wrappers.Monitor(
                     env, args['monitor_dir'], video_callable=False, force=True)
             else:
                 env = wrappers.Monitor(env, args['monitor_dir'], force=True)
-        train(sess, env, args, actor, critic, actor_noise)
-
+        train(sess, env, args, actor, critic, actor_noise, int(args['robot']), args['model'])
+        
         if args['use_gym_monitor']:
             env.monitor.close()
 
@@ -438,8 +497,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
 
     # agent parameters
-    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.000001) #0.000001
-    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.0001) #=0.00001
+    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.0001) #0.0001
+    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.001) #=0.001
     parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) #0.99
     parser.add_argument('--tau', help='soft target update parameter', default=0.001) #0.001
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
@@ -454,6 +513,9 @@ if __name__ == '__main__':
     parser.add_argument('--use-gym-monitor', help='record gym results', action='store_true')
     parser.add_argument('--monitor-dir', help='directory for storing gym results', default='./results/gym_ddpg')
     parser.add_argument('--summary-dir', help='directory for storing tensorboard info', default='./results/tf_ddpg')
+
+    parser.add_argument('--model', help='saved model to restore', default='')
+    parser.add_argument('--robot', help='use robot environment', default=1)
 
     #parser.set_defaults(render_env=True)
     #parser.set_defaults(use_gym_monitor=True)
