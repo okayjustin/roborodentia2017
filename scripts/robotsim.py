@@ -8,11 +8,12 @@ import numpy as np
 import helper_funcs as hf
 import gym
 from gym.utils import seeding
+from os import path
 
 FIELD_XMAX = 2438.4 # Maximum x dimension in mm
 FIELD_YMAX = 1219.2  # Maximum y dimension in mm
 
-TIME_MAX = 10 #seconds
+TIME_MAX = 30 #seconds
 
 class Box():
      def __init__(self,low,high,shape):
@@ -32,6 +33,8 @@ class SimRobot():
     theta: starting angle of the robot origin in field coordinates
     """
     def __init__(self, state_start = [FIELD_XMAX/2, 0, FIELD_YMAX/2, 0, 0, 0]):
+        self.viewer = None
+
         # Set up interface with nn
         high = np.array([1., 1., 8.])
         self.action_space = gym.spaces.box.Box(low=-2.0, high=2.0, shape=(1,))
@@ -60,15 +63,15 @@ class SimRobot():
         self.state_start = np.array(state_start)
             
         # Sim vars
-        self.dt = 0.05
+        self.dt = 0.01
         self.time = 0
         self.reward = 0
         self.terminal = 0
 
         # Mecanum equation converts wheel velocities to tranlational x,y, and rotational velocities
-        self.friction_constant = 5                                      # Friction constant in 1/s
         self.wheel_max_thetadotdot = 430                                # Max wheel rotational acceleration in rad/s^2
         self.wheel_max_thetadot = 24.46                                 # Max wheel rotational velocity in rad/s
+        self.friction_constant = self.wheel_max_thetadotdot/self.wheel_max_thetadot # Friction constant in 1/s
         self.wheel_thetadotdot =  np.zeros([4,1])                       # Wheel rotational acceleration in rad/s/2
         self.wheel_thetadot = np.zeros([4,1])                           # Wheel rotational velocities in rad/s
         r =  30.0   # Wheel radius in mm
@@ -84,6 +87,7 @@ class SimRobot():
         self.rf4 = SimRangefinder(self.len_x/2.0, -40.0, 0.0, self.dt)
         self.imu = SimIMU(self.dt)
 
+
         # Initialize sim vars
         self.reset(False)
 
@@ -92,7 +96,7 @@ class SimRobot():
         self.time = 0
         self.reward = 0
         if (randomize):
-            high = np.array([10, 0, 10, 0, np.pi, 1])
+            high = np.array([100, 0, 100, 0, np.pi, 1])
             self.state = self.state_start + np.random.uniform(low=-high, high=high)
         else:
             self.state = self.state_start
@@ -121,13 +125,14 @@ class SimRobot():
         dt = self.dt
 
         u = np.clip(u, -2, 2)[0]
+        self.last_u = u # for rendering
         self.time += dt
         self.action = np.array([u])
 
         # Desired trajectory inputs
         vd = 0 # ctrl[0]
         theta_d = 0 #np.pi * (ctrl[1] + 1)
-        v_theta = 0 # ctrl[2]
+        v_theta = u # ctrl[2]
     
         # Calculate voltage ratios for each motor to acheive desired trajectory
         v = np.zeros([4,1])
@@ -142,26 +147,19 @@ class SimRobot():
 
         # Convert voltage ratios to wheel rotational velocities in rad/sec
         # Model linear relationship between voltage and acceleration. Friction linear with velocity.
-        # self.wheel_thetadotdot = v * self.wheel_thetadotdot - self.wheel_thetadot * self.friction_constant
-        # self.wheel_thetadot = self.wheel_thetadot + self.wheel_thetadotdot * self.dt
-        #wheel_w = self.max_wheel_w * v
-
+        self.wheel_thetadotdot = v * self.wheel_max_thetadotdot - self.wheel_thetadot * self.friction_constant
+        self.wheel_thetadot = self.wheel_thetadot + self.wheel_thetadotdot * self.dt
+        
         # Calculate robot frontwards, rightwards, and rotational velocities
         velocities = np.matmul(self.mecanum_xfer, self.wheel_thetadot)
         rightdot = velocities[0][0]
         frontdot = velocities[1][0]
-        #thdot = velocities[2][0]
+        newthdot = velocities[2][0]
 
-        # Calculate the x and y velocity components
-        g = 10.
-        m = 1.
-        l = 1.
-        newthdot = thdot + (-3*g/(2*l) * np.sin(th + np.pi) + 3./(m*l**2)*u) * dt
-        newth = th + thdot*dt
-        newthdot = np.clip(newthdot, -8, 8) #pylint: disable=E1111
+        # Calculate the new theta
+        newth = th + newthdot*dt
 
-        #self.theta = self.theta + (self.rotation_vel * TIME_STEP)
-        
+        # Calcuate x and y velocity components
         newxdot = rightdot * np.cos(newth) + frontdot * np.sin(newth)
         newydot = rightdot * np.sin(newth) + frontdot * np.cos(newth)
 
@@ -193,7 +191,7 @@ class SimRobot():
         # End of sim
         if (self.time > TIME_MAX):
             self.terminal = 1
-            print(self.state, end = '       ;    ')
+            print(np.degrees(self.state[4]), end = ' ; ')
             print(self.obs)
         
 
@@ -201,11 +199,10 @@ class SimRobot():
         return self.obs, self.reward, self.terminal, info
 
     def render(self, mode='human'):
-
         if self.viewer is None:
             from gym.envs.classic_control import rendering
-            self.viewer = rendering.Viewer(500,500)
-            self.viewer.set_bounds(-2.2,2.2,-2.2,2.2)
+            self.viewer = rendering.Viewer(1300,650)
+            self.viewer.set_bounds(0,FIELD_XMAX,0,FIELD_YMAX)
             rod = rendering.make_capsule(1, .2)
             rod.set_color(.8, .3, .3)
             self.pole_transform = rendering.Transform()
@@ -214,15 +211,26 @@ class SimRobot():
             axle = rendering.make_circle(.05)
             axle.set_color(0,0,0)
             self.viewer.add_geom(axle)
-            fname = path.join(path.dirname(__file__), "images/robot.png")
-            self.img = rendering.Image(fname, 1., 1.)
-            self.imgtrans = rendering.Transform()
-            self.img.add_attr(self.imgtrans)
 
-        self.viewer.add_onetime(self.img)
-        self.pole_transform.set_rotation(self.state[0] + np.pi/2)
+            # Rotation direction indicator
+            fname = path.join(path.dirname(__file__), "images/clockwise.png")
+            self.img_rot_ind = rendering.Image(fname, 1., 1.)
+            self.imgtrans_rot_ind = rendering.Transform()
+            self.img_rot_ind.add_attr(self.imgtrans_rot_ind)
+
+            # Robot image
+            fname = path.join(path.dirname(__file__), "images/robot.png")
+            self.img_robot = rendering.Image(fname, self.len_x, self.len_y)
+            self.imgtrans_robot = rendering.Transform()
+            self.img_robot.add_attr(self.imgtrans_robot)
+
+        self.viewer.add_onetime(self.img_rot_ind)
+        self.viewer.add_onetime(self.img_robot)
+
+        self.pole_transform.set_rotation(self.state[4] + np.pi/2)
         if self.last_u:
-            self.imgtrans.scale = (-self.last_u/2, np.abs(self.last_u)/2)
+            self.imgtrans_rot_ind.scale = (self.last_u/2, np.abs(self.last_u)/2)
+            self.imgtrans_robot.set_translation(FIELD_XMAX/2, FIELD_YMAX/2)
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
 
@@ -249,7 +257,7 @@ class SimRobot():
         self.reward_rvel = -0.1 * self.state[5]**2
 
         # self.reward = self.reward_theta + self.reward_effort + self.reward_dist + self.reward_vel + self.reward_rvel
-        self.reward = self.reward_theta + self.reward_effort + self.reward_rvel
+        self.reward = self.reward_theta + self.reward_rvel# + self.reward_effort 
         return self.reward
 
     def angle_normalize(self, x):

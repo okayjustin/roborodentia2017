@@ -306,7 +306,7 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
             terminal = False
             for j in range(int(args['max_episode_len'])):
                 
-                if args['render_env'] and not robot_env:
+                if args['render_env']:# and not robot_env:
                     env.render()
 
                 
@@ -397,11 +397,11 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
             if ((ep_reward > peak_reward) or (i % 25 == 0)):
                 if (robot_env):
                     filename = writeActionLog(i,action_log,int(ep_reward),ep_ave_max_q / float(j), env.init_state)
-                    if (platform.system() == 'Windows'):
-                        command = 'py -3 simulator.py ' + filename
-                    else:
-                        command = 'python3 simulator.py ' + filename
-                    subprocess.call(command, shell=True)
+                    # if (platform.system() == 'Windows'):
+                    #     command = 'py -3 simulator.py ' + filename
+                    # else:
+                    #     command = 'python3 simulator.py ' + filename
+                    # subprocess.call(command, shell=True)
                 # Update peak reward
                 if (ep_reward > peak_reward):
                     # Save model
@@ -410,9 +410,6 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
                     peak_reward = ep_reward
 
     except KeyboardInterrupt:
-         # Save model
-        save_path = saver.save(sess, "./results/models/model.ckpt")
-        print("Model saved in path: %s" % save_path)
         return
         
 
@@ -480,7 +477,7 @@ def main(args):
         tf.get_default_graph().clear_collection('data_preprocessing')
         tf.get_default_graph().clear_collection('data_augmentation')
 
-        actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim))
+        actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim), dt=env.dt)
 
         if args['use_gym_monitor'] and (int(args['robot']) != 1):
             if not args['render_env']:
@@ -517,7 +514,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', help='saved model to restore', default='')
     parser.add_argument('--robot', help='use robot environment', default=1)
 
-    #parser.set_defaults(render_env=True)
+    parser.set_defaults(render_env=True)
     #parser.set_defaults(use_gym_monitor=True)
 
     args = vars(parser.parse_args())
