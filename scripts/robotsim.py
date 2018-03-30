@@ -129,9 +129,9 @@ class SimRobot():
         self.time += dt
 
         # Desired trajectory inputs
-        vd = 0 # ctrl[0]
-        theta_d = 0 #np.pi * (ctrl[1] + 1)
         v_theta = u[0] # ctrl[2]
+        vd = 0#u[1]
+        theta_d = 0#u[2] * np.pi - self.sensors[4].prevth
 
         # Calculate voltage ratios for each motor to acheive desired trajectory
         v = np.zeros([4,1])

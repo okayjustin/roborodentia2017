@@ -15,6 +15,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import subprocess
 
 import tensorflow as tf
+from tensorflow.python.tools import inspect_checkpoint as chkp
 import numpy as np
 import gym
 from gym import wrappers
@@ -266,7 +267,7 @@ def build_summaries():
 #   Agent Training
 # ===========================
 
-def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=""):
+def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=''):
 
     # Set up summary Ops
     summary_ops, summary_vars = build_summaries()
@@ -281,6 +282,8 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
 
     # Restore variables from disk.\
     if (restore_model != ''):
+        # print all tensors in checkpoint file
+        chkp.print_tensors_in_checkpoint_file(restore_model, tensor_name='', all_tensors=False)
         try:
             saver.restore(sess, restore_model)
             print("Model restored.")
@@ -299,8 +302,6 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
             ep_reward = 0
             ep_ave_max_q = 0
 
-            action_log = []
-
             robotsim_time = 0
             train_time = 0
             terminal = False
@@ -315,7 +316,6 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
                 a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
                 action = a[0]
 
-                action_log.append(action)
                 end = timer()
                 train_time += end - start
 
@@ -393,27 +393,57 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
             print('| Reward: {:d} | Episode: {:d} | Qmax: {:.4f}'.format(int(ep_reward), \
                     i, (ep_ave_max_q / float(j))))
 
-            # Save action log if reward increased
-            if ((ep_reward > peak_reward) or (i % 25 == 0)):
-                if (robot_env):
-                    filename = writeActionLog(i,action_log,int(ep_reward),ep_ave_max_q / float(j), env.init_state)
-                    # if (platform.system() == 'Windows'):
-                    #     command = 'py -3 simulator.py ' + filename
-                    # else:
-                    #     command = 'python3 simulator.py ' + filename
-                    # subprocess.call(command, shell=True)
-                # Update peak reward
-                if (ep_reward > peak_reward):
-                    # Save model
-                    save_path = saver.save(sess, "./results/models/model.ckpt")
-                    print("Model saved in path: %s" % save_path)
-                    peak_reward = ep_reward
+            # Save model if reward increased
+            if (ep_reward > peak_reward):
+                # Save model
+                save_path = saver.save(sess, "./results/models/model.ckpt")
+                print("Model saved in path: %s" % save_path)
+                peak_reward = ep_reward
 
     except KeyboardInterrupt:
         return
 
 
 
+def test(sess, env, args, actor):
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver()
+
+    # Initialize target network weights
+    actor.update_target_network()
+
+    # Restore variables from disk.
+    try:
+        saver.restore(sess, args['model'])
+        print("Model restored.")
+    except:
+        print("Can't restore model.")
+        return
+
+    try:
+        for i in range(int(args['max_episodes'])):
+            s = env.reset()
+
+            ep_reward = 0
+
+            for j in range(int(args['max_episode_len'])):
+                if (args['render_env']):
+                    env.render()
+
+                # Choose action based on inputs
+                a = actor.predict(np.reshape(s, (1, actor.s_dim)))
+                action = a[0]
+
+                # Execute action and get new state, reward
+                s, r, terminal, info = env.step(action)
+                ep_reward += r
+
+                if terminal:
+                    break
+
+            print('| Reward: {:d} | Episode: {:d}'.format(int(ep_reward), i))
+    except KeyboardInterrupt:
+        return
 
 def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
     filepath = os.path.join(os.getcwd(), "results/action_logs/%d_%d_%f.csv" % (ep, ep_reward, ep_q))
@@ -485,7 +515,9 @@ def main(args):
                     env, args['monitor_dir'], video_callable=False, force=True)
             else:
                 env = wrappers.Monitor(env, args['monitor_dir'], force=True)
-        train(sess, env, args, actor, critic, actor_noise, int(args['robot']), args['model'])
+
+        #train(sess, env, args, actor, critic, actor_noise, int(args['robot']), args['model'])
+        test(sess, env, args, actor)
 
         if args['use_gym_monitor']:
             env.monitor.close()
