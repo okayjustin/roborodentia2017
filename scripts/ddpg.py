@@ -283,7 +283,7 @@ def train(sess, env, args, actor, critic, actor_noise):
     # Restore variables from disk.
     if (args['model'] != ''):
         try:
-            saver.restore(sess, restore_model)
+            saver.restore(sess, args['model'])
             print("Model restored.")
         except:
             print("Can't restore model.")
@@ -438,7 +438,7 @@ def testModelPerformance(sess, env, args, actor, num_test_cases):
 
     # Restore variables from disk.
     try:
-        saver.restore(sess, restore_model)
+        saver.restore(sess, args['model'])
         print("Model restored.")
     except:
         print("Can't restore model.")
@@ -483,7 +483,7 @@ def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
 def main(args):
 
     with tf.Session() as sess:
-        if (int(args['robot']) == 1):
+        if (args['env'] == 'Robot'):
             env = robotsim.SimRobot()
         else:
             env = gym.make(args['env'])
@@ -514,20 +514,11 @@ def main(args):
 
         actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim), dt=env.dt)
 
-        if args['use_gym_monitor'] and (int(args['robot']) != 1):
-            if not args['render_env']:
-                env = wrappers.Monitor(
-                    env, args['monitor_dir'], video_callable=False, force=True)
-            else:
-                env = wrappers.Monitor(env, args['monitor_dir'], force=True)
-
-        if args['test']:
+        if args['test'] == 1:
             testModelPerformance(sess, env, args, actor, num_test_cases=20)
         else:
             train(sess, env, args, actor, critic, actor_noise)
 
-        if args['use_gym_monitor']:
-            env.monitor.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
@@ -541,21 +532,18 @@ if __name__ == '__main__':
     parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
 
     # run parameters
-    parser.add_argument('--env', help='choose the gym env- tested on {Pendulum-v0}', default='Pendulum-v0')
+    parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='Robot')
     parser.add_argument('--random-seed', help='random seed for repeatability', default=1234)
     parser.add_argument('--max-episodes', help='max num of episodes to do while training', default=50000)
     parser.add_argument('--max-episode-len', help='max length of 1 episode', default=1000)
     parser.add_argument('--render-env', help='render the gym env', action='store_true')
-    parser.add_argument('--use-gym-monitor', help='record gym results', action='store_true')
     parser.add_argument('--monitor-dir', help='directory for storing gym results', default='./results/gym_ddpg')
     parser.add_argument('--summary-dir', help='directory for storing tensorboard info', default='./results/tf_ddpg')
 
     parser.add_argument('--model', help='saved model to restore', default='')
-    parser.add_argument('--robot', help='use robot environment', default=1)
     parser.add_argument('--test', help='test model', default=0)
 
     parser.set_defaults(render_env=True)
-    #parser.set_defaults(use_gym_monitor=True)
 
     args = vars(parser.parse_args())
 
