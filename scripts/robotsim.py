@@ -78,29 +78,32 @@ class SimRobot():
         self.mecanum_xfer = (r/4) * np.array([[1,1,1,1],[-1,1,-1,1],\
                 [1/(L1+L2),-1/(L1+L2),-1/(L1+L2),1/(L1+L2)]])
 
-        # Set up interface with nn
-        # Observations are x,
-        high = np.array([1., 1., 8.])
-        self.action_space = gym.spaces.box.Box(low=-2.0, high=2.0, shape=(1,))
-        self.observation_space = gym.spaces.box.Box(low=-high, high=high)
-
         # Initialize rangefinders
-        self.rf1 = SimRangefinder(60.0, self.len_y/2.0, 90.0, self.dt)
-        self.rf2 = SimRangefinder(-1 * self.len_x/2.0, -40.0, 180.0, self.dt)
-        self.rf3 = SimRangefinder(0.0, -1 * self.len_y/2.0, 270.0, self.dt)
-        self.rf4 = SimRangefinder(self.len_x/2.0, -40.0, 0.0, self.dt)
-        self.imu = SimIMU(self.dt)
+        self.sensors = []
+        self.sensors.append(SimRangefinder(60.0, self.len_y/2.0, 90.0, self.dt))
+        self.sensors.append(SimRangefinder(-1 * self.len_x/2.0, -40.0, 180.0, self.dt))
+        self.sensors.append(SimRangefinder(0.0, -1 * self.len_y/2.0, 270.0, self.dt))
+        self.sensors.append(SimRangefinder(self.len_x/2.0, -40.0, 0.0, self.dt))
+        self.sensors.append(SimIMU(self.dt))
 
+        # Set up interface with nn
+        high = np.array([])
+        low = np.array([])
+        for sensor in self.sensors:
+            high = np.append(high, sensor.high)
+            low = np.append(low, sensor.low)
+        self.action_space = gym.spaces.box.Box(low=-2.0, high=2.0, shape=(1,))
+        self.observation_space = gym.spaces.box.Box(low=low, high=high)
 
         # Initialize sim vars
         self.reset(False)
 
-    def reset(self, randomize = False):
+    def reset(self, randomize = True):
         # Reset vars
         self.time = 0
         self.reward = 0
         if (randomize):
-            high = np.array([100, 0, 100, 0, np.pi, 1])
+            high = np.array([100, 0, 100, 0, 0.2, 0])
             self.state = self.state_start + np.random.uniform(low=-high, high=high)
         else:
             self.state = self.state_start
@@ -178,11 +181,14 @@ class SimRobot():
         self.state = np.array([newx, newxdot, newy, newydot, newth, newthdot])
 
         # Update sensor measurements
-        self.updateSensors()
+        obs = np.array([])
+        for sensor in self.sensors:
+            sensor.update(self.state)
+            obs = np.append(obs, sensor.meas)
+        self.obs = obs
 
         # Get reward from executing the action
         self.updateReward()
-        #cost = self.angle_normalize(self.theta)**2 + .1*self.thetadot**2 + .001*(ctrl[0]**2)
 
         # End of sim
         if (self.time > TIME_MAX):
@@ -223,10 +229,8 @@ class SimRobot():
 #        self.draw_radial_arrow(self.state[0], self.state[2], self.last_u[1],-1*(self.last_u[2]+1)*np.pi+self.th)
 
         # Rangefinder lines
-        self.viewer.draw_line(self.rf1.dim[0], self.rf1.dim[1])
-        self.viewer.draw_line(self.rf2.dim[0], self.rf2.dim[1])
-        self.viewer.draw_line(self.rf3.dim[0], self.rf3.dim[1])
-        self.viewer.draw_line(self.rf4.dim[0], self.rf4.dim[1])
+        for i in range(0,4):
+            self.viewer.draw_line(self.sensors[i].dim[0], self.sensors[i].dim[1])
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
 
@@ -245,11 +249,6 @@ class SimRobot():
         x3 = x + mag * np.cos(theta + 4*np.pi/3)
         y3 = y + mag * np.sin(theta + 4*np.pi/3)
         self.viewer.draw_polygon(((x1, y1), (x2, y2), (x3, y3)))
-
-
-    def getReward(self):
-        return self.reward
-
 
     def updateReward(self):
         # Keep angle at 0
@@ -276,19 +275,6 @@ class SimRobot():
     def angle_normalize(self, x):
         return (((x+np.pi) % (2*np.pi)) - np.pi)
 
-    def getState(self):
-        return self.state
-
-    def updateSensors(self):
-        prev_th = self.imu.meas
-        self.rf1.update(self.state)
-        self.rf2.update(self.state)
-        self.rf3.update(self.state)
-        self.rf4.update(self.state)
-        self.imu.update(self.state)
-        estimated_thdot = ((self.imu.meas - prev_th) / self.dt)
-        self.obs = np.array([self.imu.cos, self.imu.sin, estimated_thdot])
-        return self.obs
 
 
 class SimRangefinder():
@@ -311,8 +297,10 @@ class SimRangefinder():
         self.max_range = max_range
         self.timebank = 0
         self.meas_period = meas_period
-        self.meas = 0
-        self.dim = [(0,0),(0,0)]
+        self.meas = np.array([0.,0.])
+        self.dim = [(0.,0.),(0.,0.)]
+        self.high = np.array([1200., 750.])
+        self.low = np.array([-1., -750.])
 
     def update(self, state):
         """ Returns the measurement of the rangefinder in mm.
@@ -338,59 +326,61 @@ class SimRangefinder():
         sinval = np.sin(rf_aim_theta)
 
         if cosval >= 0:
-            meas_x = FIELD_XMAX - x1
+            dist_x = FIELD_XMAX - x1
         else:
-            meas_x = -1 * x1
+            dist_x = -1 * x1
         if sinval >= 0:
-            meas_y = FIELD_YMAX - y1
+            dist_y = FIELD_YMAX - y1
         else:
-            meas_y = -1 * y1
+            dist_y = -1 * y1
 
         # Calculate the two possible measurements
         try:
-            hx = meas_x / cosval # If the hypotenuse extends to a vertical wall
-            hy = meas_y / sinval if sinval != 0 else meas_y / 0.00000001 # If the hypotenuse extends to a horizontal wall
+            hx = dist_x / cosval # If the hypotenuse extends to a vertical wall
+            hy = dist_y / sinval if sinval != 0 else dist_y / 0.00000001 # If the hypotenuse extends to a horizontal wall
 
             # The correct measurement is the shorter one
             if (hx < hy):
-                meas = hx
-                x2 = x1 + meas_x
-                y2 = y1 + meas * sinval
+                dist = hx
+                x2 = x1 + dist_x
+                y2 = y1 + dist * sinval
             else:
-                meas = hy
-                x2 = x1 + meas * cosval
-                y2 = y1 + meas_y
+                dist = hy
+                x2 = x1 + dist * cosval
+                y2 = y1 + dist_y
         except:
             if (cosval != 0):
-                meas = meas_x / cosval
-                x2 = x1 + meas_x
-                y2 = y1 + meas * sinval
+                dist = dist_x / cosval
+                x2 = x1 + dist_x
+                y2 = y1 + dist * sinval
             else:
-                meas = meas_y / sinval
-                x2 = x1 + meas * cosval
-                y2 = y1 + meas_y
+                dist = dist_y / sinval
+                x2 = x1 + dist * cosval
+                y2 = y1 + dist_y
 
         # Add noise to measurement
-        sigma = 2E-05 * pow(meas,2) - 0.0062 * meas + 2.435
-        meas += np.random.normal(0, sigma)
+        #sigma = 2E-05 * pow(dist,2) - 0.0062 * dist + 2.435
+        #dist += np.random.normal(0, sigma)
 
         # Only update if measurement is in range
-        if ((meas > 30) and (meas < 1200)):
+        if ((dist > 30) and (dist < 1200)):
             self.dim = [(x1,y1),(x2,y2)]
-            self.meas = meas
+            dist_dot = (dist - self.meas[0]) / self.dt
+            self.meas = np.array([dist, dist_dot])
         else:
-            self.meas = -1
+            self.meas = np.array([-1.0, -1.0])
 
 
 class SimIMU():
     def __init__(self,dt,meas_period = 0.001, sigma = 0.0):
         self.dt = dt
         self.timebank = 0
-        self.meas = 0
-        self.cos = 0
-        self.sin = 0
+        self.prevth = 0
+        self.meas = np.array([0., 0., 0.])
         self.meas_period = meas_period
         self.sigma = sigma
+        self.high = np.array([1., 1., 8.])
+        self.low = np.array([-1., -1., -8.])
 
     def update(self, state):
         # Add some available time to the timebank
@@ -401,13 +391,17 @@ class SimIMU():
         # Use up some time from the timebank
         self.timebank -= self.meas_period
 
-        # Add noise to measurement, convert to radians
-        self.meas = state[4] #(robot.theta + np.random.normal(0, self.sigma)) % 360.0
+        # Get angle measurement and estimate a velocity
+             #(robot.theta + np.random.normal(0, self.sigma)) % 360.0
+        th = state[4]
+        thdot = (th - self.prevth) / self.dt
+        self.prevth = th
 
         # Get x/y components of theta
-        self.cos = np.cos(state[4])
-        self.sin = np.sin(state[4])
+        cos = np.cos(th)
+        sin = np.sin(th)
 
+        self.meas = np.array([cos, sin, thdot])
 
 class SimMicroSW():
     def __init__(self):
