@@ -305,11 +305,11 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
             train_time = 0
             terminal = False
             for j in range(int(args['max_episode_len'])):
-                
-                if args['render_env']:# and not robot_env:
+
+                if (args['render_env'] and i % 20 == 0):
                     env.render()
 
-                
+
                 # Added exploration noise
                 start = timer()
                 a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
@@ -318,9 +318,9 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
                 action_log.append(action)
                 end = timer()
                 train_time += end - start
-                
+
                 start = timer()
-            
+
                 s2, r, terminal, info = env.step(action)
 
                 # print(j, end = ' : ')
@@ -328,7 +328,7 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
                 # print(r, end = '; ')
                 # print(terminal, end = '; ')
                 # print(info)
-                
+
 
                 end = timer()
                 robotsim_time += end - start
@@ -375,12 +375,12 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
                 train_time += end - start
 
                 # End of episode
-                if terminal:               
+                if terminal:
                     break
 
             # Print timeits
             total_time = robotsim_time + train_time
-            # print("Robot: %fs (%d%%)   |      Train: %fs (%d%%)" % 
+            # print("Robot: %fs (%d%%)   |      Train: %fs (%d%%)" %
             #     (robotsim_time, 100*robotsim_time/total_time, train_time, 100*train_time/total_time))
             summary_str = sess.run(summary_ops, feed_dict={
                 summary_vars[0]: ep_reward,
@@ -411,7 +411,7 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
 
     except KeyboardInterrupt:
         return
-        
+
 
 
 
@@ -424,9 +424,9 @@ def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
     with open(filepath, 'w') as file:
         # Write init state
         first = True
-        for state_var in robot_init_state:            
+        for state_var in robot_init_state:
             if (first):
-                file.write("%f" % (state_var))    
+                file.write("%f" % (state_var))
                 first = False
             else:
                 file.write(",%f" % (state_var))
@@ -437,7 +437,7 @@ def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
             first = True
             for action in action_set:
                 if (first):
-                    file.write("%f" % (action))    
+                    file.write("%f" % (action))
                     first = False
                 else:
                     file.write(",%f" % (action))
@@ -486,7 +486,7 @@ def main(args):
             else:
                 env = wrappers.Monitor(env, args['monitor_dir'], force=True)
         train(sess, env, args, actor, critic, actor_noise, int(args['robot']), args['model'])
-        
+
         if args['use_gym_monitor']:
             env.monitor.close()
 
