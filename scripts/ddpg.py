@@ -294,7 +294,9 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
     # Initialize replay memory
     replay_buffer = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
 
-    peak_reward = -9999999999
+    # Initialize network test total reward
+    peak_test_total_reward = testNetworkPerformance(env, args, actor)
+
     try:
         for i in range(int(args['max_episodes'])):
             s = env.reset()
@@ -322,13 +324,6 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
                 start = timer()
 
                 s2, r, terminal, info = env.step(action)
-
-                # print(j, end = ' : ')
-                # print(s2, end = '; ')
-                # print(r, end = '; ')
-                # print(terminal, end = '; ')
-                # print(info)
-
 
                 end = timer()
                 robotsim_time += end - start
@@ -378,6 +373,12 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
                 if terminal:
                     break
 
+            # Determine network performance in actual test cases if the episode reward is low
+            if (ep_reward > -50):
+                test_total_reward = testNetworkPerformance(env, args, actor)
+            else:
+                test_total_reward = -99999
+
             # Print timeits
             total_time = robotsim_time + train_time
             # print("Robot: %fs (%d%%)   |      Train: %fs (%d%%)" %
@@ -390,22 +391,43 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
             writer.add_summary(summary_str, i)
             writer.flush()
 
-            print('| Reward: {:d} | Episode: {:d} | Qmax: {:.4f}'.format(int(ep_reward), \
-                    i, (ep_ave_max_q / float(j))))
+            print('| Reward: {:d} | Test Reward: {:d} | Episode: {:d} | Qmax: {:.4f}'.format(int(ep_reward), \
+                    int(test_total_reward), i, (ep_ave_max_q / float(j))))
 
-            # Save model if reward increased
-            if (ep_reward > peak_reward):
+            # Save model if test reward increased
+            if (test_total_reward > peak_test_total_reward):
                 # Save model
                 save_path = saver.save(sess, "./results/models/model.ckpt")
                 print("Model saved in path: %s" % save_path)
-                peak_reward = ep_reward
+                peak_test_total_reward = test_total_reward
 
     except KeyboardInterrupt:
         return
 
 
+def testNetworkPerformance(env, args, actor):
+    num_test_cases = 10
+    test_total_reward = 0.0
 
-def test(sess, env, args, actor):
+    # Test the network against 10 random scenarios
+    for m in range(num_test_cases):
+        s = env.reset()
+        ep_reward = 0.0
+        for n in range(int(args['max_episode_len'])):
+            # Choose action based on inputs
+            a = actor.predict(np.reshape(s, (1, actor.s_dim)))
+            action = a[0]
+            # Execute action and get new state, reward
+            s, r, terminal, info = env.step(action)
+            ep_reward += r
+            if terminal:
+                break
+        test_total_reward += ep_reward
+
+    # Return the total divided by the number of cases tested
+    return test_total_reward / (m+1)
+
+def test2(sess, env, args, actor):
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
 
@@ -516,8 +538,8 @@ def main(args):
             else:
                 env = wrappers.Monitor(env, args['monitor_dir'], force=True)
 
-        #train(sess, env, args, actor, critic, actor_noise, int(args['robot']), args['model'])
-        test(sess, env, args, actor)
+        train(sess, env, args, actor, critic, actor_noise, int(args['robot']), args['model'])
+        #test(sess, env, args, actor)
 
         if args['use_gym_monitor']:
             env.monitor.close()

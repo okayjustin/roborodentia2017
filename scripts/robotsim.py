@@ -80,10 +80,10 @@ class SimRobot():
 
         # Initialize rangefinders
         self.sensors = []
-        self.sensors.append(SimRangefinder(60.0, self.len_y/2.0, 90.0, self.dt))
-        self.sensors.append(SimRangefinder(-1 * self.len_x/2.0, -40.0, 180.0, self.dt))
-        self.sensors.append(SimRangefinder(0.0, -1 * self.len_y/2.0, 270.0, self.dt))
-        self.sensors.append(SimRangefinder(self.len_x/2.0, -40.0, 0.0, self.dt))
+#        self.sensors.append(SimRangefinder(60.0, self.len_y/2.0, 90.0, self.dt))
+#        self.sensors.append(SimRangefinder(-1 * self.len_x/2.0, -40.0, 180.0, self.dt))
+#        self.sensors.append(SimRangefinder(0.0, -1 * self.len_y/2.0, 270.0, self.dt))
+#        self.sensors.append(SimRangefinder(self.len_x/2.0, -40.0, 0.0, self.dt))
         self.sensors.append(SimIMU(self.dt))
 
         # Set up interface with nn
@@ -229,8 +229,9 @@ class SimRobot():
 #        self.draw_radial_arrow(self.state[0], self.state[2], self.last_u[1],-1*(self.last_u[2]+1)*np.pi+self.th)
 
         # Rangefinder lines
-        for i in range(0,4):
-            self.viewer.draw_line(self.sensors[i].dim[0], self.sensors[i].dim[1])
+        for sensor in self.sensors:
+            if (sensor.type == 'Rangefinder'):
+                self.viewer.draw_line(self.sensors[i].dim[0], self.sensors[i].dim[1])
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
 
@@ -287,6 +288,7 @@ class SimRangefinder():
     meas_period: amount of time between measurements
     """
     def __init__(self,x,y,theta,dt,max_range=1200.0,meas_period=0.033):
+        self.type = 'Rangefinder'
         self.dt = dt
         self.theta = np.radians(theta)
         self.position_theta = np.arctan2(y,x)
@@ -373,6 +375,7 @@ class SimRangefinder():
 
 class SimIMU():
     def __init__(self,dt,meas_period = 0.001, sigma = 0.0):
+        self.type = 'IMU'
         self.dt = dt
         self.timebank = 0
         self.prevth = 0
