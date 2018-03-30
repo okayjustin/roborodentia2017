@@ -283,7 +283,7 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
     # Restore variables from disk.\
     if (restore_model != ''):
         # print all tensors in checkpoint file
-        chkp.print_tensors_in_checkpoint_file(restore_model, tensor_name='', all_tensors=False)
+        #chkp.print_tensors_in_checkpoint_file(restore_model, tensor_name='', all_tensors=False)
         try:
             saver.restore(sess, restore_model)
             print("Model restored.")
