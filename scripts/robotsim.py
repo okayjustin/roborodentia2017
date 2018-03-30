@@ -14,7 +14,7 @@ from pyglet.gl import *
 
 FIELD_XMAX = 2438.4 # Maximum x dimension in mm
 FIELD_YMAX = 1219.2  # Maximum y dimension in mm
-
+MOTOR_DELTA = 10 # Controls percentage of how much motors differ . Ex. 5% means parameter will vary up to 5%
 TIME_MAX = 10 #seconds
 
 class Box():
@@ -70,8 +70,8 @@ class SimRobot():
         self.wheel_max_thetadotdot = 430                                # Max wheel rotational acceleration in rad/s^2
         self.wheel_max_thetadot = 24.46                                 # Max wheel rotational velocity in rad/s
         self.friction_constant = self.wheel_max_thetadotdot/self.wheel_max_thetadot # Friction constant in 1/s
-        self.wheel_thetadotdot =  np.zeros([4,1])                       # Wheel rotational acceleration in rad/s/2
-        self.wheel_thetadot = np.zeros([4,1])                           # Wheel rotational velocities in rad/s
+        self.wheel_thetadotdot =  np.zeros(4)                       # Wheel rotational acceleration in rad/s/2
+        self.wheel_thetadot = np.zeros(4)                           # Wheel rotational velocities in rad/s
         r =  30.0   # Wheel radius in mm
         L1 = 119.35 # Half the distance between the centers of front and back wheels in mm
         L2 = 125.7  # Half the distance between the centers of left and right wheels in mm
@@ -105,8 +105,14 @@ class SimRobot():
         if (randomize):
             high = np.array([100, 0, 100, 0, 0.2, 0])
             self.state = self.state_start + np.random.uniform(low=-high, high=high)
+            # Randomize variable friction and voltage sensitivity per wheel
+            self.friction_var = np.array([self.friction_constant * (1+np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA) / 100) for i in range(4)])
+            self.v_sensitivity = np.array([1 + np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA)/100 for i in range(4)])
         else:
             self.state = self.state_start
+            self.friction_var = np.array([self.friction_constant for i in range(4)])
+            self.v_sensitivity = np.array([1 for i in range(4)])
+
         self.terminal = 0
         self.init_state = self.state
         self.step([0,0,0,0,0])
@@ -134,11 +140,11 @@ class SimRobot():
         theta_d = 0#u[2] * np.pi - self.sensors[4].prevth
 
         # Calculate voltage ratios for each motor to acheive desired trajectory
-        v = np.zeros([4,1])
-        v[2][0] = vd * np.sin(theta_d + np.pi/4) + v_theta
-        v[3][0] = vd * np.cos(theta_d + np.pi/4) - v_theta
-        v[1][0] = vd * np.cos(theta_d + np.pi/4) + v_theta
-        v[0][0] = vd * np.sin(theta_d + np.pi/4) - v_theta
+        v = np.zeros(4)
+        v[2] = vd * np.sin(theta_d + np.pi/4) + v_theta
+        v[3] = vd * np.cos(theta_d + np.pi/4) - v_theta
+        v[1] = vd * np.cos(theta_d + np.pi/4) + v_theta
+        v[0] = vd * np.sin(theta_d + np.pi/4) - v_theta
 
         # Normalize ratios to 1 if the maxval is > 1
         maxval = np.amax(np.absolute(v))
@@ -146,14 +152,14 @@ class SimRobot():
 
         # Convert voltage ratios to wheel rotational velocities in rad/sec
         # Model linear relationship between voltage and acceleration. Friction linear with velocity.
-        self.wheel_thetadotdot = v * self.wheel_max_thetadotdot - self.wheel_thetadot * self.friction_constant
+        self.wheel_thetadotdot = np.multiply(self.v_sensitivity, v) * self.wheel_max_thetadotdot - np.multiply(self.wheel_thetadot, self.friction_var)
         self.wheel_thetadot = self.wheel_thetadot + self.wheel_thetadotdot * self.dt
 
         # Calculate robot frontwards, rightwards, and rotational velocities
-        velocities = np.matmul(self.mecanum_xfer, self.wheel_thetadot)
-        rightdot = velocities[0][0]
-        frontdot = velocities[1][0]
-        newthdot = velocities[2][0]
+        velocities = (np.matmul(self.mecanum_xfer, (self.wheel_thetadot[np.newaxis]).T)).T[0]
+        rightdot = velocities[0]
+        frontdot = velocities[1]
+        newthdot = velocities[2]
 
         # Calculate the new theta
         newth = th + newthdot*dt

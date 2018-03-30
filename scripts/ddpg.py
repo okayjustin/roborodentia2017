@@ -307,7 +307,7 @@ def train(sess, env, args, actor, critic, actor_noise):
             terminal = False
             for j in range(int(args['max_episode_len'])):
 
-                if (args['render_env'] and i % 20 == 0):
+                if (args['render_env'] and i % 1 == 0):
                     env.render()
 
 
@@ -514,7 +514,7 @@ def main(args):
 
         actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim), dt=env.dt)
 
-        if args['test'] == 1:
+        if int(args['test']) == 1:
             testModelPerformance(sess, env, args, actor, num_test_cases=20)
         else:
             train(sess, env, args, actor, critic, actor_noise)
