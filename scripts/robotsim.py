@@ -64,6 +64,7 @@ class SimRobot():
         self.time = 0
         self.reward = 0
         self.terminal = 0
+        self.obs = [0,0,0,0]
 
         # Mecanum equation converts wheel velocities to tranlational x,y, and rotational velocities
         self.wheel_max_thetadotdot = 430                                # Max wheel rotational acceleration in rad/s^2
@@ -78,7 +79,8 @@ class SimRobot():
                 [1/(L1+L2),-1/(L1+L2),-1/(L1+L2),1/(L1+L2)]])
 
         # Set up interface with nn
-        high = np.array([1., 1., 8.])
+        # Observations are x,
+        high = np.array([1., 1., 1., 1.])
         self.action_space = gym.spaces.box.Box(low=-2.0, high=2.0, shape=(1,))
         self.observation_space = gym.spaces.box.Box(low=-high, high=high)
 
@@ -119,15 +121,14 @@ class SimRobot():
         x, xdot, y, ydot, th, thdot = self.state
         dt = self.dt
 
-        u = np.clip(u, -2, 2)[0]
+        u = np.clip(u, -2, 2)
         self.last_u = u # for rendering
         self.time += dt
-        self.action = np.array([u])
 
         # Desired trajectory inputs
         vd = 0 # ctrl[0]
         theta_d = 0 #np.pi * (ctrl[1] + 1)
-        v_theta = 0#u # ctrl[2]
+        v_theta = u[0] # ctrl[2]
 
         # Calculate voltage ratios for each motor to acheive desired trajectory
         v = np.zeros([4,1])
@@ -186,9 +187,6 @@ class SimRobot():
         # End of sim
         if (self.time > TIME_MAX):
             self.terminal = 1
-            print(np.degrees(self.state[4]), end = ' ; ')
-            print(self.obs)
-
 
         info = {}
         return self.obs, self.reward, self.terminal, info
@@ -258,9 +256,9 @@ class SimRobot():
         self.reward_theta = -1.0 * self.angle_normalize(self.state[4])**2
 
         # Minimize effort
-        self.reward_effort = -0.001 * self.action[0]**2
+        self.reward_effort = -0.001 * self.last_u[0]**2
 
-        # for action in self.action:
+        # for u in self.last_u:
         #     self.reward_effort -= 0.001 * action**2
 
         # Rewarded for staying near center of field
@@ -287,7 +285,8 @@ class SimRobot():
         self.rf3.update(self.state)
         self.rf4.update(self.state)
         self.imu.update(self.state)
-        self.obs = np.array([self.imu.cos, self.imu.sin, self.state[5]])
+        new_obs = np.array([self.imu.cos, self.imu.sin, self.obs[0], self.obs[1]])
+        self.obs = new_obs
         return self.obs
 
 
