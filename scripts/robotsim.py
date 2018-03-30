@@ -64,7 +64,7 @@ class SimRobot():
         self.time = 0
         self.reward = 0
         self.terminal = 0
-        self.obs = [0,0,0,0]
+        self.obs = [0,0,0]
 
         # Mecanum equation converts wheel velocities to tranlational x,y, and rotational velocities
         self.wheel_max_thetadotdot = 430                                # Max wheel rotational acceleration in rad/s^2
@@ -80,7 +80,7 @@ class SimRobot():
 
         # Set up interface with nn
         # Observations are x,
-        high = np.array([1., 1., 1., 1.])
+        high = np.array([1., 1., 8.])
         self.action_space = gym.spaces.box.Box(low=-2.0, high=2.0, shape=(1,))
         self.observation_space = gym.spaces.box.Box(low=-high, high=high)
 
@@ -280,13 +280,14 @@ class SimRobot():
         return self.state
 
     def updateSensors(self):
+        prev_th = self.imu.meas
         self.rf1.update(self.state)
         self.rf2.update(self.state)
         self.rf3.update(self.state)
         self.rf4.update(self.state)
         self.imu.update(self.state)
-        new_obs = np.array([self.imu.cos, self.imu.sin, self.obs[0], self.obs[1]])
-        self.obs = new_obs
+        estimated_thdot = ((self.imu.meas - prev_th) / self.dt)
+        self.obs = np.array([self.imu.cos, self.imu.sin, estimated_thdot])
         return self.obs
 
 
@@ -385,6 +386,7 @@ class SimIMU():
     def __init__(self,dt,meas_period = 0.001, sigma = 0.0):
         self.dt = dt
         self.timebank = 0
+        self.meas = 0
         self.cos = 0
         self.sin = 0
         self.meas_period = meas_period
