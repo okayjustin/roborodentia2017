@@ -46,7 +46,7 @@ class Simulator(arcade.Window):
         self.step = -1
         self.max_step = len(cmdSeq)
         self.cmdSeq = cmdSeq;
-        
+
     def setup(self):
         """ Set up the game and initialize the variables. """
         # Sprite lists
@@ -113,7 +113,7 @@ class Simulator(arcade.Window):
 
         # Print info text
         arcade.draw_text("Time: %fs" % (self.robot.time), 10, 70, arcade.color.BLACK, 12)
-        arcade.draw_text("Reward: %6.1f Theta: %6.1f Effort: %6.1f Dist: %6.1f Vel: %6.1f  RVel: %6.1f" % 
+        arcade.draw_text("Reward: %6.1f Theta: %6.1f Effort: %6.1f Dist: %6.1f Vel: %6.1f  RVel: %6.1f" %
             (self.robot.reward,self.robot.reward_theta, self.robot.reward_effort,
             self.robot.reward_dist,self.robot.reward_vel,self.robot.reward_rvel),
             10, 50, arcade.color.BLACK, 12)
@@ -197,24 +197,6 @@ class Simulator(arcade.Window):
         arcade.draw_triangle_filled(tri_x + tri_len, y, \
                 tri_x - tri_len, y, \
                 tri_x, tri_y, arcade.color.WHITE)
-
-#    def on_key_press(self, key, modifiers):
-#        """Called whenever a key is pressed. """
-#        if key == arcade.key.UP:
-#            self.player_sprite.change_y = MOVEMENT_SPEED
-#        elif key == arcade.key.DOWN:
-#            self.player_sprite.change_y = -MOVEMENT_SPEED
-#        elif key == arcade.key.LEFT:
-#            self.player_sprite.change_x = -MOVEMENT_SPEED
-#        elif key == arcade.key.RIGHT:
-#            self.player_sprite.change_x = MOVEMENT_SPEED
-#
-#    def on_key_release(self, key, modifiers):
-#        """Called when the user releases a key. """
-#        if key == arcade.key.UP or key == arcade.key.DOWN:
-#            self.player_sprite.change_y = 0
-#        elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
-#            self.player_sprite.change_x = 0
 
     def update(self, delta_time):
         """ Movement and game logic """
