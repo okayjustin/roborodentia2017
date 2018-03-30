@@ -267,7 +267,7 @@ def build_summaries():
 #   Agent Training
 # ===========================
 
-def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=''):
+def train(sess, env, args, actor, critic, actor_noise):
 
     # Set up summary Ops
     summary_ops, summary_vars = build_summaries()
@@ -280,10 +280,8 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
     actor.update_target_network()
     critic.update_target_network()
 
-    # Restore variables from disk.\
-    if (restore_model != ''):
-        # print all tensors in checkpoint file
-        #chkp.print_tensors_in_checkpoint_file(restore_model, tensor_name='', all_tensors=False)
+    # Restore variables from disk.
+    if (args['model'] != ''):
         try:
             saver.restore(sess, restore_model)
             print("Model restored.")
@@ -405,15 +403,18 @@ def train(sess, env, args, actor, critic, actor_noise, robot_env, restore_model=
         return
 
 
-def testNetworkPerformance(env, args, actor):
-    num_test_cases = 10
+# Tests the current network
+def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False):
     test_total_reward = 0.0
 
-    # Test the network against 10 random scenarios
+    # Test the network against random scenarios
     for m in range(num_test_cases):
         s = env.reset()
         ep_reward = 0.0
         for n in range(int(args['max_episode_len'])):
+            if (args['render_env'] and render == True):
+                env.render()
+
             # Choose action based on inputs
             a = actor.predict(np.reshape(s, (1, actor.s_dim)))
             action = a[0]
@@ -424,10 +425,11 @@ def testNetworkPerformance(env, args, actor):
                 break
         test_total_reward += ep_reward
 
-    # Return the total divided by the number of cases tested
+    # Return the average test reward
     return test_total_reward / (m+1)
 
-def test2(sess, env, args, actor):
+# Tests the performance of an input model
+def testModelPerformance(sess, env, args, actor, num_test_cases):
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
 
@@ -436,36 +438,17 @@ def test2(sess, env, args, actor):
 
     # Restore variables from disk.
     try:
-        saver.restore(sess, args['model'])
+        saver.restore(sess, restore_model)
         print("Model restored.")
     except:
         print("Can't restore model.")
         return
 
-    try:
-        for i in range(int(args['max_episodes'])):
-            s = env.reset()
+    # Test the network against random scenarios
+    avg_test_reward = testNetworkPerformance(env, args, actor, num_test_cases, render=True)
 
-            ep_reward = 0
-
-            for j in range(int(args['max_episode_len'])):
-                if (args['render_env']):
-                    env.render()
-
-                # Choose action based on inputs
-                a = actor.predict(np.reshape(s, (1, actor.s_dim)))
-                action = a[0]
-
-                # Execute action and get new state, reward
-                s, r, terminal, info = env.step(action)
-                ep_reward += r
-
-                if terminal:
-                    break
-
-            print('| Reward: {:d} | Episode: {:d}'.format(int(ep_reward), i))
-    except KeyboardInterrupt:
-        return
+    print('| Average reward: {:d}'.format(int(avg_test_reward)))
+    return avg_test_reward
 
 def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
     filepath = os.path.join(os.getcwd(), "results/action_logs/%d_%d_%f.csv" % (ep, ep_reward, ep_q))
@@ -538,8 +521,10 @@ def main(args):
             else:
                 env = wrappers.Monitor(env, args['monitor_dir'], force=True)
 
-        train(sess, env, args, actor, critic, actor_noise, int(args['robot']), args['model'])
-        #test(sess, env, args, actor)
+        if args['test']:
+            testModelPerformance(sess, env, args, actor, num_test_cases=20)
+        else:
+            train(sess, env, args, actor, critic, actor_noise)
 
         if args['use_gym_monitor']:
             env.monitor.close()
@@ -567,6 +552,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--model', help='saved model to restore', default='')
     parser.add_argument('--robot', help='use robot environment', default=1)
+    parser.add_argument('--test', help='test model', default=0)
 
     parser.set_defaults(render_env=True)
     #parser.set_defaults(use_gym_monitor=True)
