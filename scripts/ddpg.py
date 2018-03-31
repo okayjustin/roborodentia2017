@@ -493,7 +493,9 @@ def main(args):
         env.seed(int(args['random_seed']))
 
         state_dim = env.observation_space.shape[0]
+        print(state_dim)
         action_dim = env.action_space.shape[0]
+        print(action_dim)
         action_bound = np.tile(np.transpose(env.action_space.high),[int(args['minibatch_size']),1])
 
         # Ensure action bound is symmetric
