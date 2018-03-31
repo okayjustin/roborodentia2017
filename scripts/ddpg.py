@@ -372,8 +372,8 @@ def train(sess, env, args, actor, critic, actor_noise):
                     break
 
             # Determine network performance in actual test cases if the episode reward is low
-            if (ep_reward > -50):
-                test_total_reward = testNetworkPerformance(env, args, actor)
+            if (ep_reward > -30):
+                test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
             else:
                 test_total_reward = -99999
 
