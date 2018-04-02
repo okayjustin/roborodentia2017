@@ -90,17 +90,17 @@ class ActorNetwork(object):
             self.network_params) + len(self.target_network_params)
 
     def create_actor_network(self):
-        inputs = tflearn.input_data(shape=[None, self.s_dim])
+        inputs = tflearn.input_data(shape=[None, self.s_dim], name='ActorInputs')
         net = tflearn.fully_connected(inputs, ACTOR_L1_NODES, name='ActorInputsNet') #400
-        net = tflearn.layers.normalization.batch_normalization(net)
+        net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm1Net')
         net = tflearn.activations.relu(net)
         net = tflearn.fully_connected(net, ACTOR_L2_NODES, name='ActorNetNet') #300
-        net = tflearn.layers.normalization.batch_normalization(net)
+        net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm2Net')
         net = tflearn.activations.relu(net)
         # Final layer weights are init to Uniform[-3e-3, 3e-3]
         w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
         out = tflearn.fully_connected(
-            net, self.a_dim, activation='tanh', weights_init=w_init,name='ActorNetOut')
+            net, self.a_dim, activation='tanh', weights_init=w_init, name='ActorOutNet')
         # Scale output to -action_bound to action_bound
         scaled_out = tf.multiply(out, self.action_bound)
         return inputs, out, scaled_out
@@ -174,6 +174,10 @@ class CriticNetwork(object):
         # w.r.t. that action. Each output is independent of all
         # actions except for one.
         self.action_grads = tf.gradients(self.out, self.action)
+
+        self.num_trainable_vars = len(
+            self.network_params) + len(self.target_network_params)
+
 
     def create_critic_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim], name='CriticInputs')
@@ -372,7 +376,7 @@ def train(sess, env, args, actor, critic, actor_noise):
                     break
 
             # Determine network performance in actual test cases if the episode reward is low
-            if (ep_reward > -30):
+            if (ep_reward > -3000):
                 test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
             else:
                 test_total_reward = -99999
@@ -482,29 +486,37 @@ def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
 
 def main(args):
 
-    with tf.Session() as sess:
-        if (args['env'] == 'Robot'):
-            env = robotsim.SimRobot()
-        else:
-            env = gym.make(args['env'])
+    if (args['env'] == 'Robot'):
+        #env = robotsim.SimRobot(train = 'angle')
+        env = robotsim.SimRobot(train = 'translation')
+    else:
+        env = gym.make(args['env'])
 
+    graph = tf.Graph()
+    sess = tf.Session(graph=graph)
+
+    with graph.as_default():
+
+        print("Setting random seed")
         np.random.seed(int(args['random_seed']))
         tf.set_random_seed(int(args['random_seed']))
         env.seed(int(args['random_seed']))
 
         state_dim = env.observation_space.shape[0]
-        print(state_dim)
         action_dim = env.action_space.shape[0]
-        print(action_dim)
         action_bound = np.tile(np.transpose(env.action_space.high),[int(args['minibatch_size']),1])
 
         # Ensure action bound is symmetric
         assert ((env.action_space.high == -env.action_space.low).all())
 
+        print("Instantiating actor...")
         actor = ActorNetwork(sess, state_dim, action_dim, action_bound,
                              float(args['actor_lr']), float(args['tau']),
                              int(args['minibatch_size']))
+#        for op in tf.get_default_graph().get_operations():
+#            print(str(op.name))
 
+        print("Instantiating critic...")
         critic = CriticNetwork(sess, state_dim, action_dim,
                                float(args['critic_lr']), float(args['tau']),
                                float(args['gamma']),
@@ -519,6 +531,7 @@ def main(args):
         if int(args['test']) == 1:
             testModelPerformance(sess, env, args, actor, num_test_cases=20)
         else:
+            print("Beginning training...")
             train(sess, env, args, actor, critic, actor_noise)
 
 

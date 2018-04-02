@@ -11,11 +11,16 @@ from gym.utils import seeding
 from os import path
 import pyglet
 from pyglet.gl import *
+from pi_client import ann
 
 FIELD_XMAX = 2438.4 # Maximum x dimension in mm
 FIELD_YMAX = 1219.2  # Maximum y dimension in mm
 MOTOR_DELTA = 10 # Controls percentage of how much motors differ . Ex. 5% means parameter will vary up to 5%
 TIME_MAX = 10 #seconds
+
+# Robot dimensions
+LEN_X = 315.0      # length of the robot left to right
+LEN_Y = 275.0      # length of the robot front to back
 
 class Box():
      def __init__(self,low,high,shape):
@@ -28,43 +33,35 @@ class SimRobot():
     xy, origin at robot's center. +y is directly towards front side of robot and +x is
     directly towards right side of robot. Theta is the angle of a radial vector where -90 degrees is
     pointing directly towards the right side of the robot and 0 degrees is directly towards the front.
-    len_x = length of the robot left to right
-    len_y = length of the robot front to back
-    x: starting x position of the robot origin in field coordinates
-    y: starting y position of the robot origin in field coordinates
-    theta: starting angle of the robot origin in field coordinates
+    train: 'angle', 'translation', or '' to choose which setup to train
+    state_start: starting state of robot with 8 elements
+        0: x position
+        1: x velocity
+        2: y position
+        3: y velocity
+        4: rotational position theta
+        5: rotational velocity
+        6: desired x position
+        7: desired y position
+        8: balls present in front left hopper (boolean)
+        9: balls present in back left hopper (boolean)
+        10: balls present in back right hopper (boolean)
+        11: balls present in front right hopper (boolean)
     """
-    def __init__(self, state_start = [FIELD_XMAX/2, 0, FIELD_YMAX/2, 0, 0, 0]):
+    def __init__(self, train = None,
+            state_start = [FIELD_XMAX/2, 0, FIELD_YMAX/2, 0, 0, 0, FIELD_XMAX/2, FIELD_YMAX/2, 0, 0, 0, 0]):
+        # For rendering
         self.viewer = None
-
-        # Robot dimensions
-        self.len_x = 315.0
-        self.len_y = 275.0
-        self.motor_x = 127.5
-        self.motor_y = 117.5
-
-        # Magnitude and angle of a line between the center and top right corner
-        self.diag_angle = np.arctan(self.len_y / self.len_x)
-        self.diag_len = np.hypot(self.len_x,self.len_y) / 2
-
-        # Magnitude and angle of a line between the center and each motor
-        # in the order of front left, back left, back right, front right
-        motor_angle_temp = np.arctan(self.motor_y/self.motor_x)
-        self.motor_angles = [np.pi - motor_angle_temp, motor_angle_temp + np.pi,\
-                -1*motor_angle_temp, motor_angle_temp]
-        self.motor_radius = np.hypot(self.motor_x, self.motor_y)
-
-        # Robot start position and orientation in the field
-        xdot_start = 0
-        ydot_start = 0
+        self.dt = 0.01
+        self.train = train
         self.state_start = np.array(state_start)
 
-        # Sim vars
-        self.dt = 0.01
-        self.time = 0
-        self.reward = 0
-        self.terminal = 0
-        self.obs = [0,0,0]
+        # Length of control input u
+        self.u_len = 5
+
+        # Magnitude and angle of a line between the center and top right corner
+        self.diag_angle = np.arctan(LEN_Y / LEN_X)
+        self.diag_len = np.hypot(LEN_X,LEN_Y) / 2
 
         # Mecanum equation converts wheel velocities to tranlational x,y, and rotational velocities
         self.wheel_max_thetadotdot = 430                                # Max wheel rotational acceleration in rad/s^2
@@ -78,22 +75,40 @@ class SimRobot():
         self.mecanum_xfer = (r/4) * np.array([[1,1,1,1],[-1,1,-1,1],\
                 [1/(L1+L2),-1/(L1+L2),-1/(L1+L2),1/(L1+L2)]])
 
-        # Initialize rangefinders
+        # Set up action space and observation space
         self.sensors = []
-#        self.sensors.append(SimRangefinder(60.0, self.len_y/2.0, 90.0, self.dt))
-#        self.sensors.append(SimRangefinder(-1 * self.len_x/2.0, -40.0, 180.0, self.dt))
-#        self.sensors.append(SimRangefinder(0.0, -1 * self.len_y/2.0, 270.0, self.dt))
-#        self.sensors.append(SimRangefinder(self.len_x/2.0, -40.0, 0.0, self.dt))
-        self.sensors.append(SimIMU(self.dt))
+        obs_high = np.array([])
+        obs_low = np.array([])
+        act_high = 2.0
 
-        # Set up interface with nn
-        high = np.array([])
-        low = np.array([])
+        # Add sensors depending on what network is being trained
+        if (train == 'angle'):
+            act_dim = 1
+            self.sensors.append(SimIMU(self.dt))
+        elif (train == 'translation'):
+            act_dim = 2
+            self.sensors.append(SimIMU(self.dt))
+            self.sensors.append(SimRangefinder(60.0, LEN_Y/2.0, 90.0, self.dt))
+            self.sensors.append(SimRangefinder(-1 * LEN_X/2.0, -40.0, 180.0, self.dt))
+            self.sensors.append(SimRangefinder(0.0, -1 * LEN_Y/2.0, 270.0, self.dt))
+            self.sensors.append(SimRangefinder(LEN_X/2.0, -40.0, 0.0, self.dt))
+            self.sensors.append(SimDesiredXY())
+
+            # Load angle control ann
+            print("Loading angle ANN")
+            angle_model_path = './results/models-angle/model.ckpt'
+            self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = act_high)
+        elif (train == 'pathfind'):
+            pass
+
+        # Calculate the number of elements in the observation array
+        state_dim = 0
         for sensor in self.sensors:
-            high = np.append(high, sensor.high)
-            low = np.append(low, sensor.low)
-        self.action_space = gym.spaces.box.Box(low=-2.0, high=2.0, shape=(1,))
-        self.observation_space = gym.spaces.box.Box(low=low, high=high)
+            obs_high = np.append(obs_high, sensor.high)
+            obs_low = np.append(obs_low, sensor.low)
+            state_dim += len(sensor.meas)
+        self.observation_space = gym.spaces.box.Box(low=obs_low, high=obs_high)
+        self.action_space = gym.spaces.box.Box(low=-act_high, high=act_high, shape=(act_dim,))
 
         # Initialize sim vars
         self.reset(False)
@@ -102,9 +117,17 @@ class SimRobot():
         # Reset vars
         self.time = 0
         self.reward = 0
+        self.terminal = 0
+        self.last_u = np.zeros(self.u_len)
+
         if (randomize):
-            high = np.array([100, 0, 100, 0, 0.2, 0])
+            high = np.array([FIELD_XMAX/2 - LEN_X/2, 0,
+                             FIELD_YMAX/ - LEN_Y/2, 0,
+                             0.2, 0,
+                             FIELD_XMAX/2 - LEN_X/2, FIELD_YMAX/2 - LEN_Y/2,
+                             0, 0, 0, 0])
             self.state = self.state_start + np.random.uniform(low=-high, high=high)
+
             # Randomize variable friction and voltage sensitivity per wheel
             self.friction_var = np.array([self.friction_constant * (1+np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA) / 100) for i in range(4)])
             self.v_sensitivity = np.array([1 + np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA)/100 for i in range(4)])
@@ -113,9 +136,13 @@ class SimRobot():
             self.friction_var = np.array([self.friction_constant for i in range(4)])
             self.v_sensitivity = np.array([1 for i in range(4)])
 
-        self.terminal = 0
-        self.init_state = self.state
-        self.step([0,0,0,0,0])
+        # Update sensors and observation array
+        obs = []
+        for sensor in self.sensors:
+            sensor.update(self.state)
+            obs = np.append(obs, sensor.meas)
+        self.obs = np.array(obs)
+
         return self.obs
 
     def seed(self, seed=None):
@@ -123,21 +150,42 @@ class SimRobot():
         return [seed]
 
     def step(self,u):
-        # Calculate motor voltages for the specified control inputs
-        # ctrl[0]: Desired rotational speed, -1 to 1, +1 CW, -1 CCW
-        # ctrl[1]: Desired robot speed, -1 to 1
-        # ctrl[2]: Desired translation angle, -1 to 1, +1 dead right, 0.5 dead up, 0 dead left, -0.5 dead down
-        x, xdot, y, ydot, th, thdot = self.state
+        # Get state vars
+        x, xdot, y, ydot, th, thdot, x_des, y_des, hopfl, hopbl, hopbr, hopfr = self.state
         dt = self.dt
-
-        u = np.clip(u, -2, 2)
-        self.last_u = u # for rendering
         self.time += dt
 
-        # Desired trajectory inputs
-        v_theta = u[0] # ctrl[2]
-        vd = 0#u[1]
-        theta_d = 0#u[2] * np.pi - self.sensors[4].prevth
+        # Determine the control input array u depending on what's being trained
+        # u[0]: jesired rotational speed, -1 to 1, +1 CW, -1 CCW
+        # u[1]: Desired robot speed, -1 to 1
+        # u[2]: Desired translation angle, -1 to 1, +1 dead right, 0.5 dead up, 0 dead left, -0.5 dead down
+        # u[3]: Desired x position
+        # u[4]: Desired y position
+        if self.train == 'angle':
+            u = np.append(u, np.zeros(self.u_len - 1))
+        elif self.train == 'translation':
+            # Get input from angle control ANN
+            obs_angle = self.obs[0:3]
+            u_angle = self.angle_ann.predict(obs_angle)
+
+            u = np.append(u_angle, u)
+
+            # Emulate a control input that keeps the current desired location
+            u_desx = np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])
+            u_desy = np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])
+            u = np.append(u, [u_desx, u_desy])
+
+        elif self.train == 'pathfind':
+            # Determine new desired location
+            u = np.zeros(self.u_len)
+
+        u = np.clip(u, -2, 2)
+        self.last_u = u
+
+        #  Trajectory control inputs
+        v_theta = u[0]
+        vd = u[1]
+        theta_d = u[2] * np.pi / 2 - self.sensors[0].prevth # Adjust desired translation angle to field coordinates
 
         # Calculate voltage ratios for each motor to acheive desired trajectory
         v = np.zeros(4)
@@ -184,7 +232,18 @@ class SimRobot():
         newx = np.clip(x + newxdot * dt, x_space, FIELD_XMAX - x_space)
         newy = np.clip(y + newydot * dt, y_space, FIELD_YMAX - y_space)
 
-        self.state = np.array([newx, newxdot, newy, newydot, newth, newthdot])
+        # Determine new desired location
+        newxdes = np.interp(u[3], [-2,2], [LEN_X/2, FIELD_XMAX - LEN_X/2])
+        newydes = np.interp(u[4], [-2,2], [LEN_Y/2, FIELD_YMAX - LEN_Y/2])
+
+        # Determine hopper states
+        newhopfl = False
+        newhopbl = False
+        newhopbr = False
+        newhopfr = False
+
+        # Determine new state
+        self.state = np.array([newx, newxdot, newy, newydot, newth, newthdot, newxdes, newydes, newhopfl, newhopbl, newhopbr, newhopfl])
 
         # Update sensor measurements
         obs = np.array([])
@@ -211,7 +270,7 @@ class SimRobot():
 
             # Robot image
             fname = path.join(path.dirname(__file__), "images/robot.png")
-            self.img_robot = rendering.Image(fname, self.len_x, self.len_y)
+            self.img_robot = rendering.Image(fname, LEN_X, LEN_Y)
             self.img_robot.set_color(1,1,1)
             self.imgtrans_robot = rendering.Transform()
             self.img_robot.add_attr(self.imgtrans_robot)
@@ -219,11 +278,12 @@ class SimRobot():
 
             # Rotation direction indicator
             fname = path.join(path.dirname(__file__), "images/clockwise.png")
-            self.img_rot_ind = rendering.Image(fname, self.len_x, self.len_x)
+            self.img_rot_ind = rendering.Image(fname, LEN_X, LEN_X)
             #self.img_robot.set_color(0,0,0)
             self.imgtrans_rot_ind = rendering.Transform()
             self.img_rot_ind.add_attr(self.imgtrans_rot_ind)
             self.viewer.add_geom(self.img_rot_ind)
+
 
         # Robot
         self.imgtrans_robot.set_translation(self.state[0], self.state[2])
@@ -237,7 +297,10 @@ class SimRobot():
         # Rangefinder lines
         for sensor in self.sensors:
             if (sensor.type == 'Rangefinder'):
-                self.viewer.draw_line(self.sensors[i].dim[0], self.sensors[i].dim[1])
+                self.viewer.draw_line(sensor.dim[0], sensor.dim[1])
+
+        # Desired location indicator
+        self.viewer.draw_line([self.state[0], self.state[2]], [self.state[6], self.state[7]])
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
 
@@ -258,25 +321,25 @@ class SimRobot():
         self.viewer.draw_polygon(((x1, y1), (x2, y2), (x3, y3)))
 
     def updateReward(self):
-        # Keep angle at 0
-        self.reward_theta = -1.0 * self.angle_normalize(self.state[4])**2
+        if (self.train == 'angle'):
+            # Keep angle at 0
+            self.reward_theta = -1.0 * self.angle_normalize(self.state[4])**2
+            # Minimize effort
+            self.reward_effort = -0.001 * self.last_u[0]**2
+            # Minimize velocities
+            self.reward_rvel = -0.1 * self.state[5]**2
 
-        # Minimize effort
-        self.reward_effort = -0.001 * self.last_u[0]**2
+            self.reward = self.reward_theta + self.reward_rvel
 
-        # for u in self.last_u:
-        #     self.reward_effort -= 0.001 * action**2
+        elif (self.train == 'translation'):
+            # Rewarded for staying near desired x,y coordinate
+            dist_from_desired = pow(self.state[0] - self.state[6], 2) + pow(self.state[2] - self.state[7], 2)
+            self.reward_dist =  -0.001 * dist_from_desired
+            # Minimize velocities
+            self.reward_vel = -0.1 * np.hypot(self.state[1], self.state[3])
 
-        # Rewarded for staying near center of field
-        distance_from_center = pow(self.state[0] - FIELD_XMAX / 2,2) + pow(self.state[2] - FIELD_YMAX / 2,2)
-        self.reward_dist =  -1.0 * (distance_from_center / 100.0)
+            self.reward = self.reward_dist + self.reward_vel
 
-        # Minimize velocities
-        self.reward_vel = -0.01 * np.hypot(self.state[1], self.state[3])
-        self.reward_rvel = -0.1 * self.state[5]**2
-
-        # self.reward = self.reward_theta + self.reward_effort + self.reward_dist + self.reward_vel + self.reward_rvel
-        self.reward = self.reward_theta + self.reward_rvel# + self.reward_effort
         return self.reward
 
     def angle_normalize(self, x):
@@ -299,9 +362,6 @@ class SimRangefinder():
         self.theta = np.radians(theta)
         self.position_theta = np.arctan2(y,x)
         self.radius = np.hypot(x,y)
-        # rf_field_theta = robot.theta + self.position_theta
-        # self.dim = [robot.x + self.radius * np.cos(rf_field_theta),\
-        #     robot.y + self.radius * np.sin(rf_field_theta), 0.0, 0.0]
         self.max_range = max_range
         self.timebank = 0
         self.meas_period = meas_period
@@ -411,6 +471,16 @@ class SimIMU():
         sin = np.sin(th)
 
         self.meas = np.array([cos, sin, thdot])
+
+class SimDesiredXY():
+    def __init__(self):
+        self.type = 'DesiredXY'
+        self.meas = np.array([0., 0.])
+        self.high = np.array([FIELD_XMAX - LEN_X/2, FIELD_YMAX - LEN_Y/2])
+        self.low = np.array([LEN_X/2, LEN_Y/2])
+
+    def update(self, state):
+        self.meas = np.array([state[6], state[7]])
 
 class SimMicroSW():
     def __init__(self):
