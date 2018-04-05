@@ -33,6 +33,8 @@ ACTOR_L2_NODES = 300
 CRITIC_L1_NODES = 400
 CRITIC_L2_NODES = 300
 
+kRENDER_EVERY = 20 # Render only every xth episode to speed up training
+
 
 # ===========================
 #   Actor and Critic DNNs
@@ -296,9 +298,6 @@ def train(sess, env, args, actor, critic, actor_noise):
     # Initialize replay memory
     replay_buffer = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
 
-    # Initialize network test total reward
-    peak_test_total_reward = testNetworkPerformance(env, args, actor)
-
     try:
         for i in range(int(args['max_episodes'])):
             s = env.reset()
@@ -311,7 +310,7 @@ def train(sess, env, args, actor, critic, actor_noise):
             terminal = False
             for j in range(int(args['max_episode_len'])):
 
-                if (args['render_env'] and i % 1 == 0):
+                if (args['render_env'] and i % kRENDER_EVERY == 0):
                     env.render()
 
 
@@ -375,12 +374,6 @@ def train(sess, env, args, actor, critic, actor_noise):
                 if terminal:
                     break
 
-            # Determine network performance in actual test cases if the episode reward is low
-            if (ep_reward > -3000):
-                test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
-            else:
-                test_total_reward = -99999
-
             # Print timeits
             total_time = robotsim_time + train_time
             # print("Robot: %fs (%d%%)   |      Train: %fs (%d%%)" %
@@ -393,15 +386,37 @@ def train(sess, env, args, actor, critic, actor_noise):
             writer.add_summary(summary_str, i)
             writer.flush()
 
+            # Determine network performance in actual test cases if the episode reward is low
+            if (args['env'] == 'angle'):
+                ep_reward_threshold = -30
+            elif (args['env'] == 'transx'):
+                ep_reward_threshold = -4000
+            elif (args['env'] == 'transy'):
+                ep_reward_threshold = -4000
+            else:
+                ep_reward_threshold = -30
+
+            if (ep_reward > ep_reward_threshold):
+                test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
+                 # Save model temporarily
+                save_path = saver.save(sess, "./results/models-temp/model.ckpt")
+
+                # Restore the best model to test again
+                saver.restore(sess, "./results/models/model.ckpt")
+                best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
+
+                # Restore the original model
+                saver.restore(sess, "./results/models-temp/model.ckpt")
+
+                # Save model if test reward increased
+                if (test_total_reward > best_total_reward):
+                    save_path = saver.save(sess, "./results/models/model.ckpt")
+                    print("Model saved in path: %s" % save_path)
+            else:
+                test_total_reward = -999
+            
             print('| Reward: {:d} | Test Reward: {:d} | Episode: {:d} | Qmax: {:.4f}'.format(int(ep_reward), \
                     int(test_total_reward), i, (ep_ave_max_q / float(j))))
-
-            # Save model if test reward increased
-            if (test_total_reward > peak_test_total_reward):
-                # Save model
-                save_path = saver.save(sess, "./results/models/model.ckpt")
-                print("Model saved in path: %s" % save_path)
-                peak_test_total_reward = test_total_reward
 
     except KeyboardInterrupt:
         return
@@ -486,9 +501,12 @@ def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
 
 def main(args):
 
-    if (args['env'] == 'Robot'):
-        #env = robotsim.SimRobot(train = 'angle')
-        env = robotsim.SimRobot(train = 'translation')
+    if (args['env'] == 'angle'):
+        env = robotsim.SimRobot(train = 'angle')
+    elif (args['env'] == 'transx'):
+        env = robotsim.SimRobot(train = 'transx')
+    elif (args['env'] == 'transy'):
+        env = robotsim.SimRobot(train = 'transy')
     else:
         env = gym.make(args['env'])
 
@@ -547,8 +565,8 @@ if __name__ == '__main__':
     parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
 
     # run parameters
-    parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='Robot')
-    parser.add_argument('--random-seed', help='random seed for repeatability', default=1234)
+    parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='angle')
+    parser.add_argument('--random-seed', help='random seed for repeatability', default=4311)
     parser.add_argument('--max-episodes', help='max num of episodes to do while training', default=50000)
     parser.add_argument('--max-episode-len', help='max length of 1 episode', default=1000)
     parser.add_argument('--render-env', help='render the gym env', action='store_true')
