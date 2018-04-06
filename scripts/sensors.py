@@ -145,11 +145,11 @@ class SimDesiredXY():
         self.len_y = len_y
         self.meas = np.array([0.])
         if direction == 'x':
-            self.high = np.array([self.field_xmax - self.len_x/2])
-            self.low = np.array([self.len_x/2])
+            self.high = np.array([self.field_xmax])
+            self.low = np.array([0])
         elif direction == 'y':
-            self.high = np.array([self.field_ymax - self.len_y/2])
-            self.low = np.array([self.len_y/2])
+            self.high = np.array([self.field_ymax])
+            self.low = np.array([0])
         else:
             raise ValueError("Bad value for direction")
 
@@ -169,17 +169,18 @@ class SimActualXY():
         self.len_y = len_y
         self.meas = np.array([0., 0.])
         if direction == 'x':
-            self.high = np.array([self.field_xmax - self.len_x/2, 1500])
-            self.low = np.array([self.len_x/2, -1500])
+            self.high = np.array([self.field_xmax, 1500.])
+            self.low = np.array([0., -1500.])
         elif direction == 'y':
-            self.high = np.array([self.field_ymax - self.len_y/2, -1500])
-            self.low = np.array([self.len_y/2, -1500])
+            self.high = np.array([self.field_ymax, 1500.])
+            self.low = np.array([0., -1500.])
         else:
             raise ValueError("Bad value for direction")
 
     def update(self, state):
         if (self.dir == 'x'):
-            self.meas = np.array([state[0], state[1]])
+            self.meas = np.array([state[0] - state[6], state[1]]) # + 131.6
+            #print(self.meas)
         else:
             self.meas = np.array([state[2], state[3]])
 

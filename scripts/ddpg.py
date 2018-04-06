@@ -233,7 +233,7 @@ class CriticNetwork(object):
 # Taken from https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py, which is
 # based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
 class OrnsteinUhlenbeckActionNoise:
-    def __init__(self, mu, sigma=0.3, theta=.15, dt=1e-2, x0=None):
+    def __init__(self, mu, sigma=1.0, theta=.15, dt=1e-2, x0=None):
         self.theta = theta
         self.mu = mu
         self.sigma = sigma
@@ -390,9 +390,9 @@ def train(sess, env, args, actor, critic, actor_noise):
             if (args['env'] == 'angle'):
                 ep_reward_threshold = -30
             elif (args['env'] == 'transx'):
-                ep_reward_threshold = -4000
+                ep_reward_threshold = -500
             elif (args['env'] == 'transy'):
-                ep_reward_threshold = -4000
+                ep_reward_threshold = -500
             else:
                 ep_reward_threshold = -30
 
@@ -402,8 +402,11 @@ def train(sess, env, args, actor, critic, actor_noise):
                 save_path = saver.save(sess, "./results/models-temp/model.ckpt")
 
                 # Restore the best model to test again
-                saver.restore(sess, "./results/models/model.ckpt")
-                best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
+                try:
+                    saver.restore(sess, "./results/models/model.ckpt")
+                    best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
+                except:
+                    best_total_reward = -99999999999.
 
                 # Restore the original model
                 saver.restore(sess, "./results/models-temp/model.ckpt")
@@ -566,7 +569,7 @@ if __name__ == '__main__':
 
     # run parameters
     parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='angle')
-    parser.add_argument('--random-seed', help='random seed for repeatability', default=4311)
+    parser.add_argument('--random-seed', help='random seed for repeatability', default=8564)
     parser.add_argument('--max-episodes', help='max num of episodes to do while training', default=50000)
     parser.add_argument('--max-episode-len', help='max length of 1 episode', default=1000)
     parser.add_argument('--render-env', help='render the gym env', action='store_true')

@@ -90,7 +90,7 @@ class SimRobot():
 
         # Sensor indices to include in observation for each network
         self.obs_settings = [[0],       # Angle network
-                             [5, 7],    # Trans X network
+                             [7],    # Trans X network
                              [6, 8]]    # Trans Y network
 
         # Add sensors depending on what network is being trained
@@ -305,6 +305,7 @@ class SimRobot():
 
         self.obs_sets = obs_sets
         self.obs = obs_sets[self.net_index]
+        #print(self.obs)
 
     def updateReward(self):
         if (self.train == 'angle'):
@@ -319,10 +320,10 @@ class SimRobot():
 
         elif (self.train == 'transx'):
             # Rewarded for staying near desired x coordinate
-            self.reward_dist = -0.0001 * pow(self.state[0] - self.state[6], 2)
+            self.reward_dist = -0.00001 * pow(self.state[0] - self.state[6], 2)
             # Minimize velocities
-            self.reward_vel = -0.00001 * self.state[1]**2
-            #print("Rewards: %f, %f" % (self.reward_dist,self.reward_vel))
+            self.reward_vel = -0.000003 * self.state[1]**2
+            #print("Rewards: %f, %f" % (self.reward_dist, self.reward_vel))
             self.reward = self.reward_dist + self.reward_vel
 
 
@@ -330,7 +331,7 @@ class SimRobot():
             # Rewarded for staying near desired y coordinate
             self.reward_dist = -0.00001 * pow(self.state[2] - self.state[7], 2)
             # Minimize velocities
-            self.reward_vel = -0.001 * self.state[3]**2
+            self.reward_vel = -0.000001 * self.state[3]**2
             self.reward = self.reward_dist + self.reward_vel
         #print(self.reward)
         return self.reward
