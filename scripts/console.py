@@ -1,10 +1,27 @@
 #!/usr/local/bin/python3
 
 import serial
+import serial.tools.list_ports
+import time
 
+def get_STLink_port():
+    STLink_port = None
+    success = False
+    # Enumerate all serial ports
+    ports = serial.tools.list_ports.comports()
+    for port in ports:
+        #print(port)
+        # Check port string for identifier
+        if ("STLink" in port[1]):
+            STLink_port = port[0]
+            success = True
+    return STLink_port, success
 
 def openSerial():
-    ports = ['/dev/tty.usbmodem1413', '/dev/tty.usbmodem1423']
+    port, success = get_STLink_port()
+    if (success == False):
+        print("Failed to find STLink port. Quitting.")
+
     ser = serial.Serial()
     ser.baudrate = 921600
     ser.bytesize = serial.EIGHTBITS #number of bits per bytes
@@ -14,18 +31,17 @@ def openSerial():
     ser.xonxoff = False     #disable software flow control
     ser.rtscts = False     #disable hardware (rts/cts) flow control
     ser.dsrdtr = False       #disable hardware (DSR/DTR) flow control
-    ser.writeTimeout = 1     #timeout for write
-
-    for port in ports:
-        ser.port = port
-        try:
-            ser.close()
-            ser.open()
-            ser.reset_input_buffer()
-            print("Connected.")
-            return ser
-        except serial.serialutil.SerialException:
-            pass
+    ser.writeTimeout = 100     #timeout for write
+    ser.port = port
+    try:
+        ser.close()
+        ser.open()
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
+        print("Connected.")
+        return ser
+    except serial.serialutil.SerialException:
+        pass
     print("Failed to connect.")
 
 def closeSerial(ser):
@@ -45,7 +61,10 @@ def writeSerial(ser):
         print("\r\rEnter text to send: ", end='')
         cmd = input()
         cmd += '\r\n'
-        ser.write(cmd.encode('utf-8'))
+        for character in cmd:
+            ser.write(character.encode('utf-8'))
+            time.sleep(0.1)
+        ser.flush()
         return True
     except KeyboardInterrupt:
         return False
