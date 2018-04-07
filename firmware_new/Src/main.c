@@ -47,6 +47,7 @@
 
 /* USER CODE BEGIN Includes */
 #include <stdlib.h>
+#include <stdio.h>
 #include "imu.h"
 #include "vl53l0x_top.h"
 /* USER CODE END Includes */
@@ -55,7 +56,26 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-#define DATA_PRINT_EN
+struct motor_t {
+    GPIO_TypeDef *GPIOx;
+    uint16_t GPIO_Pin;
+    GPIO_PinState PinState;
+
+    TIM_HandleTypeDef *TIM_Handle;
+    TIM_OC_InitTypeDef sConfigOC;
+    uint32_t TIM_Channel;
+};
+
+struct motor_t motorConfigs[4] = { 
+    {MOTOR_FL_DIR_GPIO_Port, MOTOR_FL_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_2}, 
+    {MOTOR_FR_DIR_GPIO_Port, MOTOR_FR_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_4}, 
+    {MOTOR_BR_DIR_GPIO_Port, MOTOR_BR_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_1}, 
+    {MOTOR_BL_DIR_GPIO_Port, MOTOR_BL_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_3}}; 
+struct motor_t* motorConfigsPtr = motorConfigs;
+
+// WARNING!! Do not spam the UART or else Raspberry PI doesn't communicate well
+//#define DATA_PRINT_EN
+//
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,18 +121,29 @@ int main(void)
   /* USER CODE BEGIN SysInit */
   /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_I2C2_Init();
-  MX_I2C3_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
-  MX_TIM12_Init();
-  MX_USART2_UART_Init();
-  MX_TIM5_Init();
-
   /* USER CODE BEGIN 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_I2C2_Init();
+    MX_I2C3_Init();
+    MX_TIM3_Init();
+    MX_TIM4_Init();
+    MX_TIM12_Init();
+    MX_USART2_UART_Init();
+    MX_TIM5_Init();
+
+    TIM_OC_InitTypeDef sConfigOC;
+    sConfigOC.OCMode = TIM_OCMODE_PWM1;
+    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+    sConfigOC.Pulse = 0;
+
+    int i;
+    for (i=0; i<4; i++) {
+        motorConfigs[i].TIM_Handle = &htim4; 
+        motorConfigs[i].sConfigOC = sConfigOC; 
+    }
 
     TimeStamp_Reset();
     serviceUART();
@@ -129,7 +160,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     uint32_t print_time = 0;
-    uint32_t cur_time = 0;
+    //uint32_t cur_time = 0;
     uint32_t dt = 0;  // Units of 0.1 ms based on Timer5
 
     while (1)
@@ -285,78 +316,30 @@ void consoleCommand(uint8_t *ptr, int len)
 
     // M for motor control commands
     else if (ptr[0] == 'M' || ptr[0] == 'm'){  
-        GPIO_TypeDef *GPIOx;
-        uint16_t GPIO_Pin;
-        GPIO_PinState PinState;
-        uint32_t TIM_Channel;
-        TIM_HandleTypeDef *TIM_Handle;
+        int motorU[4];
+        sscanf (ptr,"%*s %d %d %d %d", &motorU[0], &motorU[1], &motorU[2], &motorU[3]);
+        printf ("%d %d %d %d\n", motorU[0], motorU[1], motorU[2], motorU[3]);
 
-        // Set variables based on which motor needs to be controlled. Motor 0 is front left, increments clockwise
-        if (ptr[1] == '0'){  // 0 for front left
-            GPIOx = MOTOR_FL_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_FL_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_2;
-            TIM_Handle = &htim4;
-        }
-        else if (ptr[1] == '1'){  // 1 for front right
-            GPIOx = MOTOR_FR_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_FR_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_4;
-            TIM_Handle = &htim4;
-        }
-        else if (ptr[1] == '2'){  // 2 for back right
-            GPIOx = MOTOR_BR_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_BR_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_1;
-            TIM_Handle = &htim4;
-        }
-        else if (ptr[1] == '3'){  // 3 for back left
-            GPIOx = MOTOR_BL_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_BL_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_3;
-            TIM_Handle = &htim4;
-        }
-        else if (ptr[1] == '4'){  // 4 for blower fan
-            GPIOx = BLOWER_DIR_GPIO_Port;
-            GPIO_Pin = BLOWER_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_1;
-            TIM_Handle = &htim3;
-        }
-        else if (ptr[1] == '5'){  // 5 for launcher motors 
-            GPIOx = MOTOR_LAUNCH_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_LAUNCH_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_2;
-            TIM_Handle = &htim3;
-        }
-        else {
-            return;
+        int i;
+        for (i=0; i<4; i++) {
+            if (motorU[i] < 0){
+                motorConfigs[i].PinState = GPIO_PIN_SET;
+                motorConfigs[i].sConfigOC.Pulse = 2047 + motorU[i]; 
+            } else {
+                motorConfigs[i].PinState = GPIO_PIN_RESET;
+                motorConfigs[i].sConfigOC.Pulse = motorU[i]; 
+            }
         }
 
-        // Direction control commands
-        if (ptr[2] == 'D' || ptr[2] == 'd'){
-            if (ptr[3] == 'F' || ptr[3] == 'f'){
-                PinState = GPIO_PIN_RESET;
-            }
-            else if (ptr[3] == 'R' || ptr[3] == 'r'){
-                PinState = GPIO_PIN_SET;
-            }
-            else {
-                return;
-            }
-            HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
-        }
-
-        // S for speed command
-        if (ptr[2] == 'S' || ptr[2] == 's'){  
-            TIM_OC_InitTypeDef sConfigOC;
-            sConfigOC.OCMode = TIM_OCMODE_PWM1;
-            sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-            sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-            sConfigOC.Pulse = atoi((char *)ptr + 3); // Accepts 0-2047
+        for (i=0; i<4; i++) {
+            // Set the direction pin
+            HAL_GPIO_WritePin(motorConfigs[i].GPIOx, motorConfigs[i].GPIO_Pin, motorConfigs[i].PinState);
 
             // Alter the PWM duty cycle and start PWM again
-            if (HAL_TIM_PWM_ConfigChannel(TIM_Handle, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
-            if (HAL_TIM_PWM_Start(TIM_Handle, TIM_Channel) != HAL_OK){ Error_Handler(); }
+            if (HAL_TIM_PWM_ConfigChannel(motorConfigs[i].TIM_Handle, &motorConfigs[i].sConfigOC,
+                       motorConfigs[i].TIM_Channel) != HAL_OK) { Error_Handler(); }
+            if (HAL_TIM_PWM_Start(motorConfigs[i].TIM_Handle, motorConfigs[i].TIM_Channel)
+                    != HAL_OK){ Error_Handler(); }
         }
     }
     // S for servo commands
