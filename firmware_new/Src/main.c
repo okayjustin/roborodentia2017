@@ -160,7 +160,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     uint32_t print_time = 0;
-    //uint32_t cur_time = 0;
+    uint32_t cur_time = 0;
     uint32_t dt = 0;  // Units of 0.1 ms based on Timer5
 
     while (1)
@@ -169,34 +169,33 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 96) rangefinderRead(0);
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 96) rangefinderRead(1);
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 96) rangefinderRead(2);
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 96) rangefinderRead(3);
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 98) gyro_read();
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 98) accelerometer_read();
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 98) magnetometer_read();
+//        dt = TimeStamp_Get() - print_time;
+//        if (dt < 98) gyro_read();
+//        dt = TimeStamp_Get() - print_time;
+//        if (dt < 98) accelerometer_read();
+//        dt = TimeStamp_Get() - print_time;
+//        if (dt < 98) magnetometer_read();
 
-#ifdef DATA_PRINT_EN
-        cur_time = TimeStamp_Get();
-        dt = cur_time - print_time;
-        if (dt > 99){   // Data rate = 100 Hz
-            print_time = cur_time;
-            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
-                    dt, magData.orientation, 
-                    rangeData[0], rangeData[1], 
-                    rangeData[2], rangeData[3], 
-                    accelData.x, accelData.y, accelData.z, 
-                    gyroData.x, gyroData.y, gyroData.z);
-        }
-#endif
+//        cur_time = TimeStamp_Get();
+//        dt = cur_time - print_time;
+//        if (dt > 499){   // Data rate = 20 Hz
+//            rangefinderRead(0);
+//            rangefinderRead(1);
+//            rangefinderRead(2);
+//            rangefinderRead(3);
+//            magnetometer_read();
+//            gyro_read();
+//            accelerometer_read();
+//            print_time = cur_time;
+//#ifdef DATA_PRINT_EN
+//            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+//                    dt, magData.orientation, 
+//                    rangeData[0], rangeData[1], 
+//                    rangeData[2], rangeData[3], 
+//                    accelData.x, accelData.y, accelData.z, 
+//                    gyroData.x, gyroData.y, gyroData.z);
+//#endif
+//        }
 
     }
   /* USER CODE END 3 */
@@ -303,15 +302,21 @@ void consoleCommand(uint8_t *ptr, int len)
         }
     }
 
-    // B for sending IMU data
-    else if (ptr[0] == 'B' || ptr[0] == 'b') {
+    // D for send data
+    else if (ptr[0] == 'D' || ptr[0] == 'd') {
+        rangefinderRead(0);
+        rangefinderRead(1);
+        rangefinderRead(2);
+        rangefinderRead(3);
+        magnetometer_read();
         gyro_read();
         accelerometer_read();
-        magnetometer_read();
-        printf("%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+        printf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+                rangeData[0], rangeData[1], 
+                rangeData[2], rangeData[3], 
+                magData.x, magData.y, magData.z,
                 accelData.x, accelData.y, accelData.z, 
-                gyroData.x, gyroData.y, gyroData.z,
-                magData.x, magData.y, magData.z);
+                gyroData.x, gyroData.y, gyroData.z);
     }
 
     // M for motor control commands

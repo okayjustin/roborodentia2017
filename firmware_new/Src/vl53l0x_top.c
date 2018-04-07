@@ -12,7 +12,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[0].XSHUT_Pin = SW1_Pin;
     VL53L0XDevs[0].GPIO_Port = RF1_G_GPIO_Port;
     VL53L0XDevs[0].GPIO_Pin = RF1_G_Pin;
-    VL53L0XDevs[0].TimingBudgetUsecs = 33000;
+    VL53L0XDevs[0].TimingBudgetUsecs = 49800;
 
     VL53L0XDevs[1].Id = 1;
     VL53L0XDevs[1].DevLetter = 'b';
@@ -22,7 +22,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[1].XSHUT_Pin = SW2_Pin;
     VL53L0XDevs[1].GPIO_Port = RF2_G_GPIO_Port;
     VL53L0XDevs[1].GPIO_Pin = RF2_G_Pin;
-    VL53L0XDevs[1].TimingBudgetUsecs = 33000;
+    VL53L0XDevs[1].TimingBudgetUsecs = 49800;
 
     VL53L0XDevs[2].Id = 2;
     VL53L0XDevs[2].DevLetter = 'c';
@@ -32,7 +32,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[2].XSHUT_Pin = SW3_Pin;
     VL53L0XDevs[2].GPIO_Port = RF4_G_GPIO_Port;
     VL53L0XDevs[2].GPIO_Pin = RF4_G_Pin;
-    VL53L0XDevs[2].TimingBudgetUsecs = 33000;
+    VL53L0XDevs[2].TimingBudgetUsecs = 49800;
 
     VL53L0XDevs[3].Id = 3;
     VL53L0XDevs[3].DevLetter = 'd';
@@ -42,7 +42,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[3].XSHUT_Pin = SW4_Pin;
     VL53L0XDevs[3].GPIO_Port = RF5_G_GPIO_Port;
     VL53L0XDevs[3].GPIO_Pin = RF5_G_Pin;
-    VL53L0XDevs[3].TimingBudgetUsecs = 33000;
+    VL53L0XDevs[3].TimingBudgetUsecs = 49800;
 
     // Turn off all the rangefinders
     int i;
@@ -93,6 +93,9 @@ void VL53L0X_SetupSingleShot(int i){
     int status;
     uint8_t VhvSettings;
     uint8_t PhaseCal;
+#ifdef PERFORM_OFFSET_CAL
+    uint8_t OffsetMicrometer;
+#endif
     uint32_t refSpadCount;
     uint8_t isApertureSpads;
 
@@ -154,18 +157,25 @@ void VL53L0X_SetupSingleShot(int i){
             printf("VL53L0X_StaticInit %d fail",i);
         }
 
-        status = VL53L0X_PerformRefCalibration(&VL53L0XDevs[i], &VhvSettings, &PhaseCal);
-        if( status ){
-           printf("VL53L0X_PerformRefCalibration");
-        }
-
         status = VL53L0X_PerformRefSpadManagement(&VL53L0XDevs[i], &refSpadCount, &isApertureSpads);
         if( status ){
            printf("VL53L0X_PerformRefSpadManagement");
         }
 
-        //status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
-        status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_CONTINUOUS_RANGING); // Setup in continuous ranging mode
+        status = VL53L0X_PerformRefCalibration(&VL53L0XDevs[i], &VhvSettings, &PhaseCal);
+        if( status ){
+           printf("VL53L0X_PerformRefCalibration");
+        }
+
+#ifdef PERFORM_OFFSET_CAL
+        status = VL53L0X_PerformOffsetCalibration(&VL53L0XDevs[i], 100.0, &OffsetMicrometer);
+        if( status ){
+           printf("VL53L0X_PerformOffsetCalibration");
+        }
+#endif
+
+        status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_SINGLE_RANGING); // Setup in single ranging mode
+        //status = VL53L0X_SetDeviceMode(&VL53L0XDevs[i], VL53L0X_DEVICEMODE_CONTINUOUS_RANGING); // Setup in continuous ranging mode
         if( status ){
            printf("VL53L0X_SetDeviceMode");
         }
@@ -193,6 +203,7 @@ void rangefinderRead(int id){
     pDev = &VL53L0XDevs[id];
 
     if (HAL_GPIO_ReadPin(pDev->GPIO_Port, pDev->GPIO_Pin)){
+        printf("New data not ready on device %d.\r\n", id);
         return; // New data not ready
     }
 
@@ -213,6 +224,13 @@ void rangefinderRead(int id){
     if (pDev->RangeData.RangeStatus == 0){ 
         Sensor_SetNewRange(pDev,&(pDev->RangeData));
         rangeData[id] = pDev->LeakyRange;
+    }
+
+    // Start next measurement
+    int status;
+    status = VL53L0X_StartMeasurement(pDev);
+    if( status ){
+        printf("VL53L0X_StartMeasurement failed on device %d\r\n", id);
     }
 }
 

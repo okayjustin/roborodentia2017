@@ -21,14 +21,16 @@ void IMU_begin() {
 
     // Enable the accelerometer
     // 100 Hz mode
-    // HPF enabled
+    // HPF disabled
     // 12-bit high resolution mode
     // BDU enabled
-    uint8_t write_data_accel[5] = {LSM303_REG_ACCEL_CTRL_REG1_A | 0x80, 0x57, 0x08, 0x00, 0x88}; 
+    uint8_t write_data_accel[5] = {LSM303_REG_ACCEL_CTRL_REG1_A | 0x80, 0x57, 0x00, 0x00, 0x88}; 
     I2C_Write(IMU_I2C_INTERFACE, LSM303_ADDRESS_ACCEL, write_data_accel, 5); 
 
-    // Set magnetometer to 220 Hz mode
-    uint8_t write_data_mag[2] = {LSM303_REG_MAG_CRA_REG_M, 0x1C};
+//    // Set magnetometer to 220 Hz mode
+//    uint8_t write_data_mag[2] = {LSM303_REG_MAG_CRA_REG_M, 0x1C};
+    // Set magnetometer to 30 Hz mode
+    uint8_t write_data_mag[2] = {LSM303_REG_MAG_CRA_REG_M, 0x14};
     I2C_Write(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data_mag, 2); 
 
     // Enable the magnetometer
