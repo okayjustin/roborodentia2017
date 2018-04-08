@@ -302,23 +302,96 @@ void consoleCommand(uint8_t *ptr, int len)
         }
     }
 
-    // D for send data
-    else if (ptr[0] == 'D' || ptr[0] == 'd') {
+    // B for send data in binary
+    else if (ptr[0] == 'B' || ptr[0] == 'b') {
+        unsigned char bytes[26];
+        bytes[ 0] = (rangeData[0] >> 8) & 0xFF;
+        bytes[ 1] =  rangeData[0]       & 0xFF;
+
+        bytes[ 2] = (rangeData[1] >> 8) & 0xFF;
+        bytes[ 3] =  rangeData[1]       & 0xFF;
+
+        bytes[ 4] = (rangeData[2] >> 8) & 0xFF;
+        bytes[ 5] =  rangeData[2]       & 0xFF;
+
+        bytes[ 6] = (rangeData[3] >> 8) & 0xFF;
+        bytes[ 7] =  rangeData[3]       & 0xFF;
+
+        bytes[ 8] = (magData.x >> 8) & 0xFF;
+        bytes[ 9] =  magData.x       & 0xFF;
+        bytes[10] = (magData.y >> 8) & 0xFF;
+        bytes[11] =  magData.y       & 0xFF;
+        bytes[12] = (magData.z >> 8) & 0xFF;
+        bytes[13] =  magData.z       & 0xFF;
+
+        bytes[14] = (accelData.x >> 8) & 0xFF;
+        bytes[15] =  accelData.x       & 0xFF;
+        bytes[16] = (accelData.y >> 8) & 0xFF;
+        bytes[17] =  accelData.y       & 0xFF;
+        bytes[18] = (accelData.z >> 8) & 0xFF;
+        bytes[19] =  accelData.z       & 0xFF;
+
+        bytes[20] = (gyroData.x >> 8) & 0xFF;
+        bytes[21] =  gyroData.x       & 0xFF;
+        bytes[22] = (gyroData.y >> 8) & 0xFF;
+        bytes[23] =  gyroData.y       & 0xFF;
+        bytes[24] = (gyroData.z >> 8) & 0xFF;
+        bytes[25] =  gyroData.z       & 0xFF;
+
+        printf("%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x\n", 
+                (unsigned char)bytes[0], 
+                (unsigned char)bytes[1], 
+                (unsigned char)bytes[2], 
+                (unsigned char)bytes[3], 
+                (unsigned char)bytes[4], 
+                (unsigned char)bytes[5], 
+                (unsigned char)bytes[6], 
+                (unsigned char)bytes[7], 
+                (unsigned char)bytes[8], 
+                (unsigned char)bytes[9], 
+                (unsigned char)bytes[10], 
+                (unsigned char)bytes[11], 
+                (unsigned char)bytes[12], 
+                (unsigned char)bytes[13], 
+                (unsigned char)bytes[14], 
+                (unsigned char)bytes[15], 
+                (unsigned char)bytes[16], 
+                (unsigned char)bytes[17], 
+                (unsigned char)bytes[18], 
+                (unsigned char)bytes[19], 
+                (unsigned char)bytes[20], 
+                (unsigned char)bytes[21], 
+                (unsigned char)bytes[22], 
+                (unsigned char)bytes[23], 
+                (unsigned char)bytes[24], 
+                (unsigned char)bytes[25]); 
+
         rangefinderRead(0);
         rangefinderRead(1);
         rangefinderRead(2);
         rangefinderRead(3);
         magnetometer_read();
-        gyro_read();
         accelerometer_read();
+        gyro_read();
+    }
+
+    // D for send data in human readable format
+    else if (ptr[0] == 'D' || ptr[0] == 'd') {
         printf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
                 rangeData[0], rangeData[1], 
                 rangeData[2], rangeData[3], 
                 magData.x, magData.y, magData.z,
                 accelData.x, accelData.y, accelData.z, 
                 gyroData.x, gyroData.y, gyroData.z);
+        rangefinderRead(0);
+        rangefinderRead(1);
+        rangefinderRead(2);
+        rangefinderRead(3);
+        magnetometer_read();
+        accelerometer_read();
+        gyro_read();
     }
-
+    
     // M for motor control commands
     else if (ptr[0] == 'M' || ptr[0] == 'm'){  
         int motorU[4];
