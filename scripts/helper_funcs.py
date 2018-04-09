@@ -22,7 +22,7 @@ class RunningStat:
         # Keep a FIFO of the past values
         self.vals = deque((self.window) * [0.0], self.window)
         self.n = 0
-        self.mean = 0.0
+        self._mean = 0.0
         self.square = 0.0
         self.win_mean = 0.0
         self.powsumavg = 0.0
@@ -34,13 +34,13 @@ class RunningStat:
     def push(self, val):
         self.n = self.n + 1
         if (self.n == 1):
-            self.mean = val
+            self._mean = val
             self.square = 0.0
         else:
-            new_mean = self.mean + (val - self.mean)/self.n
-            self.square = self.square + (val - self.mean)*(val - new_mean)
+            new_mean = self._mean + (val - self._mean)/self.n
+            self.square = self.square + (val - self._mean)*(val - new_mean)
             # set up for next iteration
-            self.mean = new_mean
+            self._mean = new_mean
 
         self.win_mean = self.win_mean + ((val - self.vals[self.window - 1]) / self.window)
         newamt = val
@@ -55,7 +55,7 @@ class RunningStat:
         return self.vals[0]
 
     def mean(self):
-        return self.mean
+        return self._mean
 
     def var(self):
         return  self.square/(self.n - 1) if (self.n > 1) else 0.0

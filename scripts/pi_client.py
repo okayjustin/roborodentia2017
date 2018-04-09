@@ -1,8 +1,12 @@
 #!/usr/local/bin/python3
-import tensorflow as tf
+#import tensorflow as tf
 import numpy as np
-from ddpg import ActorNetwork
-import robotsim
+#from ddpg import ActorNetwork
+#import robotsim
+from robot import *
+from timeit import default_timer as timer
+import time
+
 
 class ann(object):
     def __init__(self, model_path, state_dim, action_dim, action_space_high):
@@ -26,4 +30,19 @@ class ann(object):
 
     def close(self):
         self.sess.close()
+
+
+if __name__ == "__main__":
+    robot = Robot()
+    while True:
+        #for i in range(0,10):
+        start = timer()
+        robot.updateSensorValue()
+        end = timer()
+#        print(end - start)
+        robot.printSensorVals()
+        time.sleep(0.05)
+
+    robot.close()
+
 

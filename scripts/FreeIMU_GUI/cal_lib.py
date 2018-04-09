@@ -40,6 +40,7 @@ def calibrate(x, y, z):
 
   A = X[5] + OSx**2 + X[3] * OSy**2 + X[4] * OSz**2
   B = A / X[3]
+  print(B)
   C = A / X[4]
 
   SCx = numpy.sqrt(A)
@@ -85,13 +86,13 @@ if __name__ == "__main__":
   print ("Calibrating from acc.txt")
   (offsets, scale) = calibrate_from_file("acc.txt")
   print ("Offsets:")
-  print (offsets)
+  print (list(offsets))
   print ("Scales:")
-  print (scale)
+  print (list(scale))
 
   print ("Calibrating from magn.txt")
   (offsets, scale) = calibrate_from_file("magn.txt")
   print ("Offsets:")
-  print (offsets)
+  print (list(offsets))
   print ("Scales:")
-  print (scale)
+  print (list(scale))

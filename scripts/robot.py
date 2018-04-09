@@ -1,206 +1,199 @@
 #!/usr/local/bin/python3
 
-from helper_funcs import RunningStat
+from helper_funcs import *
 import numpy as np
 from numpy import linalg
 import serial, time, sys
 from collections import deque
-from filterpy.kalman import KalmanFilter
-from filterpy.common import Q_discrete_white_noise
-from filterpy.kalman import MerweScaledSigmaPoints
-from filterpy.kalman import UnscentedKalmanFilter as UKF
-import pygame as pygame
+#from filterpy.kalman import KalmanFilter
+#from filterpy.common import Q_discrete_white_noise
+#from filterpy.kalman import MerweScaledSigmaPoints
+#from filterpy.kalman import UnscentedKalmanFilter as UKF
+#import pygame as pygame
+from console import *
+from timeit import default_timer as timer
+import time
+import struct
 
 MAX_PWM_CYCLES = 2047
 BUTTON_PWM_CYCLES = 1700
+NUM_SENSORS = 13
 
 # CALIBRATION VALUES, offset and scale
-ACC_O_X = -482
-ACC_O_Y = 48
-ACC_O_Z = -972
-ACC_S_X = 16522.56746066602
-ACC_S_Y = 17033.517951277074
-ACC_S_Z = 16921.85847403815
-MAG_O_X = -76
-MAG_O_Y = 382
-MAG_O_Z = -78
-MAG_S_X = 421.93019841175084
-MAG_S_Y = 486
-MAG_S_Z = 549.6501012927249
-RANGE_O = 0.965025066
-RANGE_S = -3.853474266
+RANGE_S = 0.965025066
+RANGE_O = -3.853474266
+MAG_S_X = 1 / 421.93019841175084
+MAG_S_Y = 1 / 486
+MAG_S_Z = 1 / 549.6501012927249
+MAG_O_X = -76 * -MAG_S_X
+MAG_O_Y = 382 * -MAG_S_Y
+MAG_O_Z = -78 * -MAG_S_Z
+ACC_S_X = 9806.65 / 16522.56746066602
+ACC_S_Y = 9806.65 / 17033.517951277074
+ACC_S_Z = 9806.65 / 16921.85847403815
+ACC_O_X = -482 * -ACC_S_X
+ACC_O_Y = 48   * -ACC_S_Y
+ACC_O_Z = -972 * -ACC_S_Z
+GYR_S_X = 1 / 131.068
+GYR_S_Y = 1 / 131.068
+GYR_S_Z = 1 / 131.068
+GYR_O_X = 0.0
+GYR_O_Y = 0.0
+GYR_O_Z = 0.0
 
 # Kalman settings
 RANGE_VAR = 140
 KAL_DT = 0.01
 Q_VAR = 0.001  # Process covariance
 
-class robot():
+class Robot():
+    data_cmd = 'B\n'.encode('utf-8')
+
     def __init__(self):
-        # pygame setup
-        pygame.joystick.init()
-        self.controller_connected = False
-        if (pygame.joystick.get_count() == 1):
-            pygame.init()
-            self.joystick = pygame.joystick.Joystick(0)
-            self.joystick.init()
-            print(self.joystick.get_name())
-            self.controller_connected = True
-        self.joystickAxes = [0.0, 0.0, 0.0, 0.0]
         self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
 
         # robot setup
-        self.max_hist_len = 500
+        self.max_hist_len = 10
 
-        self.dt = RunningStat(self.max_hist_len)
+#        self.dt = RunningStat(self.max_hist_len)
 
-        self.sensor_x = RunningStat(self.max_hist_len)
-        self.sensor_y = RunningStat(self.max_hist_len)
+        # Sensor array. Each contains a running history, offset factor, scaling factor, and
+        # DC calibration factor that is calculated at startup.
+        # Rangefinders: Units of mm
+        # Magnetometer: Units of  uTesla?. Arbitrary since converted to heading later
+        # Accelerometer: Units of mm/s^2
+        # Gyro: Units of degrees per second
+        self.sensors = [[RunningStat(self.max_hist_len), RANGE_S, RANGE_O, 0.], # RF 0
+                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O, 0.], # RF 1
+                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O, 0.], # RF 2
+                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O, 0.], # RF 3
+                        [RunningStat(self.max_hist_len), MAG_S_X, MAG_O_X, 0.], # MAG X
+                        [RunningStat(self.max_hist_len), MAG_S_Y, MAG_O_Y, 0.], # MAG Y
+                        [RunningStat(self.max_hist_len), MAG_S_Z, MAG_O_Z, 0.], # MAG Z
+                        [RunningStat(self.max_hist_len), ACC_S_X, ACC_O_X, 0.], # ACCEL X
+                        [RunningStat(self.max_hist_len), ACC_S_Y, ACC_O_Y, 0.], # ACCEL Y
+                        [RunningStat(self.max_hist_len), ACC_S_Z, ACC_O_Z, 0.], # ACCEL Z
+                        [RunningStat(self.max_hist_len), GYR_S_X, GYR_O_X, 0.], # GYRO X
+                        [RunningStat(self.max_hist_len), GYR_S_Y, GYR_O_Y, 0.], # GYRO Y
+                        [RunningStat(self.max_hist_len), GYR_S_Z, GYR_O_Z, 0.]] # GYRO Z
 
-        self.sensor_mag = RunningStat(self.max_hist_len)
-        self.sensor_mag_ref = 0  # Stores the true compass home position angle
-        self.sensor_mag_homed = 0    # Calculated angle relative to starting angle
-
-        self.sensor_accel_x = RunningStat(self.max_hist_len)
-        self.sensor_accel_y = RunningStat(self.max_hist_len)
-        self.sensor_accel_z = RunningStat(self.max_hist_len)
-        self.sensor_accel_offset_x = 0
-        self.sensor_accel_offset_y = 0
-        self.sensor_accel_offset_z = 0
-
-        self.sensor_gyro_x = RunningStat(self.max_hist_len)
-        self.sensor_gyro_y = RunningStat(self.max_hist_len)
-        self.sensor_gyro_z = RunningStat(self.max_hist_len)
-        self.sensor_gyro_offset_x = 0
-        self.sensor_gyro_offset_y = 0
-        self.sensor_gyro_offset_z = 0
-
-
-        self.ser_available = False
+        self.console = SerialConsole()
         self.data_log_enable = False
 
         self.calibrating = True
         self.calibration_sample_count = 0
 
         # Kalman filter and states
-        self.initKalman()
-        self.kalman_x = RunningStat(self.max_hist_len)
-        self.kalman_dx = RunningStat(self.max_hist_len)
-        self.kalman_y = RunningStat(self.max_hist_len)
-        self.kalman_dy = RunningStat(self.max_hist_len)
+#        self.initKalman()
+#        self.kalman_x = RunningStat(self.max_hist_len)
+#        self.kalman_dx = RunningStat(self.max_hist_len)
+#        self.kalman_y = RunningStat(self.max_hist_len)
+#        self.kalman_dy = RunningStat(self.max_hist_len)
+
+    def close(self):
+        self.console.close()
 
     def updateSensorValue(self):
-        if (self.ser_available):
+        if (self.console.ser_available):
             try:
-                while (self.ser.in_waiting > 0):
-                    readback = self.ser.readline()
-                    try:
-                        readback_split = readback.decode().split(',')
-                        if (len(readback_split) != 10):
-                            print(readback)
-                            return
-                        dt = int(readback_split[0]) / 10.0  # Units of 0.1 ms, convert to ms
-                        mag_val_raw = int (readback_split[1]) / 10.0 # Units of 0.1 degree, convert to degrees
-                        rangeX_val_raw = int(readback_split[2]) * RANGE_O + RANGE_S # Units of mm
-                        if (rangeX_val_raw > 1000):
-                            rangeX_val_raw = 1000
-                        rangeY_val_raw = int(readback_split[3]) * RANGE_O + RANGE_S # Units of mm
-                        if (rangeY_val_raw > 1000):
-                            rangeY_val_raw = 1000
+                # Request data
+                start = timer()
+                self.console.ser.write(self.data_cmd)
+                end = timer()
+#                print("Write time: %f" % (end - start))
+                time.sleep(0.01)
+                start = timer()
 
-                        accelX_val_raw = (int(readback_split[4]) - ACC_O_X) * 9806.65 / ACC_S_X # Units of mm/s/s)
-                        accelY_val_raw = (int(readback_split[5]) - ACC_O_Y) * 9806.65 / ACC_S_Y # Units of mm/s/s)
-                        accelZ_val_raw = (int(readback_split[6]) - ACC_O_Z) * 9806.65 / ACC_S_Z # Units of mm/s/s)
+                data = self.console.ser.read(4)
+                print(data)
 
-                        gyroX_val_raw = int(readback_split[7]) / 131.068 # Units of degrees per second
-                        gyroY_val_raw = int(readback_split[8]) / 131.068 # Units of degrees per second
-                        gyroZ_val_raw = int(readback_split[9]) / 131.068 # Units of degrees per second
-                    except ValueError:
-                        print("Readback error: ",end='')
-                        print(readback)
+                end = timer()
+#                print("Read time per char: %f" % ((end - start)/ len(data)))
+                print(int.from_bytes(data[0:2], byteorder='big', signed=True))
+                print(int.from_bytes(data[2:4], byteorder='big', signed=True))
+                print('hi')
+#                integers = struct.unpack('HH', data[0:4])
+#                print(integers)
+                try:
+                    if (len(data) != NUM_SENSORS * 4 + 1):
+                        print("Data length = %d. Expected %d. Readback: " % (len(data), NUM_SENSORS*4), end='')
+                        print(data)
                         return
+#                    dt = int(readback_split[0]) / 10.0  # Units of 0.1 ms, convert to ms
+                    print(data)
+                    for i in range(0,NUM_SENSORS):
+                        print(int.from_bytes(data[i*4:i*4+4], byteorder='big', signed=True))
+                        # Push data * scaling factor + offset - DC_calibration
+#                        self.sensors[i][0].push(int(data[i*2:i*2+2]) * self.sensors[i][1] + \
+#                                self.sensors[i][2] - self.sensors[i][3])
+                    print('done')
 
-                    # Log data
-                    if (self.data_log_enable):
-                        self.data_log += '%0.1f, %0.1f, %d, %d, \n' \
-                                % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
+                except ValueError:
+                    print("Error. Readback: ",end='')
+                    print(data)
+                    return
 
-                    # Process time delta
-                    self.dt.push(dt)
+                # Log data
+                if (self.data_log_enable):
+                    self.data_log += '%0.1f, %0.1f, %d, %d, \n' \
+                            % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
 
-                    # Process magnetometer data
-                    if (self.calibrating):
-                        sensor_mag_homed = self.sensor_mag_ref - mag_val_raw
-                    else:
-                        sensor_mag_homed = self.loopAngle(self.sensor_mag_ref - mag_val_raw)
-                    self.sensor_mag.push(sensor_mag_homed)
+                # Process time delta
+#                self.dt.push(dt)
+                # Kalman filter
+#                    self.ukf.predict()
+#                    self.ukf.update([self.sensor_x.curVal(), self.sensor_y.curVal()])
+#                    self.kalman_x.push(limitValue(self.ukf.x[0], 0))
+#                    self.kalman_dx.push(self.ukf.x[1])
+#                    self.kalman_y.push(limitValue(self.ukf.x[2], 0))
+#                    self.kalman_dy.push(self.ukf.x[3])
 
-                    # Process rangefinders
-                    self.sensor_x.push(self.limitValue(rangeX_val_raw, 0))
-                    self.sensor_y.push(self.limitValue(rangeY_val_raw, 0))
-
-                    # Process accelerometers
-                    self.sensor_accel_x.push(round(accelX_val_raw - self.sensor_accel_offset_x))
-                    self.sensor_accel_y.push(round(accelY_val_raw - self.sensor_accel_offset_y))
-                    self.sensor_accel_z.push(round(accelZ_val_raw - self.sensor_accel_offset_z))
-
-                    # Process gyros
-                    self.sensor_gyro_x.push(gyroX_val_raw - self.sensor_gyro_offset_x)
-                    self.sensor_gyro_y.push(gyroY_val_raw - self.sensor_gyro_offset_y)
-                    self.sensor_gyro_z.push(gyroZ_val_raw - self.sensor_gyro_offset_z)
-
-                    # Kalman filter
-                    self.ukf.predict()
-                    self.ukf.update([self.sensor_x.curVal(), self.sensor_y.curVal()])
-                    self.kalman_x.push(self.limitValue(self.ukf.x[0], 0))
-                    self.kalman_dx.push(self.ukf.x[1])
-                    self.kalman_y.push(self.limitValue(self.ukf.x[2], 0))
-                    self.kalman_dy.push(self.ukf.x[3])
-
-                    # Collect many samples to get the average sensor value for offset calibration
-                    if (self.calibrating):
-                        if (self.calibration_sample_count == 0):
-                            self.sensor_mag_ref = 0
-                            self.sensor_accel_offset_x = 0
-                            self.sensor_accel_offset_y = 0
-                            self.sensor_accel_offset_z = 0
-                            self.sensor_gyro_offset_x = 0
-                            self.sensor_gyro_offset_y = 0
-                            self.sensor_gyro_offset_z = 0
-
-                        self.calibration_sample_count += 1
-                        if (self.calibration_sample_count == self.max_hist_len + 1):
-                            self.calibrating = False
-
-                            # Use average angle measurement as the reference angle
-                            self.sensor_mag_ref = self.loopAngle(-1 * self.sensor_mag.mean + 90.0)
-
-                            # Use average accel measurement
-                            self.sensor_accel_offset_x = self.sensor_accel_x.mean
-                            self.sensor_accel_offset_y = self.sensor_accel_y.mean
-                            self.sensor_accel_offset_z = self.sensor_accel_z.mean
-
-                            # Use average gyro  measurement
-                            self.sensor_gyro_offset_x = self.sensor_gyro_x.mean
-                            self.sensor_gyro_offset_y = self.sensor_gyro_y.mean
-                            self.sensor_gyro_offset_z = self.sensor_gyro_z.mean
-
-
-                    # Process controller
-                    if (self.controller_connected == True):
-                        pygame.event.pump()
-                        # Axis 0: Left stick, left -1.0, right 1.0
-                        # Axis 1: Left stick, up -1.0, down 1.0
-                        # Axis 2: Right stick, left -1.0, right 1.0
-                        # Axis 3: Right stick, up -1.0, down 1.0
-                        self.joystickAxes[0] = self.joystick.get_axis(0) * -1
-                        self.joystickAxes[1] = self.joystick.get_axis(1) * -1
-                        self.joystickAxes[2] = self.joystick.get_axis(2) * -1
-                        self.joystickAxes[3] = self.joystick.get_axis(3) * -1
-                        self.mechanumCommand(self.joystickAxes)
+                # Collect many samples to get the average sensor value for offset calibration
+#                if (self.calibrating):
+#                    if (self.calibration_sample_count == 0):
+#                        self.sensor_mag_ref = 0
+#                        self.sensor_accel_offset_x = 0
+#                        self.sensor_accel_offset_y = 0
+#                        self.sensor_accel_offset_z = 0
+#                        self.sensor_gyro_offset_x = 0
+#                        self.sensor_gyro_offset_y = 0
+#                        self.sensor_gyro_offset_z = 0
+#
+#                    self.calibration_sample_count += 1
+#                    if (self.calibration_sample_count == self.max_hist_len + 1):
+#                        self.calibrating = False
+#
+#                        # Use average angle measurement as the reference angle
+#                        self.sensor_mag_ref = self.loopAngle(-1 * self.sensor_mag.mean + 90.0)
+#
+#                        # Use average accel measurement
+#                        self.sensor_accel_offset_x = self.sensor_accel_x.mean
+#                        self.sensor_accel_offset_y = self.sensor_accel_y.mean
+#                        self.sensor_accel_offset_z = self.sensor_accel_z.mean
+#
+#                        # Use average gyro  measurement
+#                        self.sensor_gyro_offset_x = self.sensor_gyro_x.mean
+#                        self.sensor_gyro_offset_y = self.sensor_gyro_y.mean
+#                        self.sensor_gyro_offset_z = self.sensor_gyro_z.mean
 
             except OSError:
                 self.ser_available = False
+
+    def printSensorVals(self):
+        for i in range(0,NUM_SENSORS):
+            print(self.sensors[i][0].mean())
+
+    def calcHeading(self):
+        heading = np.degrees(np.arctan2(self.sensor[5][0].mean() / self.sensor[4][0].mean()))
+        print(heading)
+        # Process magnetometer data
+#        if (self.calibrating):
+#            sensor_mag_homed = self.sensor_mag_ref - mag_val_raw
+#        else:
+#            sensor_mag_homed = self.loopAngle(self.sensor_mag_ref - mag_val_raw)
+#        self.sensor_mag.push(sensor_mag_homed)
+
+
 
     def loopAngle(self, angle):
         while ((angle >= 360.0) or (angle < 0.0)):
@@ -208,135 +201,55 @@ class robot():
             if (angle <    0.0): angle += 360.0
         return angle
 
-    def mechanumCommand(self, joystickAxes):
-        # Cartesian joystick vals to polar
-        magnitude = np.sqrt(joystickAxes[0]**2 + joystickAxes[1]**2)
-        angle = np.arctan2(joystickAxes[1], joystickAxes[0])
-        rotation = joystickAxes[2]
-        self.motorSpeeds[0] = magnitude * np.sin(angle + np.pi / 4) - rotation
-        self.motorSpeeds[1] = magnitude * np.cos(angle + 5 * np.pi / 4) + rotation
-        self.motorSpeeds[2] = magnitude * np.sin(angle + np.pi / 4) + rotation
-        self.motorSpeeds[3] = magnitude * np.cos(angle + 5 * np.pi / 4) - rotation
+    def mechanumCommand(self, x, y, th):
+        x = np.clip(x, -2, 2)
+        y = np.clip(y, -2, 2)
+        th = np.clip(th, -2, 2)
 
-        # Normalize speeds if any of them end up greater than 1
-        max_speed = 0.0
-        for speed in self.motorSpeeds:
-            if (abs(speed) > max_speed):
-                max_speed = abs(speed)
-        if (max_speed > 1.0):
-            self.motorSpeeds = self.motorSpeeds / max_speed
-        print(self.motorSpeeds)
+        #  Trajectory control inputs
+        v_theta = th
+        vd = np.hypot(x, y) / 2.0
+        theta_d = np.arctan2(y, x)
+
+        # Calculate voltage ratios for each motor to acheive desired trajectory
+        self.motorSpeeds[0] = vd * np.sin(theta_d + np.pi/4) - v_theta
+        self.motorSpeeds[1] = vd * np.cos(theta_d + np.pi/4) + v_theta
+        self.motorSpeeds[2] = vd * np.sin(theta_d + np.pi/4) + v_theta
+        self.motorSpeeds[3] = vd * np.cos(theta_d + np.pi/4) - v_theta
+
+        # Normalize ratios to 1 if the maxval is > 1
+        maxval = np.amax(np.absolute(v))
+        v = v / maxval if (maxval > 1) else v
+
+#        # Cartesian joystick vals to polar
+#        magnitude = np.sqrt(joystickAxes[0]**2 + joystickAxes[1]**2)
+#        angle = np.arctan2(joystickAxes[1], joystickAxes[0])
+#        rotation = joystickAxes[2]
+#        self.motorSpeeds[0] = magnitude * np.sin(angle + np.pi / 4) - rotation
+#        self.motorSpeeds[1] = magnitude * np.cos(angle + 5 * np.pi / 4) + rotation
+#        self.motorSpeeds[2] = magnitude * np.sin(angle + np.pi / 4) + rotation
+#        self.motorSpeeds[3] = magnitude * np.cos(angle + 5 * np.pi / 4) - rotation
+#
+#        # Normalize speeds if any of them end up greater than 1
+#        max_speed = 0.0
+#        for speed in self.motorSpeeds:
+#            if (abs(speed) > max_speed):
+#                max_speed = abs(speed)
+#        if (max_speed > 1.0):
+#            self.motorSpeeds = self.motorSpeeds / max_speed
+#        print(self.motorSpeeds)
 
         # Send motor control commands
-        for motorNum in range(0,4):
-            if (self.motorSpeeds[motorNum] >= 0):
-                self.botCmdMotor(motorNum, direction = 1, speed = int(MAX_PWM_CYCLES * self.motorSpeeds[motorNum]))
-            else:
-                self.botCmdMotor(motorNum, direction = -1, speed = int(MAX_PWM_CYCLES * (1 + self.motorSpeeds[motorNum])))
+        self.botCmdMotor(self.motorSpeeds * MAX_PWM_CYCLES)
 
-    def botCmdForwardButton(self):
-        self.botCmdForward(BUTTON_PWM_CYCLES)
-
-    def botCmdStopButton(self):
-        self.botCmdStop()
-
-    def botCmdReverseButton(self):
-        self.botCmdReverse(MAX_PWM_CYCLES - BUTTON_PWM_CYCLES)
-
-    def botCmdForward(self, pwmCycles):
-        if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
-            raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
-        for motorNum in range(0,4):
-            self.botCmdMotor(motorNum, direction = 1, speed = pwmCycles)
-
-    def botCmdStop(self):
-        for motorNum in range(0,4):
-            self.botCmdMotor(motorNum, direction = 1, speed = 0)
-
-    def botCmdReverse(self, pwmCycles):
-        if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
-            raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
-        for motorNum in range(0,4):
-            self.botCmdMotor(motorNum, direction = -1, speed = pwmCycles)
-
-    def botCmdRotate(self, direction, pwmCycles):
-        if (self.checkValue(pwmCycles, 0, MAX_PWM_CYCLES) != 0):
-            raise ValueError("pwmCycles is not within 0 and %d" % MAX_PWM_CYCLES)
-        if (direction == 1):       # Counterclockwise (+theta)
-            self.botCmdMotor(0, direction = -1, speed = MAX_PWM_CYCLES - pwmCycles)
-            self.botCmdMotor(1, direction = 1, speed = pwmCycles)
-            self.botCmdMotor(2, direction = 1, speed = pwmCycles)
-            self.botCmdMotor(3, direction = -1, speed = MAX_PWM_CYCLES - pwmCycles)
-        if (direction == -1):       # Clockwise (-theta)
-            self.botCmdMotor(0, direction = 1, speed = pwmCycles)
-            self.botCmdMotor(1, direction = -1, speed = MAX_PWM_CYCLES - pwmCycles)
-            self.botCmdMotor(2, direction = -1, speed = MAX_PWM_CYCLES - pwmCycles)
-            self.botCmdMotor(3, direction = 1, speed = pwmCycles)
-
-    # motorNum: 0 front left, 1 front right, 2 back right, 3 back left
-    # direction (optional): -1 reverse, 1 forward
     # speed (optional): 0 to 2047, duty cycle value out of 2047
-    def botCmdMotor(self, motorNum, direction = 0, speed = -1):
-        cmdSequence = []
-        if (direction == 1):
-            cmdSequence.append('M' + str(motorNum) + 'DF\r')
-        elif (direction == -1):
-            cmdSequence.append('M' + str(motorNum) + 'DR\r')
-        if ((speed >= 0) and (speed <= MAX_PWM_CYCLES)):
-            cmdSequence.append('M' + str(motorNum) + 'S' + str(speed) + '\r')
-        self.writeSerialSequence(cmdSequence)
-
-    def angleControlTest(self, desired_angle):
-        hyst = 20
-        min_set_pwm_cycles = 1000
-
-        m = (MAX_PWM_CYCLES - min_set_pwm_cycles) / 180.0
-        error = self.sensor_mag_homed - desired_angle
-        if (error > 180.0):
-            error -= 360.0
-        elif (error < -180.0):
-            error += 360.0
-
-        if (error > hyst):
-            self.botCmdRotate(-1, self.limitValue(error * m + min_set_pwm_cycles, 0, MAX_PWM_CYCLES))
-        elif (error < -1 * hyst):
-            self.botCmdRotate(1, self.limitValue(error * -1 * m + min_set_pwm_cycles, 0, MAX_PWM_CYCLES))
-        else:
-            self.botCmdStop()
-
-    def openSerial(self):
-        ports = ['/dev/tty.usbmodem1413', '/dev/tty.usbmodem1423']
-        self.ser_available = False
-        self.ser = serial.Serial()
-        self.ser.baudrate = 921600
-        self.ser.bytesize = serial.EIGHTBITS #number of bits per bytes
-        self.ser.parity = serial.PARITY_NONE #set parity check: no parity
-        self.ser.stopbits = serial.STOPBITS_ONE #number of stop bits
-        self.ser.timeout = 1            #non-block read
-        self.ser.xonxoff = False     #disable software flow control
-        self.ser.rtscts = False     #disable hardware (RTS/CTS) flow control
-        self.ser.dsrdtr = False       #disable hardware (DSR/DTR) flow control
-        self.ser.writeTimeout = 1     #timeout for write
-
-        for port in ports:
-            self.ser.port = port
-            try:
-                self.ser.close()
-                self.ser.open()
-                self.ser.reset_input_buffer()
-                self.ser_available = True
-                break
-            except serial.serialutil.SerialException:
-                pass
-
-    def closeSerial(self):
-        self.ser.close()
-        self.ser_available = False
-
-    def writeSerialSequence(self, cmd_seq):
-        if (self.ser_available):
-            for cmd in cmd_seq:
-                self.ser.write(cmd.encode('utf-8'))
+    def botCmdMotor(self, motorCmd):
+        for cmd in motorCmd:
+            if (checkValue(cmd, -MAX_PWM_CYCLES, MAX_PWM_CYCLES)):
+                raise ValueError("motorCmd is not within bounds")
+        cmd = 'M ' + str(motorCmd[0]) + ' ' + str(motorCmd[1]) + ' ' \
+            + str(motorCmd[2]) + ' ' + str(motorCmd[3])
+        self.console.writeSerialSequence([cmd])
 
     def initKalman(self):
         sigmas = MerweScaledSigmaPoints(4, alpha=.1, beta=2., kappa=1.)
