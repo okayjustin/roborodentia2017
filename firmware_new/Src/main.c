@@ -304,7 +304,7 @@ void consoleCommand(uint8_t *ptr, int len)
 
     // B for send data in binary
     else if (ptr[0] == 'B' || ptr[0] == 'b') {
-        unsigned char bytes[26];
+        unsigned char bytes[27];
         bytes[ 0] = (rangeData[0] >> 8) & 0xFF;
         bytes[ 1] =  rangeData[0]       & 0xFF;
 
@@ -337,34 +337,37 @@ void consoleCommand(uint8_t *ptr, int len)
         bytes[23] =  gyroData.y       & 0xFF;
         bytes[24] = (gyroData.z >> 8) & 0xFF;
         bytes[25] =  gyroData.z       & 0xFF;
+        bytes[26] = '\n';
 
-        printf("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n", 
-                (unsigned char)bytes[0], 
-                (unsigned char)bytes[1], 
-                (unsigned char)bytes[2], 
-                (unsigned char)bytes[3], 
-                (unsigned char)bytes[4], 
-                (unsigned char)bytes[5], 
-                (unsigned char)bytes[6], 
-                (unsigned char)bytes[7], 
-                (unsigned char)bytes[8], 
-                (unsigned char)bytes[9], 
-                (unsigned char)bytes[10], 
-                (unsigned char)bytes[11], 
-                (unsigned char)bytes[12], 
-                (unsigned char)bytes[13], 
-                (unsigned char)bytes[14], 
-                (unsigned char)bytes[15], 
-                (unsigned char)bytes[16], 
-                (unsigned char)bytes[17], 
-                (unsigned char)bytes[18], 
-                (unsigned char)bytes[19], 
-                (unsigned char)bytes[20], 
-                (unsigned char)bytes[21], 
-                (unsigned char)bytes[22], 
-                (unsigned char)bytes[23], 
-                (unsigned char)bytes[24], 
-                (unsigned char)bytes[25]); 
+        transmitUART(bytes, 27);
+
+//        printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n", 
+//                (unsigned char)bytes[0], 
+//                (unsigned char)bytes[1], 
+//                (unsigned char)bytes[2], 
+//                (unsigned char)bytes[3], 
+//                (unsigned char)bytes[4], 
+//                (unsigned char)bytes[5], 
+//                (unsigned char)bytes[6], 
+//                (unsigned char)bytes[7], 
+//                (unsigned char)bytes[8], 
+//                (unsigned char)bytes[9], 
+//                (unsigned char)bytes[10], 
+//                (unsigned char)bytes[11], 
+//                (unsigned char)bytes[12], 
+//                (unsigned char)bytes[13], 
+//                (unsigned char)bytes[14], 
+//                (unsigned char)bytes[15], 
+//                (unsigned char)bytes[16], 
+//                (unsigned char)bytes[17], 
+//                (unsigned char)bytes[18], 
+//                (unsigned char)bytes[19], 
+//                (unsigned char)bytes[20], 
+//                (unsigned char)bytes[21], 
+//                (unsigned char)bytes[22], 
+//                (unsigned char)bytes[23], 
+//                (unsigned char)bytes[24], 
+//                (unsigned char)bytes[25]); 
 
         rangefinderRead(0);
         rangefinderRead(1);

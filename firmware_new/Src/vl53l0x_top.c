@@ -12,7 +12,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[0].XSHUT_Pin = SW1_Pin;
     VL53L0XDevs[0].GPIO_Port = RF1_G_GPIO_Port;
     VL53L0XDevs[0].GPIO_Pin = RF1_G_Pin;
-    VL53L0XDevs[0].TimingBudgetUsecs = 49800;
+    VL53L0XDevs[0].TimingBudgetUsecs = 49000;
 
     VL53L0XDevs[1].Id = 1;
     VL53L0XDevs[1].DevLetter = 'b';
@@ -22,7 +22,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[1].XSHUT_Pin = SW2_Pin;
     VL53L0XDevs[1].GPIO_Port = RF2_G_GPIO_Port;
     VL53L0XDevs[1].GPIO_Pin = RF2_G_Pin;
-    VL53L0XDevs[1].TimingBudgetUsecs = 49800;
+    VL53L0XDevs[1].TimingBudgetUsecs = 49000;
 
     VL53L0XDevs[2].Id = 2;
     VL53L0XDevs[2].DevLetter = 'c';
@@ -32,7 +32,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[2].XSHUT_Pin = SW3_Pin;
     VL53L0XDevs[2].GPIO_Port = RF4_G_GPIO_Port;
     VL53L0XDevs[2].GPIO_Pin = RF4_G_Pin;
-    VL53L0XDevs[2].TimingBudgetUsecs = 49800;
+    VL53L0XDevs[2].TimingBudgetUsecs = 49000;
 
     VL53L0XDevs[3].Id = 3;
     VL53L0XDevs[3].DevLetter = 'd';
@@ -42,7 +42,7 @@ void VL53L0X_begin(){
     VL53L0XDevs[3].XSHUT_Pin = SW4_Pin;
     VL53L0XDevs[3].GPIO_Port = RF5_G_GPIO_Port;
     VL53L0XDevs[3].GPIO_Pin = RF5_G_Pin;
-    VL53L0XDevs[3].TimingBudgetUsecs = 49800;
+    VL53L0XDevs[3].TimingBudgetUsecs = 49000;
 
     // Turn off all the rangefinders
     int i;

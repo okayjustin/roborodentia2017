@@ -97,41 +97,13 @@ class Robot():
         if (self.console.ser_available):
             try:
                 # Request data
-                start = timer()
                 self.console.ser.write(self.data_cmd)
-                end = timer()
-#                print("Write time: %f" % (end - start))
-                time.sleep(0.01)
-                start = timer()
+                data = self.console.ser.readline()
 
-                data = self.console.ser.read(4)
-                print(data)
-
-                end = timer()
-#                print("Read time per char: %f" % ((end - start)/ len(data)))
-                print(int.from_bytes(data[0:2], byteorder='big', signed=True))
-                print(int.from_bytes(data[2:4], byteorder='big', signed=True))
-                print('hi')
-#                integers = struct.unpack('HH', data[0:4])
-#                print(integers)
-                try:
-                    if (len(data) != NUM_SENSORS * 4 + 1):
-                        print("Data length = %d. Expected %d. Readback: " % (len(data), NUM_SENSORS*4), end='')
-                        print(data)
-                        return
-#                    dt = int(readback_split[0]) / 10.0  # Units of 0.1 ms, convert to ms
-                    print(data)
-                    for i in range(0,NUM_SENSORS):
-                        print(int.from_bytes(data[i*4:i*4+4], byteorder='big', signed=True))
-                        # Push data * scaling factor + offset - DC_calibration
-#                        self.sensors[i][0].push(int(data[i*2:i*2+2]) * self.sensors[i][1] + \
-#                                self.sensors[i][2] - self.sensors[i][3])
-                    print('done')
-
-                except ValueError:
-                    print("Error. Readback: ",end='')
-                    print(data)
-                    return
+                for i in range(0,NUM_SENSORS):
+                    val = int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True)
+                    # Push data * scaling factor + offset - DC_calibration
+                    self.sensors[i][0].push(val * self.sensors[i][1] + self.sensors[i][2] - self.sensors[i][3])
 
                 # Log data
                 if (self.data_log_enable):
@@ -180,8 +152,9 @@ class Robot():
                 self.ser_available = False
 
     def printSensorVals(self):
+        print("Sensor values:")
         for i in range(0,NUM_SENSORS):
-            print(self.sensors[i][0].mean())
+            print("%0.3f" % (self.sensors[i][0].curVal()))
 
     def calcHeading(self):
         heading = np.degrees(np.arctan2(self.sensor[5][0].mean() / self.sensor[4][0].mean()))

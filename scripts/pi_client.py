@@ -34,14 +34,17 @@ class ann(object):
 
 if __name__ == "__main__":
     robot = Robot()
-    while True:
-        #for i in range(0,10):
-        start = timer()
-        robot.updateSensorValue()
-        end = timer()
-#        print(end - start)
-        robot.printSensorVals()
-        time.sleep(0.05)
+    try:
+        while True:
+            start = timer()
+            robot.updateSensorValue()
+            robot.printSensorVals()
+
+            # Limit speed to 20 Hz
+            while (timer() < start + 0.060):
+                pass
+    except KeyboardInterrupt:
+        pass
 
     robot.close()
 
