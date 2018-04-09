@@ -304,7 +304,7 @@ void consoleCommand(uint8_t *ptr, int len)
 
     // B for send data in binary
     else if (ptr[0] == 'B' || ptr[0] == 'b') {
-        unsigned char bytes[27];
+        unsigned char bytes[29];
         bytes[ 0] = (rangeData[0] >> 8) & 0xFF;
         bytes[ 1] =  rangeData[0]       & 0xFF;
 
@@ -331,43 +331,17 @@ void consoleCommand(uint8_t *ptr, int len)
         bytes[18] = (accelData.z >> 8) & 0xFF;
         bytes[19] =  accelData.z       & 0xFF;
 
-        bytes[20] = (gyroData.x >> 8) & 0xFF;
-        bytes[21] =  gyroData.x       & 0xFF;
-        bytes[22] = (gyroData.y >> 8) & 0xFF;
-        bytes[23] =  gyroData.y       & 0xFF;
-        bytes[24] = (gyroData.z >> 8) & 0xFF;
-        bytes[25] =  gyroData.z       & 0xFF;
-        bytes[26] = '\n';
+//        bytes[20] = (gyroData.x >> 8) & 0xFF;
+//        bytes[21] =  gyroData.x       & 0xFF;
+//        bytes[22] = (gyroData.y >> 8) & 0xFF;
+//        bytes[23] =  gyroData.y       & 0xFF;
+//        bytes[24] = (gyroData.z >> 8) & 0xFF;
+//        bytes[25] =  gyroData.z       & 0xFF;
+        bytes[20] = (magData.orientation >> 8) & 0xFF;
+        bytes[21] =  magData.orientation       & 0xFF;
+        bytes[22] = '\n';
 
-        transmitUART(bytes, 27);
-
-//        printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n", 
-//                (unsigned char)bytes[0], 
-//                (unsigned char)bytes[1], 
-//                (unsigned char)bytes[2], 
-//                (unsigned char)bytes[3], 
-//                (unsigned char)bytes[4], 
-//                (unsigned char)bytes[5], 
-//                (unsigned char)bytes[6], 
-//                (unsigned char)bytes[7], 
-//                (unsigned char)bytes[8], 
-//                (unsigned char)bytes[9], 
-//                (unsigned char)bytes[10], 
-//                (unsigned char)bytes[11], 
-//                (unsigned char)bytes[12], 
-//                (unsigned char)bytes[13], 
-//                (unsigned char)bytes[14], 
-//                (unsigned char)bytes[15], 
-//                (unsigned char)bytes[16], 
-//                (unsigned char)bytes[17], 
-//                (unsigned char)bytes[18], 
-//                (unsigned char)bytes[19], 
-//                (unsigned char)bytes[20], 
-//                (unsigned char)bytes[21], 
-//                (unsigned char)bytes[22], 
-//                (unsigned char)bytes[23], 
-//                (unsigned char)bytes[24], 
-//                (unsigned char)bytes[25]); 
+        transmitUART(bytes, 23);
 
         rangefinderRead(0);
         rangefinderRead(1);
@@ -375,7 +349,7 @@ void consoleCommand(uint8_t *ptr, int len)
         rangefinderRead(3);
         magnetometer_read();
         accelerometer_read();
-        gyro_read();
+//        gyro_read();
     }
 
     // D for send data in human readable format
@@ -392,7 +366,7 @@ void consoleCommand(uint8_t *ptr, int len)
         rangefinderRead(3);
         magnetometer_read();
         accelerometer_read();
-        gyro_read();
+//        gyro_read();
     }
     
     // M for motor control commands
