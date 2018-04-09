@@ -39,9 +39,12 @@ if __name__ == "__main__":
             start = timer()
             robot.updateSensorValue()
             robot.printSensorVals()
+#            robot.calcHeading()
+            #end = timer()
+            #print( 1000*(end - start))
 
             # Limit speed to 20 Hz
-            while (timer() < start + 0.060):
+            while (timer() < start + 0.155):
                 pass
     except KeyboardInterrupt:
         pass

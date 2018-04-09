@@ -17,17 +17,17 @@ import struct
 
 MAX_PWM_CYCLES = 2047
 BUTTON_PWM_CYCLES = 1700
-NUM_SENSORS = 13
+NUM_SENSORS = 14
 
 # CALIBRATION VALUES, offset and scale
 RANGE_S = 0.965025066
 RANGE_O = -3.853474266
-MAG_S_X = 1 / 421.93019841175084
-MAG_S_Y = 1 / 486
-MAG_S_Z = 1 / 549.6501012927249
-MAG_O_X = -76 * -MAG_S_X
-MAG_O_Y = 382 * -MAG_S_Y
-MAG_O_Z = -78 * -MAG_S_Z
+MAG_S_X = 1# / 421.93019841175084
+MAG_S_Y = 1# / 486
+MAG_S_Z = 1# / 549.6501012927249
+MAG_O_X = 0#-76 * -MAG_S_X
+MAG_O_Y = 0#382 * -MAG_S_Y
+MAG_O_Z = 0#-78 * -MAG_S_Z
 ACC_S_X = 9806.65 / 16522.56746066602
 ACC_S_Y = 9806.65 / 17033.517951277074
 ACC_S_Z = 9806.65 / 16921.85847403815
@@ -75,7 +75,8 @@ class Robot():
                         [RunningStat(self.max_hist_len), ACC_S_Z, ACC_O_Z, 0.], # ACCEL Z
                         [RunningStat(self.max_hist_len), GYR_S_X, GYR_O_X, 0.], # GYRO X
                         [RunningStat(self.max_hist_len), GYR_S_Y, GYR_O_Y, 0.], # GYRO Y
-                        [RunningStat(self.max_hist_len), GYR_S_Z, GYR_O_Z, 0.]] # GYRO Z
+                        [RunningStat(self.max_hist_len), GYR_S_Z, GYR_O_Z, 0.], # GYRO Z
+                        [RunningStat(self.max_hist_len), 1.0, 0., 0.]] # MAG ORIENT
 
         self.console = SerialConsole()
         self.data_log_enable = False
@@ -157,8 +158,8 @@ class Robot():
             print("%0.3f" % (self.sensors[i][0].curVal()))
 
     def calcHeading(self):
-        heading = np.degrees(np.arctan2(self.sensor[5][0].mean() / self.sensor[4][0].mean()))
-        print(heading)
+        heading = np.degrees(np.arctan2(self.sensors[5][0].curVal(), self.sensors[4][0].curVal())) + 180.0
+        print("%f %f" % (heading, self.sensors[13][0].curVal()/10))
         # Process magnetometer data
 #        if (self.calibrating):
 #            sensor_mag_homed = self.sensor_mag_ref - mag_val_raw
