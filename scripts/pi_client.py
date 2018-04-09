@@ -35,11 +35,11 @@ class ann(object):
 if __name__ == "__main__":
     robot = Robot()
     try:
+        robot.zeroTheta()
         while True:
             start = timer()
             robot.updateSensorValue()
-            robot.printSensorVals()
-#            robot.calcHeading()
+#            robot.printSensorVals()
             #end = timer()
             #print( 1000*(end - start))
 

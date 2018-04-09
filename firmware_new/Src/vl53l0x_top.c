@@ -203,7 +203,7 @@ void rangefinderRead(int id){
     pDev = &VL53L0XDevs[id];
 
     if (HAL_GPIO_ReadPin(pDev->GPIO_Port, pDev->GPIO_Pin)){
-        printf("New data not ready on device %d.\r\n", id);
+        //printf("New data not ready on device %d.\r\n", id);
         return; // New data not ready
     }
 

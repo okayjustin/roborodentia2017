@@ -18,11 +18,11 @@ class SerialConsole():
         self.ser.bytesize = serial.EIGHTBITS #number of bits per bytes
         self.ser.parity = serial.PARITY_NONE #set parity check: no parity
         self.ser.stopbits = serial.STOPBITS_ONE #number of stop bits
-        self.ser.timeout = 100            #non-block read
+        self.ser.timeout = 0.02            #non-block read
         self.ser.xonxoff = False     #disable software flow control
         self.ser.rtscts = False     #disable hardware (rts/cts) flow control
         self.ser.dsrdtr = False       #disable hardware (DSR/DTR) flow control
-        self.ser.writeTimeout = 100     #timeout for write
+        self.ser.writeTimeout = 0.02     #timeout for write
         self.ser.port = port
         try:
             self.ser.close()

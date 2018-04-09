@@ -302,9 +302,20 @@ void consoleCommand(uint8_t *ptr, int len)
         }
     }
 
+    // A for start sensor read
+    else if (ptr[0] == 'A' || ptr[0] == 'a') {
+        rangefinderRead(0);
+        rangefinderRead(1);
+        rangefinderRead(2);
+        rangefinderRead(3);
+        magnetometer_read();
+        accelerometer_read();
+//        gyro_read();
+    }
+
     // B for send data in binary
     else if (ptr[0] == 'B' || ptr[0] == 'b') {
-        unsigned char bytes[29];
+        unsigned char bytes[21];
         bytes[ 0] = (rangeData[0] >> 8) & 0xFF;
         bytes[ 1] =  rangeData[0]       & 0xFF;
 
@@ -337,21 +348,13 @@ void consoleCommand(uint8_t *ptr, int len)
 //        bytes[23] =  gyroData.y       & 0xFF;
 //        bytes[24] = (gyroData.z >> 8) & 0xFF;
 //        bytes[25] =  gyroData.z       & 0xFF;
-        bytes[20] = (magData.orientation >> 8) & 0xFF;
-        bytes[21] =  magData.orientation       & 0xFF;
-        bytes[22] = '\n';
+//        bytes[20] = (magData.orientation >> 8) & 0xFF;
+//        bytes[21] =  magData.orientation       & 0xFF;
+        bytes[20] = '\n';
 
-        transmitUART(bytes, 23);
-
-        rangefinderRead(0);
-        rangefinderRead(1);
-        rangefinderRead(2);
-        rangefinderRead(3);
-        magnetometer_read();
-        accelerometer_read();
-//        gyro_read();
+        transmitUART(bytes, 21);
     }
-
+     
     // D for send data in human readable format
     else if (ptr[0] == 'D' || ptr[0] == 'd') {
         printf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
@@ -360,13 +363,6 @@ void consoleCommand(uint8_t *ptr, int len)
                 magData.x, magData.y, magData.z,
                 accelData.x, accelData.y, accelData.z, 
                 gyroData.x, gyroData.y, gyroData.z);
-        rangefinderRead(0);
-        rangefinderRead(1);
-        rangefinderRead(2);
-        rangefinderRead(3);
-        magnetometer_read();
-        accelerometer_read();
-//        gyro_read();
     }
     
     // M for motor control commands

@@ -17,7 +17,6 @@ import struct
 
 MAX_PWM_CYCLES = 2047
 BUTTON_PWM_CYCLES = 1700
-NUM_SENSORS = 11
 
 # CALIBRATION VALUES, offset and scale
 RANGE_S = 0.965025066
@@ -47,6 +46,7 @@ KAL_DT = 0.01
 Q_VAR = 0.001  # Process covariance
 
 class Robot():
+    sense_cmd = 'A\n'.encode('utf-8')
     data_cmd = 'B\n'.encode('utf-8')
 
     def __init__(self):
@@ -54,6 +54,12 @@ class Robot():
 
         # robot setup
         self.max_hist_len = 10
+        self.dt = 0.05
+
+        self.full_th = 0
+        self.th_part = 0
+        self.th_start = 0
+        self.state = np.zeros(12)
 
 #        self.dt = RunningStat(self.max_hist_len)
 
@@ -71,11 +77,12 @@ class Robot():
                         [RunningStat(self.max_hist_len), MAG_S_Z, MAG_O_Z], # MAG Z    6
                         [RunningStat(self.max_hist_len), ACC_S_X, ACC_O_X], # ACCEL X  7
                         [RunningStat(self.max_hist_len), ACC_S_Y, ACC_O_Y], # ACCEL Y  8
-                        [RunningStat(self.max_hist_len), ACC_S_Z, ACC_O_Z], # ACCEL Z  9
+                        [RunningStat(self.max_hist_len), ACC_S_Z, ACC_O_Z]] # ACCEL Z  9
+        self.num_sensors = len(self.sensors)
 #                        [RunningStat(self.max_hist_len), GYR_S_X, GYR_O_X, 0.], # GYRO X  10
 #                        [RunningStat(self.max_hist_len), GYR_S_Y, GYR_O_Y, 0.], # GYRO Y  11
 #                        [RunningStat(self.max_hist_len), GYR_S_Z, GYR_O_Z, 0.], # GYRO Z  12
-                        [RunningStat(self.max_hist_len), 1.0, 0., 0.]] # MAG ORIENT        13
+#                        [RunningStat(self.max_hist_len), 1.0, 0., 0.]] # MAG ORIENT        13
 
         self.console = SerialConsole()
         self.data_log_enable = False
@@ -94,60 +101,94 @@ class Robot():
         if (self.console.ser_available):
             try:
                 # Request data
-                self.console.ser.write(self.data_cmd)
-                data = self.console.ser.readline()
-                vals = []
-                for i in range(0, (len(data)-1)/2):
-                    val.append(int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True))
+                while True:
+                    self.console.ser.reset_input_buffer()
+                    self.console.ser.write(self.data_cmd)
+                    data = self.console.ser.read(self.num_sensors * 2 + 1)
+                    if (len(data) == self.num_sensors * 2 + 1):
+                        break
+                    else:
+                        #print("Malformed UART data. Len: %d. Retrying..." % len(data))
+                        pass
 
-                for sensor in self.sensors:
+                # Start next sensor collection
+                self.console.ser.write(self.sense_cmd)
+
+                for i in range(0, self.num_sensors):
                     val = int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True)
                     # Push data * scaling factor + offset - DC_calibration
-                    sensor[0].push(val * sensor[1] + sensor[2])
+                    self.sensors[i][0].push(val * self.sensors[i][1] + self.sensors[i][2])
 
                 # Log data
                 if (self.data_log_enable):
                     self.data_log += '%0.1f, %0.1f, %d, %d, \n' \
                             % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
 
-                # Process time delta
-#                self.dt.push(dt)
-                # Kalman filter
-#                    self.ukf.predict()
-#                    self.ukf.update([self.sensor_x.curVal(), self.sensor_y.curVal()])
-#                    self.kalman_x.push(limitValue(self.ukf.x[0], 0))
-#                    self.kalman_dx.push(self.ukf.x[1])
-#                    self.kalman_y.push(limitValue(self.ukf.x[2], 0))
-#                    self.kalman_dy.push(self.ukf.x[3])
+                # Update state array-----------------------------------------------------
 
-                # Process magnetometer data
-                #if (self.calibrating):
-                #    sensor_mag_homed = self.sensor_mag_ref - mag_val_raw
-                #else:
-                #    sensor_mag_homed = self.loopAngle(self.sensor_mag_ref - mag_val_raw)
-                #self.sensor_mag.push(sensor_mag_homed)
+                # Update x and xdot states
+
+
+                # Update y and ydot states
+
+
+
+                # Update theta and thetadot states
+                self.prev_th = self.state[4]
+                self.prev_th_part = self.th_part
+
+                # Returns a heading from +pi to -pi
+                # Tilt compensated heading calculation
+                pitch = np.arcsin(-self.sensors[7][0].curVal())
+                if (pitch == np.pi/2 or pitch == -np.pi/2):
+                    pitch = 0
+                roll = np.arcsin(self.sensors[8][0].curVal() / np.cos(pitch))
+#        print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
+                xh = self.sensors[4][0].curVal() * np.cos(pitch) + \
+                        self.sensors[6][0].curVal() * np.sin(pitch)
+                yh = self.sensors[4][0].curVal() * np.sin(roll) * np.sin(pitch) + \
+                        self.sensors[5][0].curVal() * np.cos(roll) - \
+                        self.sensors[6][0].curVal() * np.sin(roll) * np.cos(pitch)
+                self.th_part = np.arctan2(yh, xh)
+#        print("Heading: %+0.3f" % heading)
+
+                # If previous theta is near the upper limit (between 90 and 180 degrees) and
+                # current theta is past the 180 degree limit (which means between -90 and -180 degrees)
+                if (self.prev_th_part > np.pi/2 and self.th_part < -np.pi/2):
+                    self.full_th += 1  # Increment full rotation count
+                # If previous th is near the lower limit (between -90 and -180 degrees)
+                elif (self.prev_th_part < -np.pi/2 and self.th_part > np.pi/2):
+                    self.full_th -= 1  # Increment full rotation count
+
+                self.state[4] = self.full_th*2*np.pi + self.th_part - self.th_start
+
+                # Estimate rotational velocity
+                self.state[5] = (self.state[4] - self.prev_th) / self.dt
+                print(self.state[4])
 
             except OSError:
                 print("Error")
 
+    # Recalculates the starting theta position to "zero out" theta
+    def zeroTheta(self):
+        # Reset DC offset
+        self.th_start = 0
+
+        # Get the theta averaged over a number of samples
+        num_pts = 100
+        theta = []
+        for i in range(0, num_pts):
+            self.updateSensorValue()
+            theta.append(self.state[4])
+        self.th_start = np.sum(theta) / num_pts
+
+
     def printSensorVals(self):
         print("Sensor values:")
-        #for i in range(0,NUM_SENSORS):
+        #for i in range(0,self.num_sensors):
         for i in range(4,10):
             print("%+03.3f" % (self.sensors[i][0].curVal()))
 
-    def calcHeading(self):
-        pitch = np.arctan2(-self.sensors[7][0].curVal(), np.hypot(self.sensors[8][0].curVal(), self.sensors[9][0].curVal()))
-        roll = np.arctan2(-self.sensors[8][0].curVal(), self.sensors[9][0].curVal())
-        #print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
-        xh = self.sensors[4][0].curVal() * np.cos(pitch) + \
-                self.sensors[6][0].curVal() * np.sin(pitch)
-        yh = self.sensors[4][0].curVal() * np.sin(roll) * np.sin(pitch) + \
-                self.sensors[5][0].curVal() * np.cos(roll) - \
-                self.sensors[6][0].curVal() * np.sin(roll) * np.cos(pitch)
-        heading = np.degrees(np.arctan2(yh, xh)) + 180.0
-        print("Heading: %+0.3f" % heading)
-        return heading
 
     def loopAngle(self, angle):
         while ((angle >= 360.0) or (angle < 0.0)):
@@ -196,7 +237,7 @@ class Robot():
         # Send motor control commands
         self.botCmdMotor(self.motorSpeeds * MAX_PWM_CYCLES)
 
-    # speed (optional): 0 to 2047, duty cycle value out of 2047
+    # speed : 0 to 2047, duty cycle value out of 2047
     def botCmdMotor(self, motorCmd):
         for cmd in motorCmd:
             if (checkValue(cmd, -MAX_PWM_CYCLES, MAX_PWM_CYCLES)):

@@ -61,28 +61,30 @@ void accelerometer_read() {
 
     // Shift values to create properly formed integer 
     accelData.x = -1 * (int16_t)((read_data[1] << 8) | read_data[0]);
-    accelData.y = -1 * (int16_t)((read_data[3] << 8) | read_data[2]);
+    accelData.y = (int16_t)((read_data[3] << 8) | read_data[2]);
     accelData.z = (int16_t)((read_data[5] << 8) | read_data[4]);
 }
 
 void magnetometer_read() {
-    // Read the magnetometer
-    uint8_t write_data[1] = {LSM303_REG_MAG_OUT_X_H_M};
-    uint8_t read_data[6];
-    I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data, 1, read_data, 6); 
+//    do{
+        // Read the magnetometer
+        uint8_t write_data[1] = {LSM303_REG_MAG_OUT_X_H_M};
+        uint8_t read_data[6];
+        I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data, 1, read_data, 6); 
 
-    // Shift values to create properly formed integer 
-    magData.x = (int16_t)((read_data[1]) | read_data[0] << 8);
-    magData.y = (int16_t)((read_data[5]) | read_data[4] << 8);
-    magData.z = (int16_t)((read_data[3]) | read_data[2] << 8);  
+        // Shift values to create properly formed integer 
+        magData.x = (int16_t)((read_data[1]) | read_data[0] << 8);
+        magData.y = -1 * (int16_t)((read_data[5]) | read_data[4] << 8);
+        magData.z = -1 * (int16_t)((read_data[3]) | read_data[2] << 8);  
+//    } while (magData.x == 10 && magData.y == 0 && magData.z == 0);
 
-    float x_uT = (float)(magData.x);
-    float y_uT = (float)(magData.y);
+//    float x_uT = (float)(magData.x);
+//    float y_uT = (float)(magData.y);
 //    float z_uT = (float)(magData.z);
 
     // Calculate orientation
-    magData.orientation_prev = magData.orientation;
-    magData.orientation = (int16_t)((atan2(y_uT, x_uT) * 1800.0 / M_PI + 1800.0));
+//    magData.orientation_prev = magData.orientation;
+//    magData.orientation = (int16_t)((atan2(y_uT, x_uT) * 1800.0 / M_PI + 1800.0));
 }
 
 
