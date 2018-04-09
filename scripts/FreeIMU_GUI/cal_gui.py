@@ -33,13 +33,14 @@ from binascii import unhexlify
 from subprocess import call
 import pyqtgraph.opengl as gl
 import cal_lib, numpy
+import time
 
 acc_file_name = "acc.txt"
 magn_file_name = "magn.txt"
 calibration_h_file_name = "calibration.h"
 
-acc_range = 25000
-magn_range = 1500
+acc_range = 32768
+magn_range = 32768
 
 class FreeIMUCal(QMainWindow, Ui_FreeIMUCal):
   def __init__(self, parent=None):
@@ -163,8 +164,8 @@ class FreeIMUCal(QMainWindow, Ui_FreeIMUCal):
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
         bytesize=serial.EIGHTBITS,
-        timeout = 1,            #non-block read
-        writeTimeout = 1     #timeout for write
+        timeout = 0.01,            #non-block read
+        writeTimeout = 0.01     #timeout for write
       )
 
       if self.ser.isOpen():
@@ -354,13 +355,13 @@ const float magn_scale_z = %f;
   def newData(self, reading):
 
     # only display last reading in burst
-    self.acc_data[0].append(reading[0])
-    self.acc_data[1].append(reading[1])
-    self.acc_data[2].append(reading[2])
+    self.acc_data[0].append(reading[7])
+    self.acc_data[1].append(reading[8])
+    self.acc_data[2].append(reading[9])
 
-    self.magn_data[0].append(reading[6])
-    self.magn_data[1].append(reading[7])
-    self.magn_data[2].append(reading[8])
+    self.magn_data[0].append(reading[4])
+    self.magn_data[1].append(reading[5])
+    self.magn_data[2].append(reading[6])
 
 
     self.accXY.plot(x = self.acc_data[0], y = self.acc_data[1], clear = True, pen='r')
@@ -379,6 +380,8 @@ const float magn_scale_z = %f;
 
 
 class SerialWorker(QThread):
+  sense_cmd = 'A\n'.encode('utf-8')
+  data_cmd = 'B\n'.encode('utf-8')
   sig_newdata = Signal(list)
 
   def __init__(self, parent = None, ser = None):
@@ -390,30 +393,40 @@ class SerialWorker(QThread):
     print ("sampling start..")
     self.acc_file = open(acc_file_name, 'w')
     self.magn_file = open(magn_file_name, 'w')
-    count = 10
-    in_values = 9
-    reading = [0.0 for i in range(in_values)]
+    self.num_sensors = 10
+    count = 5
+    reading = [0.0 for i in range(self.num_sensors)]
     # read data for calibration
     while not self.exiting:
-      # Request data
       for j in range(count):
-        self.ser.write(('b\r').encode("utf-8"))
-        readback = self.ser.readline()
-        try:
-            readback_split = readback.decode().split(',')
-            if (len(readback_split) != 9):
-                print(readback)
-                continue
-            for i in range(in_values):
-                reading[i] = int(readback_split[i])
-            # prepare readings to store on file
-            acc_readings_line = "%d %d %d\r\n" % (reading[0], reading[1], reading[2])
-            self.acc_file.write(acc_readings_line)
-            magn_readings_line = "%d %d %d\r\n" % (reading[6], reading[7], reading[8])
-            self.magn_file.write(magn_readings_line)
-        except ValueError:
-            print("Readback error: ",end='')
-            print(readback)
+          # Request data
+          while True:
+              self.ser.reset_input_buffer()
+              self.ser.write(self.data_cmd)
+              data = self.ser.read(self.num_sensors * 2 + 1)
+              if (len(data) == self.num_sensors * 2 + 1):
+                  #print("Got data")
+                  break
+              else:
+                  #print("Malformed UART data. Len: %d. Retrying..." % len(data))
+                  pass
+
+          # Start next sensor collection
+          self.ser.write(self.sense_cmd)
+
+          # Parse binary data
+          for i in range(0, self.num_sensors):
+              reading[i] = int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True)
+
+          print(reading)
+
+          # prepare readings to store on file
+          magn_readings_line = "%d %d %d\r\n" % (reading[4], reading[5], reading[6])
+          self.magn_file.write(magn_readings_line)
+          acc_readings_line = "%d %d %d\r\n" % (reading[7], reading[8], reading[9])
+          self.acc_file.write(acc_readings_line)
+          time.sleep(0.05)
+
       # every count times we pass some data to the GUI
       self.sig_newdata.emit(reading)
       print (".", end='')

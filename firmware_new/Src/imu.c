@@ -8,27 +8,29 @@
 #include "math.h"
 
 void IMU_begin() {
-    // BDU block data update enabled
-    uint8_t write_data_gyro[2] = {L3G4200D_REG_CTRL_REG4, 0x80}; 
-    I2C_Write(IMU_I2C_INTERFACE, L3G4200D_ADDRESS, write_data_gyro, 2); 
-     
-    // Enable the gyroscope
-    // DR = 00 (100 Hz ODR); BW = 01 (25 Hz bandwidth); PD = 1 (normal mode); 
-    // Zen = Yen = Xen = 1 (all axes enabled)
-    uint8_t write_data_gyro2[2] = {L3G4200D_REG_CTRL_REG1, 0x1F}; 
-    I2C_Write(IMU_I2C_INTERFACE, L3G4200D_ADDRESS, write_data_gyro2, 2); 
+//    // BDU block data update enabled
+//    uint8_t write_data_gyro[2] = {L3G4200D_REG_CTRL_REG4, 0x80}; 
+//    I2C_Write(IMU_I2C_INTERFACE, L3G4200D_ADDRESS, write_data_gyro, 2); 
+//     
+//    // Enable the gyroscope
+//    // DR = 00 (100 Hz ODR); BW = 01 (25 Hz bandwidth); PD = 1 (normal mode); 
+//    // Zen = Yen = Xen = 1 (all axes enabled)
+//    uint8_t write_data_gyro2[2] = {L3G4200D_REG_CTRL_REG1, 0x1F}; 
+//    I2C_Write(IMU_I2C_INTERFACE, L3G4200D_ADDRESS, write_data_gyro2, 2); 
 
 
     // Enable the accelerometer
     // 100 Hz mode
-    // HPF enabled
+    // HPF disabled
     // 12-bit high resolution mode
     // BDU enabled
-    uint8_t write_data_accel[5] = {LSM303_REG_ACCEL_CTRL_REG1_A | 0x80, 0x57, 0x08, 0x00, 0x88}; 
+    uint8_t write_data_accel[5] = {LSM303_REG_ACCEL_CTRL_REG1_A | 0x80, 0x57, 0x00, 0x00, 0x88}; 
     I2C_Write(IMU_I2C_INTERFACE, LSM303_ADDRESS_ACCEL, write_data_accel, 5); 
 
     // Set magnetometer to 220 Hz mode
     uint8_t write_data_mag[2] = {LSM303_REG_MAG_CRA_REG_M, 0x1C};
+//    // Set magnetometer to 30 Hz mode
+//    uint8_t write_data_mag[2] = {LSM303_REG_MAG_CRA_REG_M, 0x14};
     I2C_Write(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data_mag, 2); 
 
     // Enable the magnetometer
@@ -58,29 +60,31 @@ void accelerometer_read() {
     I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_ACCEL, write_data, 1, read_data, 6); 
 
     // Shift values to create properly formed integer 
-    accelData.x = (int16_t)((read_data[1] << 8) | read_data[0]);
+    accelData.x = -1 * (int16_t)((read_data[1] << 8) | read_data[0]);
     accelData.y = (int16_t)((read_data[3] << 8) | read_data[2]);
     accelData.z = (int16_t)((read_data[5] << 8) | read_data[4]);
 }
 
 void magnetometer_read() {
-    // Read the magnetometer
-    uint8_t write_data[1] = {LSM303_REG_MAG_OUT_X_H_M};
-    uint8_t read_data[6];
-    I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data, 1, read_data, 6); 
+//    do{
+        // Read the magnetometer
+        uint8_t write_data[1] = {LSM303_REG_MAG_OUT_X_H_M};
+        uint8_t read_data[6];
+        I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data, 1, read_data, 6); 
 
-    // Shift values to create properly formed integer 
-    magData.x = (int16_t)((read_data[1]) | read_data[0] << 8);
-    magData.y = (int16_t)((read_data[5]) | read_data[4] << 8);
-    magData.z = (int16_t)((read_data[3]) | read_data[2] << 8);  
+        // Shift values to create properly formed integer 
+        magData.x = (int16_t)((read_data[1]) | read_data[0] << 8);
+        magData.y = -1 * (int16_t)((read_data[5]) | read_data[4] << 8);
+        magData.z = -1 * (int16_t)((read_data[3]) | read_data[2] << 8);  
+//    } while (magData.x == 10 && magData.y == 0 && magData.z == 0);
 
-    float x_uT = (float)(magData.x);
-    float y_uT = (float)(magData.y);
+//    float x_uT = (float)(magData.x);
+//    float y_uT = (float)(magData.y);
 //    float z_uT = (float)(magData.z);
 
     // Calculate orientation
-    magData.orientation_prev = magData.orientation;
-    magData.orientation = (int16_t)((atan2(y_uT, x_uT) * 1800.0 / M_PI + 1800.0));
+//    magData.orientation_prev = magData.orientation;
+//    magData.orientation = (int16_t)((atan2(y_uT, x_uT) * 1800.0 / M_PI + 1800.0));
 }
 
 

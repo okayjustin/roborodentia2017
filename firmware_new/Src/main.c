@@ -47,6 +47,7 @@
 
 /* USER CODE BEGIN Includes */
 #include <stdlib.h>
+#include <stdio.h>
 #include "imu.h"
 #include "vl53l0x_top.h"
 /* USER CODE END Includes */
@@ -55,7 +56,26 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-#define DATA_PRINT_EN
+struct motor_t {
+    GPIO_TypeDef *GPIOx;
+    uint16_t GPIO_Pin;
+    GPIO_PinState PinState;
+
+    TIM_HandleTypeDef *TIM_Handle;
+    TIM_OC_InitTypeDef sConfigOC;
+    uint32_t TIM_Channel;
+};
+
+struct motor_t motorConfigs[4] = { 
+    {MOTOR_FL_DIR_GPIO_Port, MOTOR_FL_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_2}, 
+    {MOTOR_FR_DIR_GPIO_Port, MOTOR_FR_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_4}, 
+    {MOTOR_BR_DIR_GPIO_Port, MOTOR_BR_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_1}, 
+    {MOTOR_BL_DIR_GPIO_Port, MOTOR_BL_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_3}}; 
+struct motor_t* motorConfigsPtr = motorConfigs;
+
+// WARNING!! Do not spam the UART or else Raspberry PI doesn't communicate well
+//#define DATA_PRINT_EN
+//
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,18 +121,29 @@ int main(void)
   /* USER CODE BEGIN SysInit */
   /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_I2C2_Init();
-  MX_I2C3_Init();
-  MX_TIM3_Init();
-  MX_TIM4_Init();
-  MX_TIM12_Init();
-  MX_USART2_UART_Init();
-  MX_TIM5_Init();
-
   /* USER CODE BEGIN 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_I2C2_Init();
+    MX_I2C3_Init();
+    MX_TIM3_Init();
+    MX_TIM4_Init();
+    MX_TIM12_Init();
+    MX_USART2_UART_Init();
+    MX_TIM5_Init();
+
+    TIM_OC_InitTypeDef sConfigOC;
+    sConfigOC.OCMode = TIM_OCMODE_PWM1;
+    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+    sConfigOC.Pulse = 0;
+
+    int i;
+    for (i=0; i<4; i++) {
+        motorConfigs[i].TIM_Handle = &htim4; 
+        motorConfigs[i].sConfigOC = sConfigOC; 
+    }
 
     TimeStamp_Reset();
     serviceUART();
@@ -138,34 +169,33 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 96) rangefinderRead(0);
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 96) rangefinderRead(1);
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 96) rangefinderRead(2);
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 96) rangefinderRead(3);
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 98) gyro_read();
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 98) accelerometer_read();
-        dt = TimeStamp_Get() - print_time;
-        if (dt < 98) magnetometer_read();
+//        dt = TimeStamp_Get() - print_time;
+//        if (dt < 98) gyro_read();
+//        dt = TimeStamp_Get() - print_time;
+//        if (dt < 98) accelerometer_read();
+//        dt = TimeStamp_Get() - print_time;
+//        if (dt < 98) magnetometer_read();
 
-#ifdef DATA_PRINT_EN
-        cur_time = TimeStamp_Get();
-        dt = cur_time - print_time;
-        if (dt > 99){   // Data rate = 100 Hz
-            print_time = cur_time;
-            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
-                    dt, magData.orientation, 
-                    rangeData[0], rangeData[1], 
-                    rangeData[2], rangeData[3], 
-                    accelData.x, accelData.y, accelData.z, 
-                    gyroData.x, gyroData.y, gyroData.z);
-        }
-#endif
+//        cur_time = TimeStamp_Get();
+//        dt = cur_time - print_time;
+//        if (dt > 499){   // Data rate = 20 Hz
+//            rangefinderRead(0);
+//            rangefinderRead(1);
+//            rangefinderRead(2);
+//            rangefinderRead(3);
+//            magnetometer_read();
+//            gyro_read();
+//            accelerometer_read();
+//            print_time = cur_time;
+//#ifdef DATA_PRINT_EN
+//            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+//                    dt, magData.orientation, 
+//                    rangeData[0], rangeData[1], 
+//                    rangeData[2], rangeData[3], 
+//                    accelData.x, accelData.y, accelData.z, 
+//                    gyroData.x, gyroData.y, gyroData.z);
+//#endif
+//        }
 
     }
   /* USER CODE END 3 */
@@ -272,91 +302,95 @@ void consoleCommand(uint8_t *ptr, int len)
         }
     }
 
-    // B for sending IMU data
-    else if (ptr[0] == 'B' || ptr[0] == 'b') {
-        gyro_read();
-        accelerometer_read();
+    // A for start sensor read
+    else if (ptr[0] == 'A' || ptr[0] == 'a') {
+        rangefinderRead(0);
+        rangefinderRead(1);
+        rangefinderRead(2);
+        rangefinderRead(3);
         magnetometer_read();
-        printf("%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
-                accelData.x, accelData.y, accelData.z, 
-                gyroData.x, gyroData.y, gyroData.z,
-                magData.x, magData.y, magData.z);
+        accelerometer_read();
+//        gyro_read();
     }
 
+    // B for send data in binary
+    else if (ptr[0] == 'B' || ptr[0] == 'b') {
+        unsigned char bytes[21];
+        bytes[ 0] = (rangeData[0] >> 8) & 0xFF;
+        bytes[ 1] =  rangeData[0]       & 0xFF;
+
+        bytes[ 2] = (rangeData[1] >> 8) & 0xFF;
+        bytes[ 3] =  rangeData[1]       & 0xFF;
+
+        bytes[ 4] = (rangeData[2] >> 8) & 0xFF;
+        bytes[ 5] =  rangeData[2]       & 0xFF;
+
+        bytes[ 6] = (rangeData[3] >> 8) & 0xFF;
+        bytes[ 7] =  rangeData[3]       & 0xFF;
+
+        bytes[ 8] = (magData.x >> 8) & 0xFF;
+        bytes[ 9] =  magData.x       & 0xFF;
+        bytes[10] = (magData.y >> 8) & 0xFF;
+        bytes[11] =  magData.y       & 0xFF;
+        bytes[12] = (magData.z >> 8) & 0xFF;
+        bytes[13] =  magData.z       & 0xFF;
+
+        bytes[14] = (accelData.x >> 8) & 0xFF;
+        bytes[15] =  accelData.x       & 0xFF;
+        bytes[16] = (accelData.y >> 8) & 0xFF;
+        bytes[17] =  accelData.y       & 0xFF;
+        bytes[18] = (accelData.z >> 8) & 0xFF;
+        bytes[19] =  accelData.z       & 0xFF;
+
+//        bytes[20] = (gyroData.x >> 8) & 0xFF;
+//        bytes[21] =  gyroData.x       & 0xFF;
+//        bytes[22] = (gyroData.y >> 8) & 0xFF;
+//        bytes[23] =  gyroData.y       & 0xFF;
+//        bytes[24] = (gyroData.z >> 8) & 0xFF;
+//        bytes[25] =  gyroData.z       & 0xFF;
+//        bytes[20] = (magData.orientation >> 8) & 0xFF;
+//        bytes[21] =  magData.orientation       & 0xFF;
+        bytes[20] = '\n';
+
+        transmitUART(bytes, 21);
+    }
+     
+    // D for send data in human readable format
+    else if (ptr[0] == 'D' || ptr[0] == 'd') {
+        printf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
+                rangeData[0], rangeData[1], 
+                rangeData[2], rangeData[3], 
+                magData.x, magData.y, magData.z,
+                accelData.x, accelData.y, accelData.z, 
+                gyroData.x, gyroData.y, gyroData.z);
+    }
+    
     // M for motor control commands
     else if (ptr[0] == 'M' || ptr[0] == 'm'){  
-        GPIO_TypeDef *GPIOx;
-        uint16_t GPIO_Pin;
-        GPIO_PinState PinState;
-        uint32_t TIM_Channel;
-        TIM_HandleTypeDef *TIM_Handle;
+        int motorU[4];
+        sscanf (ptr,"%*s %d %d %d %d", &motorU[0], &motorU[1], &motorU[2], &motorU[3]);
+        printf ("%d %d %d %d\n", motorU[0], motorU[1], motorU[2], motorU[3]);
 
-        // Set variables based on which motor needs to be controlled. Motor 0 is front left, increments clockwise
-        if (ptr[1] == '0'){  // 0 for front left
-            GPIOx = MOTOR_FL_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_FL_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_2;
-            TIM_Handle = &htim4;
-        }
-        else if (ptr[1] == '1'){  // 1 for front right
-            GPIOx = MOTOR_FR_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_FR_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_4;
-            TIM_Handle = &htim4;
-        }
-        else if (ptr[1] == '2'){  // 2 for back right
-            GPIOx = MOTOR_BR_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_BR_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_1;
-            TIM_Handle = &htim4;
-        }
-        else if (ptr[1] == '3'){  // 3 for back left
-            GPIOx = MOTOR_BL_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_BL_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_3;
-            TIM_Handle = &htim4;
-        }
-        else if (ptr[1] == '4'){  // 4 for blower fan
-            GPIOx = BLOWER_DIR_GPIO_Port;
-            GPIO_Pin = BLOWER_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_1;
-            TIM_Handle = &htim3;
-        }
-        else if (ptr[1] == '5'){  // 5 for launcher motors 
-            GPIOx = MOTOR_LAUNCH_DIR_GPIO_Port;
-            GPIO_Pin = MOTOR_LAUNCH_DIR_Pin;
-            TIM_Channel = TIM_CHANNEL_2;
-            TIM_Handle = &htim3;
-        }
-        else {
-            return;
+        int i;
+        for (i=0; i<4; i++) {
+            if (motorU[i] < 0){
+                motorConfigs[i].PinState = GPIO_PIN_SET;
+                motorConfigs[i].sConfigOC.Pulse = 2047 + motorU[i]; 
+            } else {
+                motorConfigs[i].PinState = GPIO_PIN_RESET;
+                motorConfigs[i].sConfigOC.Pulse = motorU[i]; 
+            }
         }
 
-        // Direction control commands
-        if (ptr[2] == 'D' || ptr[2] == 'd'){
-            if (ptr[3] == 'F' || ptr[3] == 'f'){
-                PinState = GPIO_PIN_RESET;
-            }
-            else if (ptr[3] == 'R' || ptr[3] == 'r'){
-                PinState = GPIO_PIN_SET;
-            }
-            else {
-                return;
-            }
-            HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
-        }
-
-        // S for speed command
-        if (ptr[2] == 'S' || ptr[2] == 's'){  
-            TIM_OC_InitTypeDef sConfigOC;
-            sConfigOC.OCMode = TIM_OCMODE_PWM1;
-            sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-            sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-            sConfigOC.Pulse = atoi((char *)ptr + 3); // Accepts 0-2047
+        for (i=0; i<4; i++) {
+            // Set the direction pin
+            HAL_GPIO_WritePin(motorConfigs[i].GPIOx, motorConfigs[i].GPIO_Pin, motorConfigs[i].PinState);
 
             // Alter the PWM duty cycle and start PWM again
-            if (HAL_TIM_PWM_ConfigChannel(TIM_Handle, &sConfigOC, TIM_Channel) != HAL_OK) { Error_Handler(); }
-            if (HAL_TIM_PWM_Start(TIM_Handle, TIM_Channel) != HAL_OK){ Error_Handler(); }
+            if (HAL_TIM_PWM_ConfigChannel(motorConfigs[i].TIM_Handle, &motorConfigs[i].sConfigOC,
+                       motorConfigs[i].TIM_Channel) != HAL_OK) { Error_Handler(); }
+            if (HAL_TIM_PWM_Start(motorConfigs[i].TIM_Handle, motorConfigs[i].TIM_Channel)
+                    != HAL_OK){ Error_Handler(); }
         }
     }
     // S for servo commands

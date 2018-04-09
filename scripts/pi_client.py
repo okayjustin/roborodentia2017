@@ -1,8 +1,12 @@
 #!/usr/local/bin/python3
-import tensorflow as tf
+#import tensorflow as tf
 import numpy as np
-from ddpg import ActorNetwork
-import robotsim
+#from ddpg import ActorNetwork
+#import robotsim
+from robot import *
+from timeit import default_timer as timer
+import time
+
 
 class ann(object):
     def __init__(self, model_path, state_dim, action_dim, action_space_high):
@@ -26,4 +30,25 @@ class ann(object):
 
     def close(self):
         self.sess.close()
+
+
+if __name__ == "__main__":
+    robot = Robot()
+    try:
+        robot.zeroTheta()
+        while True:
+            start = timer()
+            robot.updateSensorValue()
+#            robot.printSensorVals()
+            #end = timer()
+            #print( 1000*(end - start))
+
+            # Limit speed to 20 Hz
+            while (timer() < start + 0.155):
+                pass
+    except KeyboardInterrupt:
+        pass
+
+    robot.close()
+
 

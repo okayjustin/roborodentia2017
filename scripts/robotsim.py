@@ -196,7 +196,7 @@ class SimRobot():
         self.time += dt
 
         # Determine the control input array u depending on what's being trained
-        # u[0]: jesired rotational speed, -1 to 1, +1 CW, -1 CCW
+        # u[0]: Desired rotational speed, -1 to 1, +1 CW, -1 CCW
         # u[1]: Desired field x velocity
         # u[2]: Desired field y velocity
         # u[3]: Desired field x position

@@ -120,7 +120,7 @@
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 
   *        HAL drivers code
   */
- #define USE_FULL_ASSERT    1U 
+#define USE_FULL_ASSERT    1U 
 
 /* USER CODE BEGIN Private defines */
 #define MOTOR_FL_PWM_GPIO_Port M1_3_GPIO_Port    
@@ -152,6 +152,7 @@
 #define MOTOR_LAUNCH_PWM_Pin M3_3_Pin   
 #define MOTOR_LAUNCH_DIR_GPIO_Port M3_4_GPIO_Port
 #define MOTOR_LAUNCH_DIR_Pin M3_4_Pin   
+
 
 /* USER CODE END Private defines */
 

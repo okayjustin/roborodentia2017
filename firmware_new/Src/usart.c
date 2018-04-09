@@ -45,7 +45,7 @@
 
 /* USER CODE BEGIN 0 */
 #define TX_BUFFER_MAX_LENGTH 2000 
-#define RX_BUFFER_MAX_LENGTH 16 
+#define RX_BUFFER_MAX_LENGTH 32 
 #define UART_RX_WRITEBACK 0
 
 // TX data buffer
