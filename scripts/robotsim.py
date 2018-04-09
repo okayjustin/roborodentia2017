@@ -13,6 +13,7 @@ from os import path
 import pyglet
 from pyglet.gl import *
 from pi_client import ann
+import time
 
 FIELD_XMAX = 2438.4 # Maximum x dimension in mm
 FIELD_YMAX = 1219.2  # Maximum y dimension in mm
@@ -63,6 +64,7 @@ class SimRobot():
         # Magnitude and angle of a line between the center and top right corner
         self.diag_angle = np.arctan(LEN_Y / LEN_X)
         self.diag_len = np.hypot(LEN_X,LEN_Y) / 2
+        self.en_wall_collision = False
 
         # Mecanum equation converts wheel velocities to tranlational x,y, and rotational velocities
         self.wheel_max_thetadotdot = 430                                # Max wheel rotational acceleration in rad/s^2
@@ -89,27 +91,42 @@ class SimRobot():
         self.sensors.append(SimActualXY('y', FIELD_XMAX, FIELD_YMAX, LEN_X, LEN_Y))                             # 8
 
         # Sensor indices to include in observation for each network
-        self.obs_settings = [[0],       # Angle network
+        self.obs_settings = [[0],    # Angle network
                              [7],    # Trans X network
-                             [6, 8]]    # Trans Y network
+                             [8]]    # Trans Y network
 
         # Add sensors depending on what network is being trained
         if (train == 'angle'):
             act_dim = 1
             self.net_index = 0
 
-        elif (train == 'transx' or train == 'transy'):
+        elif (train == 'transx'): 
             act_dim = 1
-
-            if (train == 'transx'):
-                self.net_index = 1
-            else:
-                self.net_index = 2
+            self.net_index = 1
 
             # Load angle control ann
             print("Loading angle ANN")
             angle_model_path = './results/models-angle/model.ckpt'
             self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = 2.0)
+
+            # Load transy control ann
+            print("Loading transy ANN")
+            transy_model_path = './results/models-transy/model.ckpt'
+            self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
+
+        elif (train == 'transy'):
+            act_dim = 1
+            self.net_index = 2
+
+            # Load angle control ann
+            print("Loading angle ANN")
+            angle_model_path = './results/models-angle/model.ckpt'
+            self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = 2.0)
+
+            # Load transx control ann
+            print("Loading transx ANN")
+            transx_model_path = './results/models-transx/model.ckpt'
+            self.transx_ann = ann(transx_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
         elif (train == 'pathfind'):
             self.net_index = 3
@@ -132,6 +149,14 @@ class SimRobot():
         # Initialize sim vars
         self.reset(False)
 
+    def setWallCollision(self, mode):
+        if (mode == True):
+            self.en_wall_collision = True
+        elif (mode == False):
+            self.en_wall_collision = False
+        else:
+            raise ValueError("Bad value for mode in setWallCollision.")
+
     def reset(self, randomize = True):
         # Reset vars
         self.time = 0
@@ -140,10 +165,10 @@ class SimRobot():
         self.last_u = np.zeros(self.u_len)
 
         if (randomize):
-            high = np.array([FIELD_XMAX/2 - LEN_X/2, 0,
-                             FIELD_YMAX/ - LEN_Y/2, 0,
-                             0.2, 0,
-                             FIELD_XMAX/2 - LEN_X/2, FIELD_YMAX/2 - LEN_Y/2,
+            high = np.array([(FIELD_XMAX - LEN_X)/2, 0,
+                             (FIELD_YMAX - LEN_Y)/2, 0,
+                             0.8, 0,
+                             (FIELD_XMAX - LEN_X)/2, (FIELD_YMAX - LEN_Y)/2,
                              0, 0, 0, 0])
             self.state = self.state_start + np.random.uniform(low=-high, high=high)
 
@@ -177,36 +202,36 @@ class SimRobot():
         # u[3]: Desired field x position
         # u[4]: Desired field y position
         if self.train == 'angle':
-            u = np.append(u, np.zeros(self.u_len - 1))
+            u_angle = u
+            u_transx = [0]
+            u_transy = [0]
+            u_desx = [0]
+            u_desy = [0]
+
         elif self.train == 'transx':
-            # Get input from angle control ANN
             u_angle = self.angle_ann.predict(self.obs_sets[0])
-            u = np.append(u_angle, u)
-
-            # Emulate a control input that keeps the current desired location
-            u_transy = 0
-            u_desx = np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])
-            u_desy = np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])
-            u = np.append(u, [u_transy, u_desx, u_desy])
+            u_transx = u
+            u_transy = self.transy_ann.predict(self.obs_sets[2])
+            u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
+            u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
+            
         elif self.train == 'transy':
-            # Get input from angle control ANN
             u_angle = self.angle_ann.predict(self.obs_sets[0])
+            u_transx = self.transx_ann.predict(self.obs_sets[1])
+            u_transy = u
+            u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
+            u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
 
-            # Get input from x translation control ANN
-            #u_transx = self.transx_ann.predict(self.obs_sets[1])
-
-            u = np.append(u_angle, u_transx)
-            u = np.append(u_angle, u)
-
-            # Emulate a control input that keeps the current desired location
-            u_desx = np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])
-            u_desy = np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])
-            u = np.append(u, [u_desx, u_desy])
         elif self.train == 'pathfind':
             # Determine new desired location
-            u = np.zeros(self.u_len)
+            u_angle = self.angle_ann.predict(self.obs_sets[0])
+            u_transx = self.transx_ann.predict(self.obs_sets[1])
+            u_transy = self.transy_ann.predict(self.obs_sets[2])
+            u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
+            u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
 
-        u = np.clip(u, -2, 2)
+        u = np.concatenate((u_angle, u_transx, u_transy, u_desx, u_desy))
+        u = np.clip(u, -2., 2.)
         #print(u)
         self.last_u = u
 
@@ -245,6 +270,7 @@ class SimRobot():
         newxdot = rightdot * np.cos(newth) + frontdot * np.sin(newth)
         newydot = rightdot * np.sin(newth) + frontdot * np.cos(newth)
 
+        #if (self.en_wall_collision == True):
         # Calculate cos and sin of the angle
         angle = newth % np.pi
         cosval = np.cos(angle)
@@ -258,12 +284,16 @@ class SimRobot():
             y_space = abs(self.diag_len * np.sin(np.pi - self.diag_angle + angle))
 
         # Assign new x,y location
-        newx = np.clip(x + newxdot * dt, x_space, FIELD_XMAX - x_space)
-        newy = np.clip(y + newydot * dt, y_space, FIELD_YMAX - y_space)
-
+        newx = np.clip(x + newxdot * dt, x_space - 150, FIELD_XMAX - x_space + 150)
+        newy = np.clip(y + newydot * dt, y_space - 150, FIELD_YMAX - y_space + 150)
+        # else:
+        #     newx = x + newxdot * dt 
+        #     newy = y + newydot * dt
+            
         # Determine new desired location
         newxdes = np.interp(u[3], [-2,2], [LEN_X/2, FIELD_XMAX - LEN_X/2])
         newydes = np.interp(u[4], [-2,2], [LEN_Y/2, FIELD_YMAX - LEN_Y/2])
+ 
 
         # Determine hopper states
         newhopfl = False
@@ -279,7 +309,7 @@ class SimRobot():
 
         # Get reward from executing the action
         self.updateReward()
-
+        #time.sleep(0.2)
         # End of sim
         if (self.time > TIME_MAX):
             self.terminal = 1
@@ -310,7 +340,7 @@ class SimRobot():
     def updateReward(self):
         if (self.train == 'angle'):
             # Keep angle at 0
-            self.reward_theta = -1.0 * self.angle_normalize(self.state[4])**2
+            self.reward_theta = -1.0 * self.angle_normalize(self.state[4])**2.
             # Minimize effort
             self.reward_effort = -0.001 * self.last_u[0]**2
             # Minimize velocities
@@ -320,19 +350,21 @@ class SimRobot():
 
         elif (self.train == 'transx'):
             # Rewarded for staying near desired x coordinate
-            self.reward_dist = -0.00001 * pow(self.state[0] - self.state[6], 2)
+            self.reward_dist = -0.00001 * (self.state[0] - self.state[6])**2.
             # Minimize velocities
-            self.reward_vel = -0.000003 * self.state[1]**2
-            #print("Rewards: %f, %f" % (self.reward_dist, self.reward_vel))
-            self.reward = self.reward_dist + self.reward_vel
+            self.reward_vel = -0.0000005 * self.state[1]**2
+            self.reward_effort = -0.001 * self.last_u[1]**2
+            #print("Rewards: %f, %f, %f" % (self.reward_dist, self.reward_vel, self.reward_effort))
+            self.reward = self.reward_dist + self.reward_vel + self.reward_effort
 
 
         elif (self.train == 'transy'):
             # Rewarded for staying near desired y coordinate
             self.reward_dist = -0.00001 * pow(self.state[2] - self.state[7], 2)
             # Minimize velocities
-            self.reward_vel = -0.000001 * self.state[3]**2
-            self.reward = self.reward_dist + self.reward_vel
+            self.reward_vel = -0.0000005 * self.state[3]**2
+            self.reward_effort = -0.001 * self.last_u[2]**2
+            self.reward = self.reward_dist + self.reward_vel + self.reward_effort
         #print(self.reward)
         return self.reward
 

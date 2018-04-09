@@ -168,6 +168,8 @@ class SimActualXY():
         self.len_x = len_x
         self.len_y = len_y
         self.meas = np.array([0., 0.])
+        self.x_offset = 0#69    # Corrects skew in network output
+        self.y_offset = 10    # Corrects skew in network output
         if direction == 'x':
             self.high = np.array([self.field_xmax, 1500.])
             self.low = np.array([0., -1500.])
@@ -179,10 +181,10 @@ class SimActualXY():
 
     def update(self, state):
         if (self.dir == 'x'):
-            self.meas = np.array([state[0] - state[6], state[1]]) # + 131.6
+            self.meas = np.array([state[0] - state[6] + self.x_offset, state[1]]) 
             #print(self.meas)
         else:
-            self.meas = np.array([state[2], state[3]])
+            self.meas = np.array([state[2] - state[7] + self.y_offset, state[3]])
 
 
 class SimMicroSW():

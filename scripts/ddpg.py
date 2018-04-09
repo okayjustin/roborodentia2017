@@ -25,6 +25,7 @@ import pprint as pp
 import robotsim
 from timeit import default_timer as timer
 import platform
+import time
 
 from replay_buffer import ReplayBuffer
 
@@ -233,7 +234,7 @@ class CriticNetwork(object):
 # Taken from https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py, which is
 # based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
 class OrnsteinUhlenbeckActionNoise:
-    def __init__(self, mu, sigma=1.0, theta=.15, dt=1e-2, x0=None):
+    def __init__(self, mu, sigma=1.0, theta=.15, dt=5e-2, x0=None):
         self.theta = theta
         self.mu = mu
         self.sigma = sigma
@@ -325,6 +326,9 @@ def train(sess, env, args, actor, critic, actor_noise):
                 start = timer()
 
                 s2, r, terminal, info = env.step(action)
+                #print(s2)
+                #print("Reward: %f" % r)
+                #time.sleep(0.11)
 
                 end = timer()
                 robotsim_time += end - start
@@ -392,11 +396,14 @@ def train(sess, env, args, actor, critic, actor_noise):
             elif (args['env'] == 'transx'):
                 ep_reward_threshold = -500
             elif (args['env'] == 'transy'):
-                ep_reward_threshold = -500
+                ep_reward_threshold = -350
             else:
                 ep_reward_threshold = -30
 
+            test_seed = int(np.random.uniform(1, 99999999))
             if (ep_reward > ep_reward_threshold):
+                tf.set_random_seed(test_seed)
+                env.seed(test_seed)
                 test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
                  # Save model temporarily
                 save_path = saver.save(sess, "./results/models-temp/model.ckpt")
@@ -404,6 +411,8 @@ def train(sess, env, args, actor, critic, actor_noise):
                 # Restore the best model to test again
                 try:
                     saver.restore(sess, "./results/models/model.ckpt")
+                    tf.set_random_seed(test_seed)
+                    env.seed(test_seed)
                     best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
                 except:
                     best_total_reward = -99999999999.
@@ -430,6 +439,7 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
     test_total_reward = 0.0
 
     # Test the network against random scenarios
+    env.setWallCollision(True)
     for m in range(num_test_cases):
         s = env.reset()
         ep_reward = 0.0
@@ -446,7 +456,8 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
             if terminal:
                 break
         test_total_reward += ep_reward
-
+    
+    env.setWallCollision(False)
     # Return the average test reward
     return test_total_reward / (m+1)
 
@@ -569,7 +580,7 @@ if __name__ == '__main__':
 
     # run parameters
     parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='angle')
-    parser.add_argument('--random-seed', help='random seed for repeatability', default=8564)
+    parser.add_argument('--random-seed', help='random seed for repeatability', default=1018)
     parser.add_argument('--max-episodes', help='max num of episodes to do while training', default=50000)
     parser.add_argument('--max-episode-len', help='max length of 1 episode', default=1000)
     parser.add_argument('--render-env', help='render the gym env', action='store_true')
