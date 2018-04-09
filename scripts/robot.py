@@ -57,22 +57,21 @@ class Robot():
 
 #        self.dt = RunningStat(self.max_hist_len)
 
-        # Sensor array. Each contains a running history, offset factor, scaling factor, and
-        # DC calibration factor that is calculated at startup.
+        # Sensor array. Each contains a running history, offset factor, scaling factor
         # Rangefinders: Units of mm
         # Magnetometer: Units of  uTesla?. Arbitrary since converted to heading later
         # Accelerometer: Units of g's (gravity)
         # Gyro: Units of degrees per second
-        self.sensors = [[RunningStat(self.max_hist_len), RANGE_S, RANGE_O, 0.], # RF 0     0
-                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O, 0.], # RF 1     1
-                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O, 0.], # RF 2     2
-                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O, 0.], # RF 3     3
-                        [RunningStat(self.max_hist_len), MAG_S_X, MAG_O_X, 0.], # MAG X    4
-                        [RunningStat(self.max_hist_len), MAG_S_Y, MAG_O_Y, 0.], # MAG Y    5
-                        [RunningStat(self.max_hist_len), MAG_S_Z, MAG_O_Z, 0.], # MAG Z    6
-                        [RunningStat(self.max_hist_len), ACC_S_X, ACC_O_X, 0.], # ACCEL X  7
-                        [RunningStat(self.max_hist_len), ACC_S_Y, ACC_O_Y, 0.], # ACCEL Y  8
-                        [RunningStat(self.max_hist_len), ACC_S_Z, ACC_O_Z, 0.], # ACCEL Z  9
+        self.sensors = [[RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 0     0
+                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 1     1
+                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 2     2
+                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 3     3
+                        [RunningStat(self.max_hist_len), MAG_S_X, MAG_O_X], # MAG X    4
+                        [RunningStat(self.max_hist_len), MAG_S_Y, MAG_O_Y], # MAG Y    5
+                        [RunningStat(self.max_hist_len), MAG_S_Z, MAG_O_Z], # MAG Z    6
+                        [RunningStat(self.max_hist_len), ACC_S_X, ACC_O_X], # ACCEL X  7
+                        [RunningStat(self.max_hist_len), ACC_S_Y, ACC_O_Y], # ACCEL Y  8
+                        [RunningStat(self.max_hist_len), ACC_S_Z, ACC_O_Z], # ACCEL Z  9
 #                        [RunningStat(self.max_hist_len), GYR_S_X, GYR_O_X, 0.], # GYRO X  10
 #                        [RunningStat(self.max_hist_len), GYR_S_Y, GYR_O_Y, 0.], # GYRO Y  11
 #                        [RunningStat(self.max_hist_len), GYR_S_Z, GYR_O_Z, 0.], # GYRO Z  12
@@ -80,9 +79,6 @@ class Robot():
 
         self.console = SerialConsole()
         self.data_log_enable = False
-
-        self.calibrating = True
-        self.calibration_sample_count = 0
 
         # Kalman filter and states
 #        self.initKalman()
@@ -100,11 +96,14 @@ class Robot():
                 # Request data
                 self.console.ser.write(self.data_cmd)
                 data = self.console.ser.readline()
+                vals = []
+                for i in range(0, (len(data)-1)/2):
+                    val.append(int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True))
 
-                for i in range(0, NUM_SENSORS):
+                for sensor in self.sensors:
                     val = int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True)
                     # Push data * scaling factor + offset - DC_calibration
-                    self.sensors[i][0].push(val * self.sensors[i][1] + self.sensors[i][2] - self.sensors[i][3])
+                    sensor[0].push(val * sensor[1] + sensor[2])
 
                 # Log data
                 if (self.data_log_enable):
@@ -121,33 +120,12 @@ class Robot():
 #                    self.kalman_y.push(limitValue(self.ukf.x[2], 0))
 #                    self.kalman_dy.push(self.ukf.x[3])
 
-                # Collect many samples to get the average sensor value for offset calibration
-#                if (self.calibrating):
-#                    if (self.calibration_sample_count == 0):
-#                        self.sensor_mag_ref = 0
-#                        self.sensor_accel_offset_x = 0
-#                        self.sensor_accel_offset_y = 0
-#                        self.sensor_accel_offset_z = 0
-#                        self.sensor_gyro_offset_x = 0
-#                        self.sensor_gyro_offset_y = 0
-#                        self.sensor_gyro_offset_z = 0
-#
-#                    self.calibration_sample_count += 1
-#                    if (self.calibration_sample_count == self.max_hist_len + 1):
-#                        self.calibrating = False
-#
-#                        # Use average angle measurement as the reference angle
-#                        self.sensor_mag_ref = self.loopAngle(-1 * self.sensor_mag.mean + 90.0)
-#
-#                        # Use average accel measurement
-#                        self.sensor_accel_offset_x = self.sensor_accel_x.mean
-#                        self.sensor_accel_offset_y = self.sensor_accel_y.mean
-#                        self.sensor_accel_offset_z = self.sensor_accel_z.mean
-#
-#                        # Use average gyro  measurement
-#                        self.sensor_gyro_offset_x = self.sensor_gyro_x.mean
-#                        self.sensor_gyro_offset_y = self.sensor_gyro_y.mean
-#                        self.sensor_gyro_offset_z = self.sensor_gyro_z.mean
+                # Process magnetometer data
+                #if (self.calibrating):
+                #    sensor_mag_homed = self.sensor_mag_ref - mag_val_raw
+                #else:
+                #    sensor_mag_homed = self.loopAngle(self.sensor_mag_ref - mag_val_raw)
+                #self.sensor_mag.push(sensor_mag_homed)
 
             except OSError:
                 print("Error")
@@ -161,22 +139,15 @@ class Robot():
     def calcHeading(self):
         pitch = np.arctan2(-self.sensors[7][0].curVal(), np.hypot(self.sensors[8][0].curVal(), self.sensors[9][0].curVal()))
         roll = np.arctan2(-self.sensors[8][0].curVal(), self.sensors[9][0].curVal())
-        print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
+        #print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
         xh = self.sensors[4][0].curVal() * np.cos(pitch) + \
                 self.sensors[6][0].curVal() * np.sin(pitch)
         yh = self.sensors[4][0].curVal() * np.sin(roll) * np.sin(pitch) + \
                 self.sensors[5][0].curVal() * np.cos(roll) - \
                 self.sensors[6][0].curVal() * np.sin(roll) * np.cos(pitch)
         heading = np.degrees(np.arctan2(yh, xh)) + 180.0
-        print("%f %f" % (heading, self.sensors[10][0].curVal()/10))
-        # Process magnetometer data
-#        if (self.calibrating):
-#            sensor_mag_homed = self.sensor_mag_ref - mag_val_raw
-#        else:
-#            sensor_mag_homed = self.loopAngle(self.sensor_mag_ref - mag_val_raw)
-#        self.sensor_mag.push(sensor_mag_homed)
-
-
+        print("Heading: %+0.3f" % heading)
+        return heading
 
     def loopAngle(self, angle):
         while ((angle >= 360.0) or (angle < 0.0)):
