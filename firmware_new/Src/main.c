@@ -338,7 +338,7 @@ void consoleCommand(uint8_t *ptr, int len)
         bytes[24] = (gyroData.z >> 8) & 0xFF;
         bytes[25] =  gyroData.z       & 0xFF;
 
-        printf("%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x\n", 
+        printf("%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n", 
                 (unsigned char)bytes[0], 
                 (unsigned char)bytes[1], 
                 (unsigned char)bytes[2], 
