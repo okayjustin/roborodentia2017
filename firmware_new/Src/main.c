@@ -73,6 +73,8 @@ struct motor_t motorConfigs[4] = {
     {MOTOR_BL_DIR_GPIO_Port, MOTOR_BL_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_3}}; 
 struct motor_t* motorConfigsPtr = motorConfigs;
 
+uint8_t wd_reset;
+
 // WARNING!! Do not spam the UART or else Raspberry PI doesn't communicate well
 //#define DATA_PRINT_EN
 //
@@ -159,44 +161,42 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-    uint32_t print_time = 0;
-    uint32_t cur_time = 0;
-    uint32_t dt = 0;  // Units of 0.1 ms based on Timer5
-
     while (1)
     {
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+        uint32_t wd_start = 0;
+        uint8_t wd_en = 0;
 
-//        dt = TimeStamp_Get() - print_time;
-//        if (dt < 98) gyro_read();
-//        dt = TimeStamp_Get() - print_time;
-//        if (dt < 98) accelerometer_read();
-//        dt = TimeStamp_Get() - print_time;
-//        if (dt < 98) magnetometer_read();
+        // Reset watchdog start time if flag is set
+        if (wd_reset == 1){
+            wd_start = TimeStamp_Get();  // Units of 0.1 ms based on Timer5
+            wd_en = 1;
+            wd_reset = 0;
+        }
 
-//        cur_time = TimeStamp_Get();
-//        dt = cur_time - print_time;
-//        if (dt > 499){   // Data rate = 20 Hz
-//            rangefinderRead(0);
-//            rangefinderRead(1);
-//            rangefinderRead(2);
-//            rangefinderRead(3);
-//            magnetometer_read();
-//            gyro_read();
-//            accelerometer_read();
-//            print_time = cur_time;
-//#ifdef DATA_PRINT_EN
-//            printf("%lu,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
-//                    dt, magData.orientation, 
-//                    rangeData[0], rangeData[1], 
-//                    rangeData[2], rangeData[3], 
-//                    accelData.x, accelData.y, accelData.z, 
-//                    gyroData.x, gyroData.y, gyroData.z);
-//#endif
-//        }
+        // Trigger if watchdog is enabled and expires
+        if (wd_en == 1 && (wd_start + WD_LEN < TimeStamp_Get())){
+            wd_en = 0;
 
+            // Disable motors
+            int i;
+            for (i=0; i<4; i++) {
+                motorConfigs[i].PinState = GPIO_PIN_RESET;
+                motorConfigs[i].sConfigOC.Pulse = 0; 
+            }
+            for (i=0; i<4; i++) {
+                // Set the direction pin
+                HAL_GPIO_WritePin(motorConfigs[i].GPIOx, motorConfigs[i].GPIO_Pin, motorConfigs[i].PinState);
+
+                // Alter the PWM duty cycle and start PWM again
+                if (HAL_TIM_PWM_ConfigChannel(motorConfigs[i].TIM_Handle, &motorConfigs[i].sConfigOC,
+                           motorConfigs[i].TIM_Channel) != HAL_OK) { Error_Handler(); }
+                if (HAL_TIM_PWM_Start(motorConfigs[i].TIM_Handle, motorConfigs[i].TIM_Channel)
+                        != HAL_OK){ Error_Handler(); }
+            }
+        }
     }
   /* USER CODE END 3 */
 
@@ -285,6 +285,8 @@ int _write (int fd, char *ptr, int len)
 // Execute a command from the console
 void consoleCommand(uint8_t *ptr, int len)
 {
+    wd_reset = 1;
+
     // V for version
     if (ptr[0] == 'V' || ptr[0] == 'v'){
         printf("Robojustin v0.2\r\n");

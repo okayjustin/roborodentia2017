@@ -2,18 +2,19 @@
 
 from helper_funcs import *
 import numpy as np
-from numpy import linalg
-import serial, time, sys
-from collections import deque
+from console import *
+import struct
+import tensorflow as tf
+from ddpg import ActorNetwork
+
+#import time
+#from numpy import linalg
 #from filterpy.kalman import KalmanFilter
 #from filterpy.common import Q_discrete_white_noise
 #from filterpy.kalman import MerweScaledSigmaPoints
 #from filterpy.kalman import UnscentedKalmanFilter as UKF
 #import pygame as pygame
-from console import *
-from timeit import default_timer as timer
-import time
-import struct
+#from timeit import default_timer as timer
 
 MAX_PWM_CYCLES = 2047
 BUTTON_PWM_CYCLES = 1700
@@ -44,6 +45,30 @@ GYR_O_Z = 0.0
 RANGE_VAR = 140
 KAL_DT = 0.01
 Q_VAR = 0.001  # Process covariance
+
+
+class ann(object):
+    def __init__(self, model_path, state_dim, action_dim, action_space_high):
+        #ann_graph
+        self.graph = tf.Graph()
+        self.sess = tf.Session(graph=self.graph)
+
+        with self.graph.as_default():
+            action_bound = np.tile(np.transpose(action_space_high),[1,1])
+            self.actor = ActorNetwork(self.sess, state_dim, action_dim, action_bound, 0, 0, 1)
+            self.sess.run(tf.global_variables_initializer())
+
+            # Load saved model
+            saver = tf.train.Saver()
+            saver.restore(self.sess, model_path)
+            print("Model restored.")
+
+    def predict(self, s):
+        a = self.actor.predict(np.reshape(s, (1, self.actor.s_dim)))
+        return a[0]
+
+    def close(self):
+        self.sess.close()
 
 class Robot():
     sense_cmd = 'A\n'.encode('utf-8')
@@ -96,6 +121,40 @@ class Robot():
 
     def close(self):
         self.console.close()
+        self.angle_ann.close()
+        self.transx_ann.close()
+        self.transy_ann.close()
+
+    def initializeNets(self):
+        # Load angle control ann
+        print("Loading angle ANN")
+        angle_model_path = './trained_models/models-angle/model.ckpt'
+        self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = 2.0)
+
+        # Load transx control ann
+        print("Loading transx ANN")
+        transx_model_path = './results/models-transx/model.ckpt'
+        self.transx_ann = ann(transx_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
+
+        # Load transy control ann
+        print("Loading transy ANN")
+        transy_model_path = './results/models-transy/model.ckpt'
+        self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
+
+    def predict(self):
+        angle_obs = np.array([np.cos(state[4]), np.cos(state[4]), state[5]])
+        transx_obs = np.array([state[0] - state[6] + self.x_offset, state[1]])
+        transy_obs = np.array([state[1] - state[7] + self.y_offset, state[3]])
+
+        u_angle = self.angle_ann.predict(angle_obs)
+        u_transx = self.transx_ann.predict(transx_obs)
+        u_transy = self.transy_ann.predict(transy_obs)
+
+        u = np.concatenate((u_angle, u_transx, u_transy, u_desx, u_desy))
+        self.u = np.clip(u, -2., 2.)
+
+    def execute(self):
+        self.mechanumCommand(u[2], u[0], u[1])
 
     def updateSensorValue(self):
         if (self.console.ser_available):
