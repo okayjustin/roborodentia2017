@@ -5,13 +5,12 @@ import serial.tools.list_ports
 import time
 
 class SerialConsole():
-    def __init__(self):
-        self.openSerial()
 
     def openSerial(self):
         port, success = self.get_STLink_port()
         if (success == False):
-            print("Failed to find STLink port. Quitting.")
+            print("Failed to find STLink port.")
+            return -1
 
         self.ser = serial.Serial()
         self.ser.baudrate = 921600
@@ -31,9 +30,11 @@ class SerialConsole():
             self.ser.reset_output_buffer()
             self.ser_available = True
             print("Connected.")
+            return 0
         except serial.serialutil.SerialException:
             self.ser_available = False
             print("Failed to connect.")
+            return -1
 
     def get_STLink_port(self):
         STLink_port = None

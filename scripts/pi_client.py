@@ -3,12 +3,14 @@
 #import robotsim
 from robot import *
 from timeit import default_timer as timer
-#import time
-
-
+import time
 
 if __name__ == "__main__":
     robot = Robot()
+    if robot.openSerial():
+        print("Failed to connect to robot. Quitting.")
+        quit()       
+
     robot.initializeNets()
     robot.zeroTheta()
 

@@ -4,8 +4,6 @@ from helper_funcs import *
 import numpy as np
 from console import *
 import struct
-import tensorflow as tf
-from ddpg import ActorNetwork
 
 #import time
 #from numpy import linalg
@@ -119,26 +117,34 @@ class Robot():
 #        self.kalman_y = RunningStat(self.max_hist_len)
 #        self.kalman_dy = RunningStat(self.max_hist_len)
 
+    def openSerial(self):
+        return self.console.openSerial()
+
     def close(self):
         self.console.close()
-        self.angle_ann.close()
-        self.transx_ann.close()
-        self.transy_ann.close()
+        try:
+            self.angle_ann.close()
+            self.transx_ann.close()
+            self.transy_ann.close()
+        except:
+            pass
 
     def initializeNets(self):
+        import tensorflow as tf
+        from ann import ActorNetwork
         # Load angle control ann
         print("Loading angle ANN")
-        angle_model_path = './trained_models/models-angle/model.ckpt'
+        angle_model_path = './trained-models/models-angle/model.ckpt'
         self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = 2.0)
 
         # Load transx control ann
         print("Loading transx ANN")
-        transx_model_path = './results/models-transx/model.ckpt'
+        transx_model_path = './trained-models/models-transx/model.ckpt'
         self.transx_ann = ann(transx_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
         # Load transy control ann
         print("Loading transy ANN")
-        transy_model_path = './results/models-transy/model.ckpt'
+        transy_model_path = './trained-models/models-transy/model.ckpt'
         self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
     def predict(self):
