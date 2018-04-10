@@ -12,7 +12,7 @@ from gym.utils import seeding
 from os import path
 import pyglet
 from pyglet.gl import *
-from robot import ann
+from ann import ann
 import time
 
 FIELD_XMAX = 2438.4 # Maximum x dimension in mm
