@@ -9,6 +9,10 @@
 
 #define SENSORS_GAUSS_TO_MICROTESLA   100
 
+#define FILTER_SHIFT_GYRO 8
+#define FILTER_SHIFT_ACCEL 8
+#define FILTER_SHIFT_MAG 8
+
 typedef enum
 {                                                
     L3G4200D_REG_WHO_AM_I               = 0x0F, 
@@ -106,6 +110,9 @@ typedef struct l3g4200dGyroData_s
     int16_t x;
     int16_t y;
     int16_t z;
+    int32_t x_filt;
+    int32_t y_filt;
+    int32_t z_filt;
 } l3g4200dGyroData;
 
 typedef struct lsm303AccelData_s
@@ -113,6 +120,9 @@ typedef struct lsm303AccelData_s
     int16_t x;
     int16_t y;
     int16_t z;
+    int32_t x_filt;
+    int32_t y_filt;
+    int32_t z_filt;
 } lsm303AccelData;
 
 typedef struct lsm303MagData_s
@@ -120,6 +130,9 @@ typedef struct lsm303MagData_s
     int16_t x;
     int16_t y;
     int16_t z;
+    int32_t x_filt;
+    int32_t y_filt;
+    int32_t z_filt;
 //    int16_t orientation;   // In units of degrees
 //    int16_t orientation_prev;   // In units of degrees
 } lsm303MagData;

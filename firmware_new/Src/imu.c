@@ -20,11 +20,17 @@ void IMU_begin() {
 
 
     // Enable the accelerometer
-    // 100 Hz mode
+//    // 100 Hz mode
+//    // HPF disabled
+//    // 12-bit high resolution mode
+//    // BDU enabled
+//    uint8_t write_data_accel[5] = {LSM303_REG_ACCEL_CTRL_REG1_A | 0x80, 0x57, 0x00, 0x00, 0x88}; 
+//
+    // 1344 Hz mode
     // HPF disabled
     // 12-bit high resolution mode
     // BDU enabled
-    uint8_t write_data_accel[5] = {LSM303_REG_ACCEL_CTRL_REG1_A | 0x80, 0x57, 0x00, 0x00, 0x88}; 
+    uint8_t write_data_accel[5] = {LSM303_REG_ACCEL_CTRL_REG1_A | 0x80, 0x97, 0x00, 0x00, 0x88}; 
     I2C_Write(IMU_I2C_INTERFACE, LSM303_ADDRESS_ACCEL, write_data_accel, 5); 
 
     // Set magnetometer to 220 Hz mode
@@ -47,10 +53,17 @@ void gyro_read() {
     uint8_t read_data[6];
     I2C_WriteRead(IMU_I2C_INTERFACE, L3G4200D_ADDRESS, write_data, 1, read_data, 6); 
 
-    // Shift values to create properly formed integer 
-    gyroData.x = (int16_t)((read_data[1] << 8) | read_data[0]);
-    gyroData.y = (int16_t)((read_data[3] << 8) | read_data[2]);
-    gyroData.z = (int16_t)((read_data[5] << 8) | read_data[4]);  
+    // Shift values to create properly formed integer
+    gyroData.x_filt = gyroData.x_filt - (gyroData.x_filt >> FILTER_SHIFT_GYRO) + 
+        (int16_t)((read_data[1] << 8) | read_data[0]);
+    gyroData.y_filt = gyroData.y_filt - (gyroData.y_filt >> FILTER_SHIFT_GYRO) + 
+        (int16_t)((read_data[3] << 8) | read_data[2]);
+    gyroData.z_filt = gyroData.z_filt - (gyroData.z_filt >> FILTER_SHIFT_GYRO) + 
+        (int16_t)((read_data[5] << 8) | read_data[4]);  
+
+    gyroData.x = gyroData.x_filt >> FILTER_SHIFT_GYRO;
+    gyroData.y = gyroData.y_filt >> FILTER_SHIFT_GYRO;
+    gyroData.z = gyroData.z_filt >> FILTER_SHIFT_GYRO;
 }
 
 void accelerometer_read() {
@@ -60,9 +73,20 @@ void accelerometer_read() {
     I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_ACCEL, write_data, 1, read_data, 6); 
 
     // Shift values to create properly formed integer 
-    accelData.x = -1 * (int16_t)((read_data[1] << 8) | read_data[0]);
-    accelData.y = (int16_t)((read_data[3] << 8) | read_data[2]);
-    accelData.z = (int16_t)((read_data[5] << 8) | read_data[4]);
+    accelData.x_filt = accelData.x_filt - (accelData.x_filt >> FILTER_SHIFT_ACCEL) + 
+        (int16_t)((read_data[1] << 8) | read_data[0]);
+    accelData.y_filt = accelData.y_filt - (accelData.y_filt >> FILTER_SHIFT_ACCEL) + 
+        (int16_t)((read_data[3] << 8) | read_data[2]);
+    accelData.z_filt = accelData.z_filt - (accelData.z_filt >> FILTER_SHIFT_ACCEL) + 
+        (int16_t)((read_data[5] << 8) | read_data[4]);  
+
+    accelData.x = -1 * (accelData.x_filt >> FILTER_SHIFT_ACCEL);
+    accelData.y = accelData.y_filt >> FILTER_SHIFT_ACCEL;
+    accelData.z = accelData.z_filt >> FILTER_SHIFT_ACCEL;
+
+//    accelData.x = -1 * (int16_t)((read_data[1] << 8) | read_data[0]);
+//    accelData.y = (int16_t)((read_data[3] << 8) | read_data[2]);
+//    accelData.z = (int16_t)((read_data[5] << 8) | read_data[4]);
 }
 
 void magnetometer_read() {
@@ -73,9 +97,20 @@ void magnetometer_read() {
         I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data, 1, read_data, 6); 
 
         // Shift values to create properly formed integer 
-        magData.x = (int16_t)((read_data[1]) | read_data[0] << 8);
-        magData.y = -1 * (int16_t)((read_data[5]) | read_data[4] << 8);
-        magData.z = -1 * (int16_t)((read_data[3]) | read_data[2] << 8);  
+        magData.x_filt = magData.x_filt - (magData.x_filt >> FILTER_SHIFT_MAG) + 
+            (int16_t)((read_data[1] << 8) | read_data[0]);
+        magData.y_filt = magData.y_filt - (magData.y_filt >> FILTER_SHIFT_MAG) + 
+            (int16_t)((read_data[5] << 8) | read_data[4]);
+        magData.z_filt = magData.z_filt - (magData.z_filt >> FILTER_SHIFT_MAG) + 
+            (int16_t)((read_data[3] << 8) | read_data[2]);  
+
+        magData.x = magData.x_filt >> FILTER_SHIFT_MAG;
+        magData.y = -1 * (magData.y_filt >> FILTER_SHIFT_MAG);
+        magData.z = -1 * (magData.z_filt >> FILTER_SHIFT_MAG);
+
+//        magData.x = (int16_t)((read_data[1]) | read_data[0] << 8);
+//        magData.y = -1 * (int16_t)((read_data[5]) | read_data[4] << 8);
+//        magData.z = -1 * (int16_t)((read_data[3]) | read_data[2] << 8);  
 //    } while (magData.x == 10 && magData.y == 0 && magData.z == 0);
 
 //    float x_uT = (float)(magData.x);

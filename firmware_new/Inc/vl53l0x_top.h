@@ -9,7 +9,7 @@
 void VL53L0X_begin(void);
 void Sensor_SetNewRange(VL53L0X_Dev_t *pDev, VL53L0X_RangingMeasurementData_t *pRange);
 void VL53L0X_SetupSingleShot();
-void rangefinderRead(int id);
+int rangefinderRead(int id);
 
 uint16_t rangeData[NUM_RANGEFINDERS];
 

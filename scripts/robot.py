@@ -56,7 +56,7 @@ class Robot():
         self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
 
         # robot setup
-        self.max_hist_len = 10
+        self.max_hist_len = 100
         self.dt = 0.05
 
         self.full_th = 0
@@ -85,7 +85,7 @@ class Robot():
 #                        [RunningStat(self.max_hist_len), GYR_S_X, GYR_O_X, 0.], # GYRO X  10
 #                        [RunningStat(self.max_hist_len), GYR_S_Y, GYR_O_Y, 0.], # GYRO Y  11
 #                        [RunningStat(self.max_hist_len), GYR_S_Z, GYR_O_Z, 0.], # GYRO Z  12
-#                        [RunningStat(self.max_hist_len), 1.0, 0., 0.]] # MAG ORIENT        13
+        self.th_stat = RunningStat(self.max_hist_len)
 
         self.console = SerialConsole()
         self.data_log_enable = False
@@ -187,16 +187,16 @@ class Robot():
 
                 # Returns a heading from +pi to -pi
                 # Tilt compensated heading calculation
-                pitch = np.arcsin(-self.sensors[7][0].winMean())
+                pitch = np.arcsin(-self.sensors[7][0].curVal())
                 if (pitch == np.pi/2 or pitch == -np.pi/2):
                     pitch = 0
-                roll = np.arcsin(self.sensors[8][0].winMean() / np.cos(pitch))
+                roll = np.arcsin(self.sensors[8][0].curVal() / np.cos(pitch))
 #        print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
-                xh = self.sensors[4][0].winMean() * np.cos(pitch) + \
-                        self.sensors[6][0].winMean() * np.sin(pitch)
-                yh = self.sensors[4][0].winMean() * np.sin(roll) * np.sin(pitch) + \
-                        self.sensors[5][0].winMean() * np.cos(roll) - \
-                        self.sensors[6][0].winMean() * np.sin(roll) * np.cos(pitch)
+                xh = self.sensors[4][0].curVal() * np.cos(pitch) + \
+                        self.sensors[6][0].curVal() * np.sin(pitch)
+                yh = self.sensors[4][0].curVal() * np.sin(roll) * np.sin(pitch) + \
+                        self.sensors[5][0].curVal() * np.cos(roll) - \
+                        self.sensors[6][0].curVal() * np.sin(roll) * np.cos(pitch)
                 self.th_part = np.arctan2(yh, xh)
 #        print("Heading: %+0.3f" % heading)
 
@@ -212,7 +212,9 @@ class Robot():
 
                 # Estimate rotational velocity
                 self.state[5] = (self.state[4] - self.prev_th) / self.dt
-#                print(self.state[4])
+                self.th_stat.push(self.state[4])
+                print("%+0.1f stddev: %+0.3f" % (np.degrees(self.th_stat.curVal()), \
+                        np.degrees(self.th_stat.winStdDev())))
 
             except OSError:
                 print("Error")
@@ -235,7 +237,7 @@ class Robot():
         print("Sensor values:")
         #for i in range(0,self.num_sensors):
         for i in range(4,10):
-            print("%+03.3f" % (self.sensors[i][0].curVal()))
+            print("%+03.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
 
 
     def loopAngle(self, angle):
@@ -256,10 +258,10 @@ class Robot():
 
         # Calculate voltage ratios for each motor to acheive desired trajectory
         v = np.zeros(4)
-        v[0] = vd * np.sin(theta_d + np.pi/4) - v_theta
-        v[1] = vd * np.cos(theta_d + np.pi/4) - v_theta
-        v[2] = vd * np.sin(theta_d + np.pi/4) + v_theta
-        v[3] = vd * np.cos(theta_d + np.pi/4) + v_theta
+        v[0] = vd * np.sin(theta_d + np.pi/4) - v_theta # Front left
+        v[1] = vd * np.cos(theta_d + np.pi/4) - v_theta # Front right
+        v[2] = vd * np.sin(theta_d + np.pi/4) + v_theta # Back right
+        v[3] = vd * np.cos(theta_d + np.pi/4) + v_theta # Back left
 
         # Normalize ratios to 1 if the maxval is > 1
         maxval = np.amax(np.absolute(v))

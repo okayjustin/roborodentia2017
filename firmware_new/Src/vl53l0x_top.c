@@ -198,13 +198,13 @@ void VL53L0X_SetupSingleShot(int i){
 }
 
 // Updates the range measurement of a particular rangefinder
-void rangefinderRead(int id){
+int rangefinderRead(int id){
     VL53L0X_Dev_t *pDev;
     pDev = &VL53L0XDevs[id];
 
     if (HAL_GPIO_ReadPin(pDev->GPIO_Port, pDev->GPIO_Pin)){
         //printf("New data not ready on device %d.\r\n", id);
-        return; // New data not ready
+        return 0; // New data not ready
     }
 
     VL53L0X_ClearInterruptMask(pDev, 0);
@@ -232,5 +232,6 @@ void rangefinderRead(int id){
     if( status ){
         printf("VL53L0X_StartMeasurement failed on device %d\r\n", id);
     }
+    return 1;
 }
 

@@ -12,19 +12,19 @@ if __name__ == "__main__":
         quit()
 
     print("Initializing neural nets...")
-    robot.initializeNets()
+#    robot.initializeNets()
     print("Zeroing theta...")
-    robot.zeroTheta()
+#    robot.zeroTheta()
     print("Ready to go!")
 
     try:
         while True:
             start = timer()
             robot.updateSensorValue()
-            robot.predict()
-            robot.execute()
+#            robot.predict()
+#            robot.execute()
 
-#            robot.printSensorVals()
+            robot.printSensorVals()
             #end = timer()
             #print( 1000*(end - start))
 

@@ -73,7 +73,11 @@ struct motor_t motorConfigs[4] = {
     {MOTOR_BL_DIR_GPIO_Port, MOTOR_BL_DIR_Pin, GPIO_PIN_RESET, 0, {0}, TIM_CHANNEL_3}}; 
 struct motor_t* motorConfigsPtr = motorConfigs;
 
-uint8_t wd_reset;
+volatile uint8_t wd_reset = 0;
+
+uint8_t data_updating = 0;
+unsigned char data_packet[21];
+volatile uint8_t sensor_update_req = 0;
 
 // WARNING!! Do not spam the UART or else Raspberry PI doesn't communicate well
 //#define DATA_PRINT_EN
@@ -164,6 +168,7 @@ int main(void)
     uint32_t wd_start = 0;
     uint32_t cur_time = 0;
     uint8_t wd_en = 0;
+    data_packet[20] = '\n';
     while (1)
     {
   /* USER CODE END WHILE */
@@ -174,30 +179,76 @@ int main(void)
             wd_start = TimeStamp_Get();  // Units of 0.1 ms based on Timer5
             wd_en = 1;
             wd_reset = 0;
+        } else if (wd_en == 1){
+            // Trigger if watchdog is enabled and expires
+            cur_time = TimeStamp_Get();
+            if ((cur_time - wd_start) > WD_LEN){
+                wd_en = 0;
+
+                // Disable motors
+                int i;
+                for (i=0; i<4; i++) {
+                    motorConfigs[i].PinState = GPIO_PIN_RESET;
+                    motorConfigs[i].sConfigOC.Pulse = 0; 
+                }
+                for (i=0; i<4; i++) {
+                    // Alter the PWM duty cycle and start PWM again
+                    if (HAL_TIM_PWM_ConfigChannel(motorConfigs[i].TIM_Handle, &motorConfigs[i].sConfigOC,
+                               motorConfigs[i].TIM_Channel) != HAL_OK) { Error_Handler(); }
+                    if (HAL_TIM_PWM_Start(motorConfigs[i].TIM_Handle, motorConfigs[i].TIM_Channel)
+                            != HAL_OK){ Error_Handler(); }
+
+                    // Set the direction pin
+                    HAL_GPIO_WritePin(motorConfigs[i].GPIOx, motorConfigs[i].GPIO_Pin, motorConfigs[i].PinState);
+                }
+            }
         }
 
-        // Trigger if watchdog is enabled and expires
-        cur_time = TimeStamp_Get();
-        if ((wd_en == 1) && ((cur_time - wd_start) > WD_LEN)){
-            wd_en = 0;
-
-            // Disable motors
+        if (sensor_update_req == 1){
             int i;
-            for (i=0; i<4; i++) {
-                motorConfigs[i].PinState = GPIO_PIN_RESET;
-                motorConfigs[i].sConfigOC.Pulse = 0; 
+            for (i = 0; i < 4; i++){
+                if (rangefinderRead(i)){
+                    data_packet[i*2  ] = (rangeData[i] >> 8) & 0xFF;
+                    data_packet[i*2+1] =  rangeData[i]       & 0xFF;
+                }
             }
-            for (i=0; i<4; i++) {
-                // Set the direction pin
-                HAL_GPIO_WritePin(motorConfigs[i].GPIOx, motorConfigs[i].GPIO_Pin, motorConfigs[i].PinState);
-
-                // Alter the PWM duty cycle and start PWM again
-                if (HAL_TIM_PWM_ConfigChannel(motorConfigs[i].TIM_Handle, &motorConfigs[i].sConfigOC,
-                           motorConfigs[i].TIM_Channel) != HAL_OK) { Error_Handler(); }
-                if (HAL_TIM_PWM_Start(motorConfigs[i].TIM_Handle, motorConfigs[i].TIM_Channel)
-                        != HAL_OK){ Error_Handler(); }
-            }
+            sensor_update_req = 0;
         }
+
+        magnetometer_read();
+        data_packet[ 8] = (magData.x >> 8) & 0xFF;
+        data_packet[ 9] =  magData.x       & 0xFF;
+        data_packet[10] = (magData.y >> 8) & 0xFF;
+        data_packet[11] =  magData.y       & 0xFF;
+        data_packet[12] = (magData.z >> 8) & 0xFF;
+        data_packet[13] =  magData.z       & 0xFF;
+//        data_packet[20] = (magData.orientation >> 8) & 0xFF;
+//        data_packet[21] =  magData.orientation       & 0xFF;
+
+        accelerometer_read();
+        data_packet[14] = (accelData.x >> 8) & 0xFF;
+        data_packet[15] =  accelData.x       & 0xFF;
+        data_packet[16] = (accelData.y >> 8) & 0xFF;
+        data_packet[17] =  accelData.y       & 0xFF;
+        data_packet[18] = (accelData.z >> 8) & 0xFF;
+        data_packet[19] =  accelData.z       & 0xFF;
+
+    //        gyro_read();
+//        data_packet[20] = (gyroData.x >> 8) & 0xFF;
+//        data_packet[21] =  gyroData.x       & 0xFF;
+//        data_packet[22] = (gyroData.y >> 8) & 0xFF;
+//        data_packet[23] =  gyroData.y       & 0xFF;
+//        data_packet[24] = (gyroData.z >> 8) & 0xFF;
+//        data_packet[25] =  gyroData.z       & 0xFF;
+//
+        // Update data packet with new data
+
+
+
+
+
+//        data_packet_updating = 1;
+//        data_packet_updating = 0;
     }
   /* USER CODE END 3 */
 
@@ -308,57 +359,14 @@ void consoleCommand(uint8_t *ptr, int len)
         }
     }
 
-    // A for start sensor read
+    // A for queue sensor read
     else if (ptr[0] == 'A' || ptr[0] == 'a') {
-        rangefinderRead(0);
-        rangefinderRead(1);
-        rangefinderRead(2);
-        rangefinderRead(3);
-        magnetometer_read();
-        accelerometer_read();
-//        gyro_read();
+        sensor_update_req = 1;
     }
 
     // B for send data in binary
     else if (ptr[0] == 'B' || ptr[0] == 'b') {
-        unsigned char bytes[21];
-        bytes[ 0] = (rangeData[0] >> 8) & 0xFF;
-        bytes[ 1] =  rangeData[0]       & 0xFF;
-
-        bytes[ 2] = (rangeData[1] >> 8) & 0xFF;
-        bytes[ 3] =  rangeData[1]       & 0xFF;
-
-        bytes[ 4] = (rangeData[2] >> 8) & 0xFF;
-        bytes[ 5] =  rangeData[2]       & 0xFF;
-
-        bytes[ 6] = (rangeData[3] >> 8) & 0xFF;
-        bytes[ 7] =  rangeData[3]       & 0xFF;
-
-        bytes[ 8] = (magData.x >> 8) & 0xFF;
-        bytes[ 9] =  magData.x       & 0xFF;
-        bytes[10] = (magData.y >> 8) & 0xFF;
-        bytes[11] =  magData.y       & 0xFF;
-        bytes[12] = (magData.z >> 8) & 0xFF;
-        bytes[13] =  magData.z       & 0xFF;
-
-        bytes[14] = (accelData.x >> 8) & 0xFF;
-        bytes[15] =  accelData.x       & 0xFF;
-        bytes[16] = (accelData.y >> 8) & 0xFF;
-        bytes[17] =  accelData.y       & 0xFF;
-        bytes[18] = (accelData.z >> 8) & 0xFF;
-        bytes[19] =  accelData.z       & 0xFF;
-
-//        bytes[20] = (gyroData.x >> 8) & 0xFF;
-//        bytes[21] =  gyroData.x       & 0xFF;
-//        bytes[22] = (gyroData.y >> 8) & 0xFF;
-//        bytes[23] =  gyroData.y       & 0xFF;
-//        bytes[24] = (gyroData.z >> 8) & 0xFF;
-//        bytes[25] =  gyroData.z       & 0xFF;
-//        bytes[20] = (magData.orientation >> 8) & 0xFF;
-//        bytes[21] =  magData.orientation       & 0xFF;
-        bytes[20] = '\n';
-
-        transmitUART(bytes, 21);
+        transmitUART(data_packet, 21);
     }
      
     // D for send data in human readable format
@@ -389,14 +397,13 @@ void consoleCommand(uint8_t *ptr, int len)
         }
 
         for (i=0; i<4; i++) {
-            // Set the direction pin
-            HAL_GPIO_WritePin(motorConfigs[i].GPIOx, motorConfigs[i].GPIO_Pin, motorConfigs[i].PinState);
-
             // Alter the PWM duty cycle and start PWM again
             if (HAL_TIM_PWM_ConfigChannel(motorConfigs[i].TIM_Handle, &motorConfigs[i].sConfigOC,
                        motorConfigs[i].TIM_Channel) != HAL_OK) { Error_Handler(); }
             if (HAL_TIM_PWM_Start(motorConfigs[i].TIM_Handle, motorConfigs[i].TIM_Channel)
                     != HAL_OK){ Error_Handler(); }
+            // Set the direction pin
+            HAL_GPIO_WritePin(motorConfigs[i].GPIOx, motorConfigs[i].GPIO_Pin, motorConfigs[i].PinState);
         }
     }
     // S for servo commands
