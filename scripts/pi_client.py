@@ -9,10 +9,13 @@ if __name__ == "__main__":
     robot = Robot()
     if robot.openSerial():
         print("Failed to connect to robot. Quitting.")
-        quit()       
+        quit()
 
+    print("Initializing neural nets...")
     robot.initializeNets()
+    print("Zeroing theta...")
     robot.zeroTheta()
+    print("Ready to go!")
 
     try:
         while True:
