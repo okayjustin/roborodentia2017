@@ -161,14 +161,14 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+    uint32_t wd_start = 0;
+    uint32_t cur_time = 0;
+    uint8_t wd_en = 0;
     while (1)
     {
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-        uint32_t wd_start = 0;
-        uint8_t wd_en = 0;
-
         // Reset watchdog start time if flag is set
         if (wd_reset == 1){
             wd_start = TimeStamp_Get();  // Units of 0.1 ms based on Timer5
@@ -177,7 +177,8 @@ int main(void)
         }
 
         // Trigger if watchdog is enabled and expires
-        if (wd_en == 1 && (wd_start + WD_LEN < TimeStamp_Get())){
+        cur_time = TimeStamp_Get();
+        if ((wd_en == 1) && ((cur_time - wd_start) > WD_LEN)){
             wd_en = 0;
 
             // Disable motors
@@ -285,6 +286,9 @@ int _write (int fd, char *ptr, int len)
 // Execute a command from the console
 void consoleCommand(uint8_t *ptr, int len)
 {
+    uint32_t timestart; 
+    uint32_t timestop; 
+    timestart = TimeStamp_Get();
     wd_reset = 1;
 
     // V for version
@@ -371,7 +375,7 @@ void consoleCommand(uint8_t *ptr, int len)
     else if (ptr[0] == 'M' || ptr[0] == 'm'){  
         int motorU[4];
         sscanf (ptr,"%*s %d %d %d %d", &motorU[0], &motorU[1], &motorU[2], &motorU[3]);
-        printf ("%d %d %d %d\n", motorU[0], motorU[1], motorU[2], motorU[3]);
+        //printf ("%d %d %d %d\n", motorU[0], motorU[1], motorU[2], motorU[3]);
 
         int i;
         for (i=0; i<4; i++) {
@@ -512,6 +516,8 @@ void consoleCommand(uint8_t *ptr, int len)
             if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
         }
     }
+    timestop = TimeStamp_Get();
+//    printf("%d\n", (timestop - timestart));
 }            
 /* USER CODE END 4 */
 

@@ -45,6 +45,9 @@ RANGE_VAR = 140
 KAL_DT = 0.01
 Q_VAR = 0.001  # Process covariance
 
+X_OFFSET = 10
+Y_OFFSET = 10
+
 class Robot():
     sense_cmd = 'A\n'.encode('utf-8')
     data_cmd = 'B\n'.encode('utf-8')
@@ -125,19 +128,22 @@ class Robot():
         self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
     def predict(self):
-        angle_obs = np.array([np.cos(state[4]), np.cos(state[4]), state[5]])
-        transx_obs = np.array([state[0] - state[6] + self.x_offset, state[1]])
-        transy_obs = np.array([state[1] - state[7] + self.y_offset, state[3]])
-
+        angle_obs = np.array([np.cos(self.state[4]), np.cos(self.state[4]), self.state[5]])
         u_angle = self.angle_ann.predict(angle_obs)
-        u_transx = self.transx_ann.predict(transx_obs)
-        u_transy = self.transy_ann.predict(transy_obs)
 
-        u = np.concatenate((u_angle, u_transx, u_transy, u_desx, u_desy))
+        transx_obs = np.array([self.state[0] - self.state[6] + X_OFFSET, self.state[1]])
+        u_transx = self.transx_ann.predict(transx_obs)
+        u_transx = 0
+
+        transy_obs = np.array([self.state[1] - self.state[7] + Y_OFFSET, self.state[3]])
+        u_transy = self.transy_ann.predict(transy_obs)
+        u_transy = 0
+
+        u = np.array([u_angle * 0.2, u_transx, u_transy])
         self.u = np.clip(u, -2., 2.)
 
     def execute(self):
-        self.mechanumCommand(u[2], u[0], u[1])
+        self.mechanumCommand(self.u[1], self.u[2], self.u[0])
 
     def updateSensorValue(self):
         if (self.console.ser_available):
@@ -181,16 +187,16 @@ class Robot():
 
                 # Returns a heading from +pi to -pi
                 # Tilt compensated heading calculation
-                pitch = np.arcsin(-self.sensors[7][0].curVal())
+                pitch = np.arcsin(-self.sensors[7][0].winMean())
                 if (pitch == np.pi/2 or pitch == -np.pi/2):
                     pitch = 0
-                roll = np.arcsin(self.sensors[8][0].curVal() / np.cos(pitch))
+                roll = np.arcsin(self.sensors[8][0].winMean() / np.cos(pitch))
 #        print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
-                xh = self.sensors[4][0].curVal() * np.cos(pitch) + \
-                        self.sensors[6][0].curVal() * np.sin(pitch)
-                yh = self.sensors[4][0].curVal() * np.sin(roll) * np.sin(pitch) + \
-                        self.sensors[5][0].curVal() * np.cos(roll) - \
-                        self.sensors[6][0].curVal() * np.sin(roll) * np.cos(pitch)
+                xh = self.sensors[4][0].winMean() * np.cos(pitch) + \
+                        self.sensors[6][0].winMean() * np.sin(pitch)
+                yh = self.sensors[4][0].winMean() * np.sin(roll) * np.sin(pitch) + \
+                        self.sensors[5][0].winMean() * np.cos(roll) - \
+                        self.sensors[6][0].winMean() * np.sin(roll) * np.cos(pitch)
                 self.th_part = np.arctan2(yh, xh)
 #        print("Heading: %+0.3f" % heading)
 
@@ -206,7 +212,7 @@ class Robot():
 
                 # Estimate rotational velocity
                 self.state[5] = (self.state[4] - self.prev_th) / self.dt
-                print(self.state[4])
+#                print(self.state[4])
 
             except OSError:
                 print("Error")
@@ -249,14 +255,17 @@ class Robot():
         theta_d = np.arctan2(y, x)
 
         # Calculate voltage ratios for each motor to acheive desired trajectory
-        self.motorSpeeds[0] = vd * np.sin(theta_d + np.pi/4) - v_theta
-        self.motorSpeeds[1] = vd * np.cos(theta_d + np.pi/4) + v_theta
-        self.motorSpeeds[2] = vd * np.sin(theta_d + np.pi/4) + v_theta
-        self.motorSpeeds[3] = vd * np.cos(theta_d + np.pi/4) - v_theta
+        v = np.zeros(4)
+        v[0] = vd * np.sin(theta_d + np.pi/4) - v_theta
+        v[1] = vd * np.cos(theta_d + np.pi/4) - v_theta
+        v[2] = vd * np.sin(theta_d + np.pi/4) + v_theta
+        v[3] = vd * np.cos(theta_d + np.pi/4) + v_theta
 
         # Normalize ratios to 1 if the maxval is > 1
         maxval = np.amax(np.absolute(v))
         v = v / maxval if (maxval > 1) else v
+        self.motorSpeeds = v
+        print(v)
 
 #        # Cartesian joystick vals to polar
 #        magnitude = np.sqrt(joystickAxes[0]**2 + joystickAxes[1]**2)
@@ -277,15 +286,15 @@ class Robot():
 #        print(self.motorSpeeds)
 
         # Send motor control commands
-        self.botCmdMotor(self.motorSpeeds * MAX_PWM_CYCLES)
+        self.cmdMotor([int(x * MAX_PWM_CYCLES) for x in self.motorSpeeds])
 
     # speed : 0 to 2047, duty cycle value out of 2047
-    def botCmdMotor(self, motorCmd):
+    def cmdMotor(self, motorCmd):
         for cmd in motorCmd:
             if (checkValue(cmd, -MAX_PWM_CYCLES, MAX_PWM_CYCLES)):
                 raise ValueError("motorCmd is not within bounds")
         cmd = 'M ' + str(motorCmd[0]) + ' ' + str(motorCmd[1]) + ' ' \
-            + str(motorCmd[2]) + ' ' + str(motorCmd[3])
+            + str(motorCmd[2]) + ' ' + str(motorCmd[3]) + '\n'
         self.console.writeSerialSequence([cmd])
 
     def initKalman(self):

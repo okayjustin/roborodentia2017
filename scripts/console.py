@@ -65,7 +65,7 @@ class SerialConsole():
         try:
             print("\r\rEnter text to send: ", end='')
             cmd = input()
-            cmd += '\r\n'
+            cmd += '\n'
             for character in cmd:
                 self.ser.write(character.encode('utf-8'))
                 time.sleep(0.1)
@@ -84,7 +84,8 @@ class SerialConsole():
 
 if __name__ == "__main__":
     console = SerialConsole()
-    serInUse = True
+    console.openSerial()
+    serInUse = console.ser_available
     while(serInUse == True):
         console.readSerial()
         serInUse = console.writeSerial()

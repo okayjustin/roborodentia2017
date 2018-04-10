@@ -153,7 +153,7 @@
 #define MOTOR_LAUNCH_DIR_GPIO_Port M3_4_GPIO_Port
 #define MOTOR_LAUNCH_DIR_Pin M3_4_Pin   
 
-#define WD_LEN 5000 // In units of 0.1 ms
+#define WD_LEN 10000 // In units of 0.1 ms
 
 /* USER CODE END Private defines */
 
