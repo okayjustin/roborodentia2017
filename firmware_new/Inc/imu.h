@@ -10,8 +10,8 @@
 #define SENSORS_GAUSS_TO_MICROTESLA   100
 
 #define FILTER_SHIFT_GYRO 8
-#define FILTER_SHIFT_ACCEL 8
-#define FILTER_SHIFT_MAG 8
+#define FILTER_SHIFT_ACCEL 12
+#define FILTER_SHIFT_MAG 12 
 
 typedef enum
 {                                                

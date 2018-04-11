@@ -5,6 +5,7 @@ import numpy as np
 from console import *
 import struct
 from ann import ann
+import time
 
 #import time
 #from numpy import linalg
@@ -62,7 +63,7 @@ class Robot():
         self.full_th = 0
         self.th_part = 0
         self.th_start = 0
-        self.state = np.zeros(12)
+        self.state = [RunningStat(10) for x in range(0,12)]
 
 #        self.dt = RunningStat(self.max_hist_len)
 
@@ -85,7 +86,6 @@ class Robot():
 #                        [RunningStat(self.max_hist_len), GYR_S_X, GYR_O_X, 0.], # GYRO X  10
 #                        [RunningStat(self.max_hist_len), GYR_S_Y, GYR_O_Y, 0.], # GYRO Y  11
 #                        [RunningStat(self.max_hist_len), GYR_S_Z, GYR_O_Z, 0.], # GYRO Z  12
-        self.th_stat = RunningStat(self.max_hist_len)
 
         self.console = SerialConsole()
         self.data_log_enable = False
@@ -128,18 +128,21 @@ class Robot():
         self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
     def predict(self):
-        angle_obs = np.array([np.cos(self.state[4]), np.cos(self.state[4]), self.state[5]])
-        u_angle = self.angle_ann.predict(angle_obs)
+        angle_obs = np.array([np.cos(self.state[4].curVal()), \
+                np.sin(self.state[4].curVal()), self.state[5].winMean()])
+        u_angle = -1 * self.angle_ann.predict(angle_obs)
 
-        transx_obs = np.array([self.state[0] - self.state[6] + X_OFFSET, self.state[1]])
+        transx_obs = np.array([self.state[0].curVal() - self.state[6].curVal() + X_OFFSET, \
+                self.state[1].winMean()])
         u_transx = self.transx_ann.predict(transx_obs)
         u_transx = 0
 
-        transy_obs = np.array([self.state[1] - self.state[7] + Y_OFFSET, self.state[3]])
+        transy_obs = np.array([self.state[1].curVal() - self.state[7].curVal() + Y_OFFSET, \
+                self.state[3].winMean()])
         u_transy = self.transy_ann.predict(transy_obs)
         u_transy = 0
 
-        u = np.array([u_angle * 0.2, u_transx, u_transy])
+        u = np.array([u_angle**3 / 24., u_transx, u_transy])
         self.u = np.clip(u, -2., 2.)
 
     def execute(self):
@@ -183,7 +186,7 @@ class Robot():
 
 
                 # Update theta and thetadot states
-                self.prev_th = self.state[4]
+                self.prev_th = self.state[4].curVal()
                 self.prev_th_part = self.th_part
 
                 # Returns a heading from +pi to -pi
@@ -199,7 +202,6 @@ class Robot():
                         self.sensors[5][0].curVal() * np.cos(roll) - \
                         self.sensors[6][0].curVal() * np.sin(roll) * np.cos(pitch)
                 self.th_part = np.arctan2(yh, xh)
-#        print("Heading: %+0.3f" % heading)
 
                 # If previous theta is near the upper limit (between 90 and 180 degrees) and
                 # current theta is past the 180 degree limit (which means between -90 and -180 degrees)
@@ -209,13 +211,15 @@ class Robot():
                 elif (self.prev_th_part < -np.pi/2 and self.th_part > np.pi/2):
                     self.full_th -= 1  # Increment full rotation count
 
-                self.state[4] = self.full_th*2*np.pi + self.th_part - self.th_start
+                self.state[4].push(self.full_th*2*np.pi + self.th_part - self.th_start)
 
                 # Estimate rotational velocity
-                self.state[5] = (self.state[4] - self.prev_th) / self.dt
-                self.th_stat.push(self.state[4])
-                print("%+0.1f stddev: %+0.3f" % (np.degrees(self.th_stat.curVal()), \
-                        np.degrees(self.th_stat.winStdDev())))
+                self.state[5].push((self.state[4].curVal() - self.prev_th) / self.dt)
+
+                print("Th: %+0.3f | Thdot: %+0.3f" % (np.degrees(self.state[4].curVal()), np.degrees(self.state[5].winMean())))
+#                print("%+0.1f mean: %0.3f stddev: %+0.3f" % (np.degrees(self.th_stat.curVal()), \
+#                        np.degrees(self.th_stat.winMean()), \
+#                        np.degrees(self.th_stat.winStdDev())))
 
             except OSError:
                 print("Error")
@@ -226,12 +230,13 @@ class Robot():
         self.th_start = 0
 
         # Get the theta averaged over a number of samples
-        num_pts = 100
-        theta = []
+        num_pts = 500
+        #theta = []
         for i in range(0, num_pts):
             self.updateSensorValue()
-            theta.append(self.state[4])
-        self.th_start = np.sum(theta) / num_pts
+        #    theta.append(self.state[4].curVal())
+            time.sleep(0.05)
+        self.th_start = self.state[4].mean() #np.sum(theta) / num_pts
 
 
     def printSensorVals(self):
@@ -272,7 +277,6 @@ class Robot():
         maxval = np.amax(np.absolute(v))
         v = v / maxval if (maxval > 1) else v
         self.motorSpeeds = v
-        print(v)
 
 #        # Cartesian joystick vals to polar
 #        magnitude = np.sqrt(joystickAxes[0]**2 + joystickAxes[1]**2)
