@@ -67,8 +67,8 @@ class SimRobot():
         self.en_wall_collision = False
 
         # Mecanum equation converts wheel velocities to tranlational x,y, and rotational velocities
-        self.wheel_max_thetadotdot = 430                                # Max wheel rotational acceleration in rad/s^2
-        self.wheel_max_thetadot = 24.46                                 # Max wheel rotational velocity in rad/s
+        self.wheel_max_thetadotdot = 430 * 1.5                                # Max wheel rotational acceleration in rad/s^2
+        self.wheel_max_thetadot = 24.46 * 1.5                                 # Max wheel rotational velocity in rad/s
         self.friction_constant = self.wheel_max_thetadotdot/self.wheel_max_thetadot # Friction constant in 1/s
         self.wheel_thetadotdot =  np.zeros(4)                       # Wheel rotational acceleration in rad/s/2
         self.wheel_thetadot = np.zeros(4)                           # Wheel rotational velocities in rad/s

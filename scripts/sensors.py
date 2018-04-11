@@ -26,6 +26,7 @@ class SimRangefinder():
         self.timebank = 0
         self.meas_period = meas_period
         self.meas = np.array([0.,0.])
+        self.meas_lag =  np.array([0., 0.])  
         self.dim = [(0.,0.),(0.,0.)]
         self.high = np.array([1230., 1600.])
         self.low = np.array([0., -1600.])
@@ -90,18 +91,20 @@ class SimRangefinder():
         #sigma = 2E-05 * pow(dist,2) - 0.0062 * dist + 2.435
         #dist += np.random.normal(0, sigma)
 
+        self.meas = self.meas_lag
+
         # Only update if measurement is in range
         if ((dist > 30) and (dist < 1200)):
             self.dim = [(x1,y1),(x2,y2)]
             dist_dot = (dist - self.meas[0]) / self.dt
-            self.meas = np.array([dist, dist_dot])
+            self.meas_lag = np.array([dist, dist_dot])
         else:
             if (dist <= 30):
-                self.meas = np.array([0.0, 0.0])
+                self.meas_lag = np.array([0.0, 0.0])
             else:
-                self.meas = np.array([1230.0, 0.0])
+                self.meas_lag = np.array([1230.0, 0.0])
 
-
+        
 class SimIMU():
     def __init__(self,dt,meas_period = 0.001, sigma = 0.0):
         self.type = 'IMU'
@@ -109,10 +112,12 @@ class SimIMU():
         self.timebank = 0
         self.prevth = 0
         self.meas = np.array([0., 0., 0.])
+        self.meas_lag =  np.array([0., 0., 0.])             
         self.meas_period = meas_period
         self.sigma = sigma
         self.high = np.array([1., 1., 8.])
         self.low = np.array([-1., -1., -8.])
+
 
     def update(self, state):
         # Add some available time to the timebank
@@ -133,7 +138,8 @@ class SimIMU():
         cos = np.cos(th)
         sin = np.sin(th)
 
-        self.meas = np.array([cos, sin, thdot])
+        self.meas = self.meas_lag
+        self.meas_lag = np.array([cos, sin, thdot])
 
 class SimDesiredXY():
     def __init__(self,direction, field_xmax, field_ymax, len_x, len_y):
@@ -168,6 +174,7 @@ class SimActualXY():
         self.len_x = len_x
         self.len_y = len_y
         self.meas = np.array([0., 0.])
+        self.meas_lag = np.array([0., 0.])
         self.x_offset = 0#69    # Corrects skew in network output
         self.y_offset = 10    # Corrects skew in network output
         if direction == 'x':
@@ -180,11 +187,13 @@ class SimActualXY():
             raise ValueError("Bad value for direction")
 
     def update(self, state):
+        self.meas = self.meas_lag
+        
         if (self.dir == 'x'):
-            self.meas = np.array([state[0] - state[6] + self.x_offset, state[1]]) 
+            self.meas_lag = np.array([state[0] - state[6] + self.x_offset, state[1]]) 
             #print(self.meas)
         else:
-            self.meas = np.array([state[2] - state[7] + self.y_offset, state[3]])
+            self.meas_lag = np.array([state[2] - state[7] + self.y_offset, state[3]])
 
 
 class SimMicroSW():

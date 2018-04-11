@@ -49,6 +49,10 @@ Q_VAR = 0.001  # Process covariance
 X_OFFSET = 10
 Y_OFFSET = 10
 
+# Robot dimensions
+LEN_X = 315.0      # length of the robot left to right
+LEN_Y = 275.0      # length of the robot front to back
+
 class Robot():
     sense_cmd = 'A\n'.encode('utf-8')
     data_cmd = 'B\n'.encode('utf-8')
@@ -181,7 +185,10 @@ class Robot():
                 # Update state array-----------------------------------------------------
 
                 # Update x and xdot states
-
+                if (self.sensors[0] < self.sensors[2]):
+                    self.state[0].push(self.sensors[0])
+                else:
+                    self.state[0].push(self.sensors[2])
 
                 # Update y and ydot states
 
@@ -287,24 +294,6 @@ class Robot():
         maxval = np.amax(np.absolute(v))
         v = v / maxval if (maxval > 1) else v
         self.motorSpeeds = v
-
-#        # Cartesian joystick vals to polar
-#        magnitude = np.sqrt(joystickAxes[0]**2 + joystickAxes[1]**2)
-#        angle = np.arctan2(joystickAxes[1], joystickAxes[0])
-#        rotation = joystickAxes[2]
-#        self.motorSpeeds[0] = magnitude * np.sin(angle + np.pi / 4) - rotation
-#        self.motorSpeeds[1] = magnitude * np.cos(angle + 5 * np.pi / 4) + rotation
-#        self.motorSpeeds[2] = magnitude * np.sin(angle + np.pi / 4) + rotation
-#        self.motorSpeeds[3] = magnitude * np.cos(angle + 5 * np.pi / 4) - rotation
-#
-#        # Normalize speeds if any of them end up greater than 1
-#        max_speed = 0.0
-#        for speed in self.motorSpeeds:
-#            if (abs(speed) > max_speed):
-#                max_speed = abs(speed)
-#        if (max_speed > 1.0):
-#            self.motorSpeeds = self.motorSpeeds / max_speed
-#        print(self.motorSpeeds)
 
         # Send motor control commands
         self.cmdMotor([int(x * MAX_PWM_CYCLES) for x in self.motorSpeeds])
