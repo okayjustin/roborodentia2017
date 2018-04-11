@@ -21,18 +21,18 @@ BUTTON_PWM_CYCLES = 1700
 # CALIBRATION VALUES, offset and scale
 RANGE_S = 0.965025066
 RANGE_O = -3.853474266
-MAG_S_X = 1# / 421.93019841175084
-MAG_S_Y = 1# / 486
-MAG_S_Z = 1# / 549.6501012927249
-MAG_O_X = 0#-76 * -MAG_S_X
-MAG_O_Y = 0#382 * -MAG_S_Y
-MAG_O_Z = 0#-78 * -MAG_S_Z
-ACC_S_X = 1# / 16522.56746066602
-ACC_S_Y = 1# / 17033.517951277074
-ACC_S_Z = 1# / 16921.85847403815
-ACC_O_X = 0#-482 * -ACC_S_X
-ACC_O_Y = 0#48   * -ACC_S_Y
-ACC_O_Z = 0#-972 * -ACC_S_Z
+MAG_S_X = 1 / 504.66782878550237
+MAG_S_Y = 1 / 625.6254797589748
+MAG_S_Z = 1 / 458.78374856276935
+MAG_O_X = 55 * -MAG_S_X
+MAG_O_Y = 249 * -MAG_S_Y
+MAG_O_Z = 142 * -MAG_S_Z
+ACC_S_X = 1 / 1030.9868342172633
+ACC_S_Y = 1 / 1059.8985318881996
+ACC_S_Z = 1 / 1063.2448503229036
+ACC_O_X = 30 * -ACC_S_X
+ACC_O_Y = 0 * -ACC_S_Y
+ACC_O_Z = -76 * -ACC_S_Z
 GYR_S_X = 1 / 131.068
 GYR_S_Y = 1 / 131.068
 GYR_S_Z = 1 / 131.068
@@ -154,9 +154,10 @@ class Robot():
                     self.console.ser.write(self.data_cmd)
                     data = self.console.ser.read(self.num_sensors * 2 + 1)
                     if (len(data) == self.num_sensors * 2 + 1):
-                        break
+                        if (data[-1] == 10):
+                            break
                     else:
-                        #print("Malformed UART data. Len: %d. Retrying..." % len(data))
+                        print("Malformed UART data. Len: %d. Retrying..." % len(data))
                         pass
 
                 # Start next sensor collection
@@ -188,8 +189,8 @@ class Robot():
                 # Returns a heading from +pi to -pi
                 # Tilt compensated heading calculation
                 pitch = np.arcsin(-self.sensors[7][0].curVal())
-                if (pitch == np.pi/2 or pitch == -np.pi/2):
-                    pitch = 0
+                if (np.cos(pitch) == 0.):
+                    pitch = 0.
                 roll = np.arcsin(self.sensors[8][0].curVal() / np.cos(pitch))
 #        print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
                 xh = self.sensors[4][0].curVal() * np.cos(pitch) + \
@@ -235,7 +236,11 @@ class Robot():
 
     def printSensorVals(self):
         print("Sensor values:")
-        #for i in range(0,self.num_sensors):
+#        for i in range(0,self.num_sensors):
+#            print("%+03.3f" % (self.sensors[i][0].curVal()), end = '| ')
+#        print("")
+#        return
+
         for i in range(4,10):
             print("%+03.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
 

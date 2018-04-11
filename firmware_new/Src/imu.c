@@ -98,11 +98,11 @@ void magnetometer_read() {
 
         // Shift values to create properly formed integer 
         magData.x_filt = magData.x_filt - (magData.x_filt >> FILTER_SHIFT_MAG) + 
-            ((read_data[0] << 8) | read_data[1]);
+            (int16_t)((read_data[0] << 8) | read_data[1]);
         magData.y_filt = magData.y_filt - (magData.y_filt >> FILTER_SHIFT_MAG) + 
-            ((read_data[4] << 8) | read_data[5]);
+            (int16_t)((read_data[4] << 8) | read_data[5]);
         magData.z_filt = magData.z_filt - (magData.z_filt >> FILTER_SHIFT_MAG) + 
-            ((read_data[2] << 8) | read_data[3]);  
+            (int16_t)((read_data[2] << 8) | read_data[3]);  
 
         magData.x = magData.x_filt >> FILTER_SHIFT_MAG;
         magData.y = -1 * (magData.y_filt >> FILTER_SHIFT_MAG);

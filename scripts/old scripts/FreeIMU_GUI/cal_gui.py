@@ -164,8 +164,8 @@ class FreeIMUCal(QMainWindow, Ui_FreeIMUCal):
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
         bytesize=serial.EIGHTBITS,
-        timeout = 0.01,            #non-block read
-        writeTimeout = 0.01     #timeout for write
+        timeout = 0.02,            #non-block read
+        writeTimeout = 0.02     #timeout for write
       )
 
       if self.ser.isOpen():
@@ -363,7 +363,6 @@ const float magn_scale_z = %f;
     self.magn_data[1].append(reading[5])
     self.magn_data[2].append(reading[6])
 
-
     self.accXY.plot(x = self.acc_data[0], y = self.acc_data[1], clear = True, pen='r')
     self.accYZ.plot(x = self.acc_data[1], y = self.acc_data[2], clear = True, pen='g')
     self.accZX.plot(x = self.acc_data[2], y = self.acc_data[0], clear = True, pen='b')
@@ -405,10 +404,10 @@ class SerialWorker(QThread):
               self.ser.write(self.data_cmd)
               data = self.ser.read(self.num_sensors * 2 + 1)
               if (len(data) == self.num_sensors * 2 + 1):
-                  #print("Got data")
-                  break
+                  if (data[-1] == 10):
+                      break
               else:
-                  #print("Malformed UART data. Len: %d. Retrying..." % len(data))
+                  print("Malformed UART data. Len: %d. Retrying..." % len(data))
                   pass
 
           # Start next sensor collection
@@ -428,8 +427,8 @@ class SerialWorker(QThread):
           time.sleep(0.05)
 
       # every count times we pass some data to the GUI
+      print('.', end='')
       self.sig_newdata.emit(reading)
-      print (".", end='')
       sys.stdout.flush()
     # closing acc and magn files
     self.acc_file.close()
