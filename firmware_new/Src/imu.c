@@ -55,11 +55,11 @@ void gyro_read() {
 
     // Shift values to create properly formed integer
     gyroData.x_filt = gyroData.x_filt - (gyroData.x_filt >> FILTER_SHIFT_GYRO) + 
-        (int16_t)((read_data[1] << 8) | read_data[0]);
+        ((read_data[1] << 8) | read_data[0]);
     gyroData.y_filt = gyroData.y_filt - (gyroData.y_filt >> FILTER_SHIFT_GYRO) + 
-        (int16_t)((read_data[3] << 8) | read_data[2]);
+        ((read_data[3] << 8) | read_data[2]);
     gyroData.z_filt = gyroData.z_filt - (gyroData.z_filt >> FILTER_SHIFT_GYRO) + 
-        (int16_t)((read_data[5] << 8) | read_data[4]);  
+        ((read_data[5] << 8) | read_data[4]);  
 
     gyroData.x = gyroData.x_filt >> FILTER_SHIFT_GYRO;
     gyroData.y = gyroData.y_filt >> FILTER_SHIFT_GYRO;
@@ -74,11 +74,11 @@ void accelerometer_read() {
 
     // Shift values to create properly formed integer 
     accelData.x_filt = accelData.x_filt - (accelData.x_filt >> FILTER_SHIFT_ACCEL) + 
-        (int16_t)((read_data[1] << 8) | read_data[0]);
+        ((int16_t)((read_data[1] << 8) | read_data[0]) >> 4);
     accelData.y_filt = accelData.y_filt - (accelData.y_filt >> FILTER_SHIFT_ACCEL) + 
-        (int16_t)((read_data[3] << 8) | read_data[2]);
+        ((int16_t)((read_data[3] << 8) | read_data[2]) >> 4);
     accelData.z_filt = accelData.z_filt - (accelData.z_filt >> FILTER_SHIFT_ACCEL) + 
-        (int16_t)((read_data[5] << 8) | read_data[4]);  
+        ((int16_t)((read_data[5] << 8) | read_data[4]) >> 4);  
 
     accelData.x = -1 * (accelData.x_filt >> FILTER_SHIFT_ACCEL);
     accelData.y = accelData.y_filt >> FILTER_SHIFT_ACCEL;
@@ -98,11 +98,11 @@ void magnetometer_read() {
 
         // Shift values to create properly formed integer 
         magData.x_filt = magData.x_filt - (magData.x_filt >> FILTER_SHIFT_MAG) + 
-            (int16_t)((read_data[1] << 8) | read_data[0]);
+            ((read_data[0] << 8) | read_data[1]);
         magData.y_filt = magData.y_filt - (magData.y_filt >> FILTER_SHIFT_MAG) + 
-            (int16_t)((read_data[5] << 8) | read_data[4]);
+            ((read_data[4] << 8) | read_data[5]);
         magData.z_filt = magData.z_filt - (magData.z_filt >> FILTER_SHIFT_MAG) + 
-            (int16_t)((read_data[3] << 8) | read_data[2]);  
+            ((read_data[2] << 8) | read_data[3]);  
 
         magData.x = magData.x_filt >> FILTER_SHIFT_MAG;
         magData.y = -1 * (magData.y_filt >> FILTER_SHIFT_MAG);

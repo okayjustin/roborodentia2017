@@ -39,8 +39,8 @@ acc_file_name = "acc.txt"
 magn_file_name = "magn.txt"
 calibration_h_file_name = "calibration.h"
 
-acc_range = 32768
-magn_range = 32768
+acc_range = 2048
+magn_range = 2048
 
 class FreeIMUCal(QMainWindow, Ui_FreeIMUCal):
   def __init__(self, parent=None):
