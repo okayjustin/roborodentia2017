@@ -4,7 +4,6 @@ from helper_funcs import *
 import numpy as np
 from console import *
 import struct
-from ann import ann
 import time
 
 #import time
@@ -52,6 +51,8 @@ Y_OFFSET = 10
 # Robot dimensions
 LEN_X = 315.0      # length of the robot left to right
 LEN_Y = 275.0      # length of the robot front to back
+FIELD_XMAX = 2438.4 # Maximum x dimension in mm
+FIELD_YMAX = 1219.2  # Maximum y dimension in mm
 
 class Robot():
     sense_cmd = 'A\n'.encode('utf-8')
@@ -115,7 +116,7 @@ class Robot():
 
     def initializeNets(self):
         import tensorflow as tf
-        from ann import ActorNetwork
+        from ann import ann
         # Load angle control ann
         print("Loading angle ANN")
         angle_model_path = './trained-models/models-angle/model.ckpt'
@@ -136,8 +137,8 @@ class Robot():
                 np.sin(self.state[4].curVal()), self.state[5].curVal()])
         u_angle = -1 * self.angle_ann.predict(angle_obs)**5 / 70.
 
-        print("Th: %+0.3f | Thdot: %+0.3f | %+0.3f" % \
-                (np.degrees(self.state[4].curVal()), np.degrees(self.state[5].curVal()), u_angle))
+#        print("Th: %+0.3f | Thdot: %+0.3f | %+0.3f" % \
+#                (np.degrees(self.state[4].curVal()), np.degrees(self.state[5].curVal()), u_angle))
         transx_obs = np.array([self.state[0].curVal() - self.state[6].curVal() + X_OFFSET, \
                 self.state[1].winMean()])
         u_transx = self.transx_ann.predict(transx_obs)
@@ -185,14 +186,19 @@ class Robot():
                 # Update state array-----------------------------------------------------
 
                 # Update x and xdot states
-                if (self.sensors[0] < self.sensors[2]):
-                    self.state[0].push(self.sensors[0])
+                if (self.sensors[1][0].curVal() < self.sensors[3][0].curVal()):
+                    x = self.sensors[1][0].curVal()
                 else:
-                    self.state[0].push(self.sensors[2])
+                    x = self.sensors[3][0].curVal()
+                self.state[0].push(x)
+                xdot = self.getVel(0)
+                self.state[1].push(xdot)
 
                 # Update y and ydot states
-
-
+                y = (self.sensors[3][0].curVal() + FIELD_XMAX - self.sensors[0][0].curVal()) / 2.0
+                self.state[2].push(y)
+                ydot = self.getVel(2)
+                self.state[3].push(ydot)
 
                 # Update theta and thetadot states
                 self.prev_th_part = self.th_part
@@ -219,10 +225,10 @@ class Robot():
                 elif (self.prev_th_part < -np.pi/2 and self.th_part > np.pi/2):
                     self.full_th -= 1  # Increment full rotation count
 
-                self.state[4].push(self.full_th*2*np.pi + self.th_part - self.th_start)
-
-                # Estimate rotational velocity
-                self.state[5].push(self.getVel(4))
+                th = self.full_th*2*np.pi + self.th_part - self.th_start
+                self.state[4].push(th)
+                thdot = self.getVel(4)
+                self.state[5].push(thdot)
 
 #                print("%+0.1f mean: %0.3f stddev: %+0.3f" % (np.degrees(self.th_stat.curVal()), \
 #                        np.degrees(self.th_stat.winMean()), \
