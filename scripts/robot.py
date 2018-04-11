@@ -63,7 +63,7 @@ class Robot():
         self.full_th = 0
         self.th_part = 0
         self.th_start = 0
-        self.state = [RunningStat(10) for x in range(0,12)]
+        self.state = [RunningStat(3) for x in range(0,12)]
 
 #        self.dt = RunningStat(self.max_hist_len)
 
@@ -129,9 +129,11 @@ class Robot():
 
     def predict(self):
         angle_obs = np.array([np.cos(self.state[4].curVal()), \
-                np.sin(self.state[4].curVal()), self.state[5].winMean()])
-        u_angle = -1 * self.angle_ann.predict(angle_obs)
+                np.sin(self.state[4].curVal()), self.state[5].curVal()])
+        u_angle = -1 * self.angle_ann.predict(angle_obs)**5 / 70.
 
+        print("Th: %+0.3f | Thdot: %+0.3f | %+0.3f" % \
+                (np.degrees(self.state[4].curVal()), np.degrees(self.state[5].curVal()), u_angle))
         transx_obs = np.array([self.state[0].curVal() - self.state[6].curVal() + X_OFFSET, \
                 self.state[1].winMean()])
         u_transx = self.transx_ann.predict(transx_obs)
@@ -142,7 +144,7 @@ class Robot():
         u_transy = self.transy_ann.predict(transy_obs)
         u_transy = 0
 
-        u = np.array([u_angle**3 / 24., u_transx, u_transy])
+        u = np.array([u_angle, u_transx, u_transy])
         self.u = np.clip(u, -2., 2.)
 
     def execute(self):
@@ -160,7 +162,7 @@ class Robot():
                         if (data[-1] == 10):
                             break
                     else:
-                        print("Malformed UART data. Len: %d. Retrying..." % len(data))
+#                        print("Malformed UART data. Len: %d. Retrying..." % len(data))
                         pass
 
                 # Start next sensor collection
@@ -186,7 +188,6 @@ class Robot():
 
 
                 # Update theta and thetadot states
-                self.prev_th = self.state[4].curVal()
                 self.prev_th_part = self.th_part
 
                 # Returns a heading from +pi to -pi
@@ -214,9 +215,8 @@ class Robot():
                 self.state[4].push(self.full_th*2*np.pi + self.th_part - self.th_start)
 
                 # Estimate rotational velocity
-                self.state[5].push((self.state[4].curVal() - self.prev_th) / self.dt)
+                self.state[5].push(self.getVel(4))
 
-                print("Th: %+0.3f | Thdot: %+0.3f" % (np.degrees(self.state[4].curVal()), np.degrees(self.state[5].winMean())))
 #                print("%+0.1f mean: %0.3f stddev: %+0.3f" % (np.degrees(self.th_stat.curVal()), \
 #                        np.degrees(self.th_stat.winMean()), \
 #                        np.degrees(self.th_stat.winStdDev())))
@@ -224,13 +224,23 @@ class Robot():
             except OSError:
                 print("Error")
 
+    # Calculates the average of forwards and backwards derivatives
+    def getVel(self, sensorIdx):
+        future = self.state[sensorIdx].vals[0]
+        current = self.state[sensorIdx].vals[1]
+        past = self.state[sensorIdx].vals[2]
+        forward_deriv = future - current
+        backwards_deriv = current - past
+        return (forward_deriv + backwards_deriv)/(2*self.dt)
+
+
     # Recalculates the starting theta position to "zero out" theta
     def zeroTheta(self):
         # Reset DC offset
         self.th_start = 0
 
         # Get the theta averaged over a number of samples
-        num_pts = 500
+        num_pts = 100
         #theta = []
         for i in range(0, num_pts):
             self.updateSensorValue()

@@ -66,10 +66,8 @@ class SerialConsole():
             print("\r\rEnter text to send: ", end='')
             cmd = input()
             cmd += '\n'
-            for character in cmd:
-                self.ser.write(character.encode('utf-8'))
-                time.sleep(0.1)
-            self.ser.flush()
+            self.ser.write(cmd.encode('utf-8'))
+            #self.ser.flush()
             return True
         except KeyboardInterrupt:
             return False

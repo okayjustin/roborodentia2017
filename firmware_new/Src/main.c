@@ -169,6 +169,7 @@ int main(void)
     uint32_t cur_time = 0;
     uint8_t wd_en = 0;
     data_packet[20] = '\n';
+
     while (1)
     {
   /* USER CODE END WHILE */
@@ -222,8 +223,6 @@ int main(void)
         data_packet[11] =  magData.y       & 0xFF;
         data_packet[12] = (magData.z >> 8) & 0xFF;
         data_packet[13] =  magData.z       & 0xFF;
-//        data_packet[20] = (magData.orientation >> 8) & 0xFF;
-//        data_packet[21] =  magData.orientation       & 0xFF;
 
         accelerometer_read();
         data_packet[14] = (accelData.x >> 8) & 0xFF;
@@ -241,14 +240,6 @@ int main(void)
 //        data_packet[24] = (gyroData.z >> 8) & 0xFF;
 //        data_packet[25] =  gyroData.z       & 0xFF;
 //
-        // Update data packet with new data
-
-
-
-
-
-//        data_packet_updating = 1;
-//        data_packet_updating = 0;
     }
   /* USER CODE END 3 */
 
@@ -381,11 +372,12 @@ void consoleCommand(uint8_t *ptr, int len)
     
     // M for motor control commands
     else if (ptr[0] == 'M' || ptr[0] == 'm'){  
-        int motorU[4];
-        sscanf (ptr,"%*s %d %d %d %d", &motorU[0], &motorU[1], &motorU[2], &motorU[3]);
-        //printf ("%d %d %d %d\n", motorU[0], motorU[1], motorU[2], motorU[3]);
-
         int i;
+        int32_t val;
+        int32_t motorU[4];
+        sscanf (ptr,"%*s %d %d %d %d", &motorU[0], &motorU[1], &motorU[2], &motorU[3]);
+//        printf ("%d %d %d %d\n", motorU[0], motorU[1], motorU[2], motorU[3]);
+
         for (i=0; i<4; i++) {
             if (motorU[i] < 0){
                 motorConfigs[i].PinState = GPIO_PIN_SET;

@@ -11,7 +11,7 @@
 
 #define FILTER_SHIFT_GYRO 8
 #define FILTER_SHIFT_ACCEL 12
-#define FILTER_SHIFT_MAG 12 
+#define FILTER_SHIFT_MAG 2 
 
 typedef enum
 {                                                

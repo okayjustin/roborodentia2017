@@ -100,7 +100,7 @@ class SimRobot():
             act_dim = 1
             self.net_index = 0
 
-        elif (train == 'transx'): 
+        elif (train == 'transx'):
             act_dim = 1
             self.net_index = 1
 
@@ -214,7 +214,7 @@ class SimRobot():
             u_transy = self.transy_ann.predict(self.obs_sets[2])
             u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
             u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
-            
+
         elif self.train == 'transy':
             u_angle = self.angle_ann.predict(self.obs_sets[0])
             u_transx = self.transx_ann.predict(self.obs_sets[1])
@@ -287,13 +287,13 @@ class SimRobot():
         newx = np.clip(x + newxdot * dt, x_space - 150, FIELD_XMAX - x_space + 150)
         newy = np.clip(y + newydot * dt, y_space - 150, FIELD_YMAX - y_space + 150)
         # else:
-        #     newx = x + newxdot * dt 
+        #     newx = x + newxdot * dt
         #     newy = y + newydot * dt
-            
+
         # Determine new desired location
         newxdes = np.interp(u[3], [-2,2], [LEN_X/2, FIELD_XMAX - LEN_X/2])
         newydes = np.interp(u[4], [-2,2], [LEN_Y/2, FIELD_YMAX - LEN_Y/2])
- 
+
 
         # Determine hopper states
         newhopfl = False

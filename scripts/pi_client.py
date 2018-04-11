@@ -25,8 +25,8 @@ if __name__ == "__main__":
             robot.execute()
 
 #            robot.printSensorVals()
-            #end = timer()
-            #print( 1000*(end - start))
+#            end = timer()
+#            print("Cycle time: %0.1f" % (1000*(end - start)))
 
             # Limit speed to 20 Hz
             while (timer() < start + 0.050):
