@@ -103,9 +103,9 @@ class Robot():
         self.pid_e = np.zeros(3)    # Error
         self.pid_int = np.zeros(3)  # Integral
         # PID gains th,   x,   y
-        self.Kp = np.array([3.3, 0.1, 0.1])
-        self.Ki = np.array([0.2, 0.0, 0.0])
-        self.Kd = np.array([1.1, 0.0, 0.0])
+        self.Kp = np.array([8.0, 0.0, 0.09])
+        self.Ki = np.array([0.6, 0.0, 0.0])
+        self.Kd = np.array([4.0, 0.0, 0.02])
 
 
         # Sensor array. Each contains a running history, offset factor, scaling factor

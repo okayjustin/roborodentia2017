@@ -22,7 +22,7 @@ if __name__ == "__main__":
         robot.initializeNets()
 
     print("Zeroing theta...")
-    robot.zeroTheta()
+    #robot.zeroTheta()
     print("Ready to go!")
 
     try:
