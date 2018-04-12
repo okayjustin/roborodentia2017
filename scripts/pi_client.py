@@ -5,10 +5,13 @@ from robot import *
 from timeit import default_timer as timer
 import time
 
-kUSE_ANN = 1
+kUSE_ANN = 0
+
+# Initialize field area, -1 Left, 0 Center, 1 Right
+kFIELD_AREA_INIT = -1
 
 if __name__ == "__main__":
-    robot = Robot()
+    robot = Robot(kFIELD_AREA_INIT)
     if robot.openSerial():
         print("Failed to connect to robot. Quitting.")
         quit()
@@ -16,8 +19,9 @@ if __name__ == "__main__":
     if kUSE_ANN:
         print("Initializing neural nets...")
         robot.initializeNets()
-        print("Zeroing theta...")
-        robot.zeroTheta()
+
+    print("Zeroing theta...")
+    robot.zeroTheta()
     print("Ready to go!")
 
     try:
@@ -28,7 +32,7 @@ if __name__ == "__main__":
                 robot.predict()
                 robot.execute()
 
-#            robot.printSensorVals()
+            robot.printSensorVals()
             end = timer()
 #            print("Cycle time: %0.1f" % (1000*(end - start)))
 

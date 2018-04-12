@@ -15,6 +15,10 @@ import time
 #import pygame as pygame
 #from timeit import default_timer as timer
 
+# Thresholds for changing areas
+kAREA_THRESHOLD = 900
+kAREA_HYST = 50
+
 MAX_PWM_CYCLES = 2047
 BUTTON_PWM_CYCLES = 1700
 
@@ -58,7 +62,7 @@ class Robot():
     sense_cmd = 'A\n'.encode('utf-8')
     data_cmd = 'B\n'.encode('utf-8')
 
-    def __init__(self):
+    def __init__(self, field_area_init):
         self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
 
         # robot setup
@@ -68,9 +72,36 @@ class Robot():
         self.full_th = 0
         self.th_part = 0
         self.th_start = 0
-        self.state = [RunningStat(3) for x in range(0,12)]
 
-#        self.dt = RunningStat(self.max_hist_len)
+        ''' States
+        [0]: x
+        [1]: x dot
+        [2]: y
+        [3]: y dot
+        [4]: th
+        [5]: th dot
+        [6]: desired x
+        [7]: desired y
+        [8]: Hopper FL state
+        [9]: Hopper BL state
+        [10]: Hopper BR state
+        [11]: Hopper FR state:
+        [12]: field area (-1 for left, 0 for center platform, 1 for right)
+        '''
+        self.state = [RunningStat(3) for x in range(0,13)]
+        self.state[6].push(field_area_init)
+
+        ''' Control array U. All values range from -2 to 2
+        [0]: angle control
+        [1]: x translation
+        [2]: y translation
+        [3]: launch command (-1 for fire left, +1 for fire right, 0 for nothing)
+        '''
+        self.u = np.zeros(5)
+
+        # Initialize PID vars
+        self.pid_e = np.zeros(3)    # Error
+        self.pid_int = np.zeros(3)  # Integral
 
         # Sensor array. Each contains a running history, offset factor, scaling factor
         # Rangefinders: Units of mm
@@ -152,6 +183,25 @@ class Robot():
         u = np.array([u_angle, u_transx, u_transy])
         self.u = np.clip(u, -2., 2.)
 
+    # Calculates a control array (u) based on the current state using PID algorithm
+    def calcU(self):
+        # Get state
+        x      = self.state[0].curVal()
+        y      = self.state[2].curVal()
+        th     = self.state[4].curVal()
+        x_des  = self.state[6].curVal()
+        y_des  = self.state[7].curVal()
+        th_des = 0
+
+        setpoint = np.array([x_des, y_des, th_des])
+        measval = np.array([x, y, th])
+
+        new_error = setpoint - measured_value
+        self.pid_int = self.pid_int + new_error*dt
+        derivative = (new_error - self.pid_e)/dt
+        u = np.multiply(Kp,new_error) + np.multiply(Ki,self.pid_int) + np.multiply(Kd*derivative)
+        self.pid_e = new_error
+
     def execute(self):
         self.mechanumCommand(self.u[1], self.u[2], self.u[0])
 
@@ -184,37 +234,80 @@ class Robot():
                             % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
 
                 # Update state array-----------------------------------------------------
+                y_front = self.sensors[0][0].curVal()
+                x_left  = self.sensors[1][0].curVal()
+                y_back  = self.sensors[2][0].curVal()
+                x_right = self.sensors[3][0].curVal()
+                magx    = self.sensors[4][0].curVal()
+                magy    = self.sensors[5][0].curVal()
+                magz    = self.sensors[6][0].curVal()
+                accelx  = self.sensors[7][0].curVal()
+                accely  = self.sensors[8][0].curVal()
+                accelz  = self.sensors[9][0].curVal()
 
-                # Update x and xdot states
-                if (self.sensors[1][0].curVal() < self.sensors[3][0].curVal()):
-                    x = self.sensors[1][0].curVal()
-                else:
-                    x = self.sensors[3][0].curVal()
-                self.state[0].push(x)
-                xdot = self.getVel(0)
-                self.state[1].push(xdot)
+                x       = self.state[0].curVal()
+                xdot    = self.state[1].curVal()
+                y       = self.state[2].curVal()
+                ydot    = self.state[3].curVal()
+                th      = self.state[4].curVal()
+                thdot   = self.state[5].curVal()
+                x_des   = self.state[6].curVal()
+                y_des   = self.state[7].curVal()
+                hopfl   = self.state[8].curVal()
+                hopbl   = self.state[9].curVal()
+                hopbr   = self.state[10].curVal()
+                hopfr   = self.state[11].curVal()
+                field_area = self.state[12].curVal()
 
+                #-------------------------------------------------------------
+                # Update field area
+                if (field_area == -1): # Left field
+                    if (x_left > kAREA_THRESHOLD):
+                        new_field_area = 0
+                    else:
+                        new_field_area = -1
+                elif (field_area == 1): # Right field
+                    if (x_right > kAREA_THRESHOLD):
+                        new_field_area = 0
+                    else:
+                        new_field_area = 1
+                else:                   # Center field
+                    if (x_left < kAREA_THRESHOLD):
+                        new_field_area = -1
+                    elif (x_right < 900):
+                        new_field_area = 1
+                    else:
+                        new_field_area = 0
+
+                #-------------------------------------------------------------
+                # Update x, and xdot states
+                if (new_field_area == -1):      # Left
+                    new_x = x_left
+                elif (new_field_area == -1):    # Right
+                    new_x = x_left
+                else:                           # Center
+                    new_x = (x_left + FIELD_XMAX - x_right) / 2.0
+                new_xdot = self.getVel(0)
+
+                #-------------------------------------------------------------
                 # Update y and ydot states
-                y = (self.sensors[3][0].curVal() + FIELD_XMAX - self.sensors[0][0].curVal()) / 2.0
-                self.state[2].push(y)
-                ydot = self.getVel(2)
-                self.state[3].push(ydot)
+                new_y = (y_back + FIELD_YMAX - y_front) / 2.0
+                new_ydot = self.getVel(2)
 
+                #-------------------------------------------------------------
                 # Update theta and thetadot states
                 self.prev_th_part = self.th_part
 
                 # Returns a heading from +pi to -pi
                 # Tilt compensated heading calculation
-                pitch = np.arcsin(-self.sensors[7][0].curVal())
+                pitch = np.arcsin(-accelx)
                 if (np.cos(pitch) == 0.):
                     pitch = 0.
-                roll = np.arcsin(self.sensors[8][0].curVal() / np.cos(pitch))
-#        print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
-                xh = self.sensors[4][0].curVal() * np.cos(pitch) + \
-                        self.sensors[6][0].curVal() * np.sin(pitch)
-                yh = self.sensors[4][0].curVal() * np.sin(roll) * np.sin(pitch) + \
-                        self.sensors[5][0].curVal() * np.cos(roll) - \
-                        self.sensors[6][0].curVal() * np.sin(roll) * np.cos(pitch)
+                roll = np.arcsin(accely / np.cos(pitch))
+                # print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
+                xh = magx * np.cos(pitch) + magz * np.sin(pitch)
+                yh = magx * np.sin(roll) * np.sin(pitch) + magy * np.cos(roll) - \
+                        magz * np.sin(roll) * np.cos(pitch)
                 self.th_part = np.arctan2(yh, xh)
 
                 # If previous theta is near the upper limit (between 90 and 180 degrees) and
@@ -225,23 +318,44 @@ class Robot():
                 elif (self.prev_th_part < -np.pi/2 and self.th_part > np.pi/2):
                     self.full_th -= 1  # Increment full rotation count
 
-                th = self.full_th*2*np.pi + self.th_part - self.th_start
-                self.state[4].push(th)
-                thdot = self.getVel(4)
-                self.state[5].push(thdot)
+                new_th = self.full_th*2*np.pi + self.th_part - self.th_start
+                new_thdot = self.getVel(4)
 
-#                print("%+0.1f mean: %0.3f stddev: %+0.3f" % (np.degrees(self.th_stat.curVal()), \
-#                        np.degrees(self.th_stat.winMean()), \
-#                        np.degrees(self.th_stat.winStdDev())))
+                #-------------------------------------------------------------
+                # Update hopper states
+                new_hopfl = 0
+                new_hopbl = 0
+                new_hopbr = 0
+                new_hopbl = 0
 
+                #-------------------------------------------------------------
+                # Update desired x,y coordinate
+                new_x_des = 0
+                new_y_des = FIELD_YMAX / 2
+
+                #-------------------------------------------------------------
+                # Push new states
+                self.state[0].push(new_x)
+                self.state[1].push(new_xdot)
+                self.state[2].push(new_y)
+                self.state[3].push(new_ydot)
+                self.state[4].push(new_th)
+                self.state[5].push(new_thdot)
+                self.state[6].push(new_x_des)
+                self.state[7].push(new_y_des)
+                self.state[8].push(new_hopfl)
+                self.state[9].push(new_hopbl)
+                self.state[10].push(new_hopbr)
+                self.state[11].push(new_hopfr)
+                self.state[12].push(new_field_area)
             except OSError:
                 print("Error")
 
     # Calculates the average of forwards and backwards derivatives
-    def getVel(self, sensorIdx):
-        future = self.state[sensorIdx].vals[0]
-        current = self.state[sensorIdx].vals[1]
-        past = self.state[sensorIdx].vals[2]
+    def getVel(self, stateIdx):
+        future = self.state[stateIdx].vals[0]
+        current = self.state[stateIdx].vals[1]
+        past = self.state[stateIdx].vals[2]
         forward_deriv = future - current
         backwards_deriv = current - past
         return (forward_deriv + backwards_deriv)/(2*self.dt)
@@ -258,7 +372,7 @@ class Robot():
         for i in range(0, num_pts):
             self.updateSensorValue()
         #    theta.append(self.state[4].curVal())
-            time.sleep(0.05)
+            time.sleep(0.01)
         self.th_start = self.state[4].mean() #np.sum(theta) / num_pts
 
 
@@ -269,8 +383,11 @@ class Robot():
 #        print("")
 #        return
 
-        for i in range(4,10):
-            print("%+03.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
+        for i in range(0,10):
+            print("%+0.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
+        print("State values:")
+        for i in range(0,6):
+            print("%+0.3f" % self.state[i].curVal())
 
 
     def loopAngle(self, angle):

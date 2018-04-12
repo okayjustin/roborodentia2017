@@ -67,7 +67,10 @@ class RunningStat:
         return self.win_mean
 
     def winVar(self):
-        return (self.powsumavg * self.window - self.window * self.win_mean * self.win_mean) / self.window
+        winvar = (self.powsumavg * self.window - self.window * self.win_mean * self.win_mean) / self.window
+        if (winvar < 0):
+            winvar = 0
+        return winvar
 
     def winStdDev(self):
         return math.sqrt(self.winVar())

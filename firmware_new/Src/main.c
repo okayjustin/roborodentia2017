@@ -465,6 +465,9 @@ void consoleCommand(uint8_t *ptr, int len)
 
             // Enable blower and launcher motors
             HAL_GPIO_WritePin(BLOWER_DIR_GPIO_Port, BLOWER_DIR_Pin, 1);
+            sConfigOC.Pulse = 130;
+            if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) { Error_Handler(); }
+            if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2) != HAL_OK){ Error_Handler(); }
             HAL_GPIO_WritePin(MOTOR_LAUNCH_DIR_GPIO_Port, MOTOR_LAUNCH_DIR_Pin, 1);
 
             // Wait for balls to finish firing first slot
@@ -507,6 +510,9 @@ void consoleCommand(uint8_t *ptr, int len)
 
             // Disable blower and launcher motors
             HAL_GPIO_WritePin(BLOWER_DIR_GPIO_Port, BLOWER_DIR_Pin, 0);
+            sConfigOC.Pulse = 0;
+            if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) { Error_Handler(); }
+            if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2) != HAL_OK){ Error_Handler(); }
             HAL_GPIO_WritePin(MOTOR_LAUNCH_DIR_GPIO_Port, MOTOR_LAUNCH_DIR_Pin, 0);
 
             // Move servo to center position
