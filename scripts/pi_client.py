@@ -6,6 +6,7 @@ from timeit import default_timer as timer
 import time
 
 kUSE_ANN = 0
+kUSE_PID = 1
 
 # Initialize field area, -1 Left, 0 Center, 1 Right
 kFIELD_AREA_INIT = -1
@@ -30,6 +31,10 @@ if __name__ == "__main__":
             robot.updateSensorValue()
             if kUSE_ANN:
                 robot.predict()
+                robot.execute()
+
+            if kUSE_PID:
+                robot.calcU()
                 robot.execute()
 
             robot.printSensorVals()

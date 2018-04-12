@@ -102,6 +102,11 @@ class Robot():
         # Initialize PID vars
         self.pid_e = np.zeros(3)    # Error
         self.pid_int = np.zeros(3)  # Integral
+        # PID gains th,   x,   y
+        self.Kp = np.array([3.3, 0.1, 0.1])
+        self.Ki = np.array([0.2, 0.0, 0.0])
+        self.Kd = np.array([1.1, 0.0, 0.0])
+
 
         # Sensor array. Each contains a running history, offset factor, scaling factor
         # Rangefinders: Units of mm
@@ -193,14 +198,17 @@ class Robot():
         y_des  = self.state[7].curVal()
         th_des = 0
 
-        setpoint = np.array([x_des, y_des, th_des])
-        measval = np.array([x, y, th])
+        setpoint = np.array([th_des, x_des, y_des])
+        measval = np.array([th, x, y])
 
-        new_error = setpoint - measured_value
-        self.pid_int = self.pid_int + new_error*dt
-        derivative = (new_error - self.pid_e)/dt
-        u = np.multiply(Kp,new_error) + np.multiply(Ki,self.pid_int) + np.multiply(Kd*derivative)
+        new_error = setpoint - measval
+        self.pid_int = self.pid_int + new_error*self.dt
+        der = (new_error - self.pid_e) / self.dt
+        self.u = np.multiply(self.Kp, new_error) + np.multiply(self.Ki, self.pid_int) + np.multiply(self.Kd, der)
         self.pid_e = new_error
+        print(self.u)
+        self.u[1] = 0
+        self.u[2] = 0
 
     def execute(self):
         self.mechanumCommand(self.u[1], self.u[2], self.u[0])
@@ -326,7 +334,7 @@ class Robot():
                 new_hopfl = 0
                 new_hopbl = 0
                 new_hopbr = 0
-                new_hopbl = 0
+                new_hopfr = 0
 
                 #-------------------------------------------------------------
                 # Update desired x,y coordinate
