@@ -80,7 +80,7 @@ class Robot():
         sm_states[self.sm_state](1)
 
     # State functions
-    def state0(self, func):  # Reset state, no movement until button pressed
+    def state0(self, func):  # Reset state
         if (func == 0):
             if (self.button_pressed):
                 self.button_pressed = False
@@ -94,10 +94,10 @@ class Robot():
             if data = 'T':
                 self.button_pressed = True
 
-    def state1(self, func): # Fire the five balls, only executed once
+    def state1(self, func): # Fire the five balls that the robot starts with
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len):
+            if (Timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -106,7 +106,9 @@ class Robot():
 
     def state2(self, func): # Move diagonally to BL preload position
         if (func == 0):
-            if ():
+            x_err = abs(self.pid_e[0])
+            x_dot = abs(self.state[1].curVal())
+            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot)): # e(x)=0, v(x)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -114,7 +116,9 @@ class Robot():
 
     def state3(self, func): # Move backwards to start loading BL
         if (func == 0):
-            if ():
+            y_err = abs(self.pid_e[1])
+            y_dot = abs(self.state[3].curVal())
+            if ((y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -123,7 +127,7 @@ class Robot():
     def state4(self, func): # Wait to finish loading BL
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len):
+            if (Timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -131,7 +135,9 @@ class Robot():
 
     def state5(self, func): # Move forward to load FL
         if (func == 0):
-            if ():
+            y_err = abs(self.pid_e[1])
+            y_dot = abs(self.state[3].curVal())
+            if ((y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -140,7 +146,7 @@ class Robot():
     def state6(self, func): # Wait to finish loading FL
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len):
+            if (Timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -148,7 +154,12 @@ class Robot():
 
     def state7(self, func): # Move diagonally to left of left ramp
         if (func == 0):
-            if ():
+            x_err = abs(self.pid_e[0])
+            x_dot = abs(self.state[1].curVal())
+            y_err = abs(self.pid_e[1])
+            y_dot = abs(self.state[3].curVal())
+            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot) \  # e(x)=0, v(x)=0
+                (y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -157,80 +168,125 @@ class Robot():
     def state8(self, func): # Rotate to A/B target + fire balls
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len):
+            if (Timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
-            self.
+            if (self.target_cycle = 0):
+                self.sm_des = self.POS_FIRE_B
+            else:
+                self.sm_des = self.POS_FIRE_A
+
     def state9(self, func): # Rotate to 0 degrees
         if (func == 0):
-            if ():
+            th_err = abs(self.pid_e[2])
+            th_dot = abs(self.state[4].curVal())
+            if ((th_err < self.epsilon_th) and (th_dot < self.epsilon_thdot)): # e(th)=0, v(th)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            self.sm_des = self.POS_RAMP_LEFT
+
     def state10(self, func): # Go to right of right ramp
         if (func == 0):
-            if ():
+            x_err = abs(self.pid_e[0])
+            if (x_err < self.epsilon_x): # e(x)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            self.sm_des = self.POS_RAMP_RIGHT
+
     def state11(self, func): # Move diagonally to BR preload position
         if (func == 0):
-            if ():
+            x_err = abs(self.pid_e[0])
+            x_dot = abs(self.state[1].curVal())
+            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot)): # e(x)=0, v(x)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            self.sm_des = self.POS_BR_PRELOAD
+
     def state12(self, func): # Move backwards to start loading BR
         if (func == 0):
-            if ():
+            y_err = abs(self.pid_e[1])
+            y_dot = abs(self.state[3].curVal())
+            if ((y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            self.sm_des = self.POS_BR_LOAD
+
     def state13(self, func): # Wait to finished loading BR
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len):
+            if (Timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            pass
+
     def state14(self, func): # Move forward to load FR
         if (func == 0):
-            if ():
+            y_err = abs(self.pid_e[1])
+            y_dot = abs(self.state[3].curVal())
+            if ((y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            self.sm_des = self.POS_FR_LOAD
+
     def state15(self, func): # Wait to finish loading FR
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len):
+            if (Timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            pass
+
     def state16(self, func): # Move diagonally to right of right ramp
         if (func == 0):
-            if ():
+            x_err = abs(self.pid_e[0])
+            x_dot = abs(self.state[1].curVal())
+            y_err = abs(self.pid_e[1])
+            y_dot = abs(self.state[3].curVal())
+            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot) \  # e(x)=0, v(x)=0
+                (y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            self.sm_des = self.POS_RAMP_RIGHT
+
     def state17(self, func): # Rotate to C/D target and fire
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len):
+            if (Timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            if (self.target_cycle = 0):
+                self.sm_des = self.POS_FIRE_D
+            else:
+                self.sm_des = self.POS_FIRE_C
+
     def state18(self, func): # Rotate to 0 degrees
         if (func == 0):
-            if ():
+            th_err = abs(self.pid_e[2])
+            th_dot = abs(self.state[4].curVal())
+            if ((th_err < self.epsilon_th) and (th_dot < self.epsilon_thdot)): # e(th)=0, v(th)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
+            self.sm_des = self.POS_RAMP_RIGHT
+
     def state19(self, func): # Go to left of left ramp
         if (func == 0):
-            if ():
+            x_err = abs(self.pid_e[0])
+            if (x_err < self.epsilon_x): # e(x)=0
                 self.sm_state = 2   # Go back to state 2
                 self.sm_time_start = timer()
         elif (func == 1):
+            self.sm_des = self.POS_RAMP_LEFT
 
     # State mapping
     sm_states = { 0 : state0,
@@ -285,9 +341,9 @@ class Robot():
         self.state[6].push(field_area_init)
 
         ''' Control array U. All values range from -2 to 2
-        [0]: angle control
-        [1]: x translation
-        [2]: y translation
+        [0]: x translation
+        [1]: y translation
+        [2]: angle control
         [3]: launch command (-1 for fire left, +1 for fire right, 0 for nothing)
         '''
         self.u = np.zeros(5)
@@ -295,10 +351,10 @@ class Robot():
         # Initialize PID vars
         self.pid_e = np.zeros(3)    # Error
         self.pid_int = np.zeros(3)  # Integral
-        # PID gains th,   x,   y
-        self.Kp = np.array([8.0, 0.0, 3.66])
-        self.Ki = np.array([0.6, 0.0, 0.0])
-        self.Kd = np.array([4.0, 0.0, 0.08])
+        # PID gains          x,    y,    th
+        self.Kp = np.array([0.00, 3.66, 8.00])
+        self.Ki = np.array([0.00, 0.00, 0.60])
+        self.Kd = np.array([0.00, 0.08, 4.00])
 
         # State machine vars
         self.sm_state = 0
@@ -395,10 +451,10 @@ class Robot():
         th     = self.state[4].curVal()
         x_des  = self.state[6].curVal()
         y_des  = self.state[7].curVal()
-        th_des = 0
+        th_des = self.state[8].curVal()
 
-        setpoint = np.array([th_des, x_des, y_des])
-        measval = np.array([th, x, y])
+        setpoint = np.array([x_des, y_des th_des])
+        measval = np.array([x, y, th])
 
         new_error = setpoint - measval
         self.pid_int = self.pid_int + new_error*self.dt
@@ -406,10 +462,10 @@ class Robot():
         self.u = np.multiply(self.Kp, new_error) + np.multiply(self.Ki, self.pid_int) + np.multiply(self.Kd, der)
         self.pid_e = new_error
         print(self.u)
-        self.u[1] = 0
+        self.u[0] = 0
 
     def execute(self):
-        self.mechanumCommand(self.u[1], self.u[2], self.u[0])
+        self.mechanumCommand(self.u[0], self.u[1], self.u[2])
 
     def updateSensorValue(self):
         if (self.console.ser_available):
