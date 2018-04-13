@@ -5,6 +5,7 @@ from robot import *
 from timeit import default_timer as timer
 import time
 
+kUSE_SIM = 1
 kUSE_ANN = 0
 kUSE_PID = 1
 
@@ -12,17 +13,18 @@ kUSE_PID = 1
 kFIELD_AREA_INIT = -1
 
 if __name__ == "__main__":
-    robot = Robot(kFIELD_AREA_INIT)
+    robot = Robot(kUSE_SIM, kFIELD_AREA_INIT)
+    robot.env.setWallCollision(True)
+    robot.env.reset()
+
     if robot.openSerial():
         print("Failed to connect to robot. Quitting.")
         quit()
-
     if kUSE_ANN:
         print("Initializing neural nets...")
         robot.initializeNets()
-
-    print("Zeroing theta...")
-    robot.zeroTheta()
+    #print("Zeroing theta...")
+    #robot.zeroTheta()
     print("Initializing desired x/y...")
     robot.initXY()
     print("Ready to go!")
@@ -36,16 +38,24 @@ if __name__ == "__main__":
                 robot.execute()
 
             if kUSE_PID:
+                robot.stateMachineCycle()
                 robot.calcU()
                 robot.execute()
 
-            robot.printSensorVals()
+#            robot.printSensorVals()
+            robot.render()
+
             end = timer()
 #            print("Cycle time: %0.1f" % (1000*(end - start)))
 
-            # Limit speed to 20 Hz
-            while (timer() < start + 0.050):
-                pass
+            if kUSE_SIM:
+                # Limit speed
+                while (timer() < start + 0.350):
+                    pass
+            else:
+                # Limit speed to 20 Hz
+                while (timer() < start + 0.050):
+                    pass
     except KeyboardInterrupt:
         pass
 

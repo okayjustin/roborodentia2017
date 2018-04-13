@@ -16,7 +16,7 @@ import time
 from timeit import default_timer as timer
 
 # Thresholds for changing areas
-kAREA_THRESHOLD = 900
+kAREA_THRESHOLD = 950
 kAREA_HYST = 50
 
 MAX_PWM_CYCLES = 2047
@@ -65,6 +65,27 @@ class Robot():
     fire_left_cmd = 'LL\n'.encode('utf-8')
     fire_right_cmd = 'LR\n'.encode('utf-8')
 
+    # Set point positions
+    POS_BL_PRELOAD = [360, 400, 0]
+    POS_BL_LOAD = [360, 350, 0]
+    POS_FL_LOAD = [360, 850, 0]
+    POS_BR_PRELOAD = [2200, 400, 0]
+    POS_BR_LOAD = [2200, 350, 0]
+    POS_FR_LOAD = [2200, 850, 0]
+    POS_RAMP_LEFT = [800, 610, 0]
+    POS_RAMP_RIGHT = [1600, 610, 0]
+    POS_FIRE_A = [POS_RAMP_LEFT[0], POS_RAMP_LEFT[1], 0 ]
+    POS_FIRE_B = [POS_RAMP_LEFT[0], POS_RAMP_LEFT[1], -10 ]
+    POS_FIRE_C = [POS_RAMP_RIGHT[0], POS_RAMP_RIGHT[1], 10 ]
+    POS_FIRE_D = [POS_RAMP_RIGHT[0], POS_RAMP_RIGHT[1], 0 ]
+
+    epsilon_x = 10
+    epsilon_xdot = 0.5
+    epsilon_y = 10
+    epsilon_ydot = 0.5
+    epsilon_th = 0.1
+    epsilon_thdot = 0.01
+
     # State machine
     def stateMachineCycle(self):
         self.sm_state_prev = self.sm_state
@@ -74,10 +95,12 @@ class Robot():
             self.sm_state = 0
         else:
             # Update the state to the next state
-            sm_states[self.sm_state](0)
+            self.sm_states[self.sm_state](self, 0)
+
+        print("State: %d" % self.sm_state)
 
         # Run the next state
-        sm_states[self.sm_state](1)
+        self.sm_states[self.sm_state](self, 1)
 
     # State functions
     def state0(self, func):  # Reset state
@@ -91,13 +114,13 @@ class Robot():
             self.console.ser.reset_input_buffer()
             self.console.ser.write(self.check_btn_cmd)
             data = self.console.ser.readline()
-            if data = 'T':
+            if data == 'T':
                 self.button_pressed = True
 
     def state1(self, func): # Fire the five balls that the robot starts with
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len): # Time condition
+            if (timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -127,7 +150,7 @@ class Robot():
     def state4(self, func): # Wait to finish loading BL
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len): # Time condition
+            if (timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -146,7 +169,7 @@ class Robot():
     def state6(self, func): # Wait to finish loading FL
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len): # Time condition
+            if (timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -158,7 +181,7 @@ class Robot():
             x_dot = abs(self.state[1].curVal())
             y_err = abs(self.pid_e[1])
             y_dot = abs(self.state[3].curVal())
-            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot) \  # e(x)=0, v(x)=0
+            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot) and # e(x)=0, v(x)=0
                 (y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
@@ -168,11 +191,11 @@ class Robot():
     def state8(self, func): # Rotate to A/B target + fire balls
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len): # Time condition
+            if (timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
-            if (self.target_cycle = 0):
+            if (self.target_cycle == 0):
                 self.sm_des = self.POS_FIRE_B
             else:
                 self.sm_des = self.POS_FIRE_A
@@ -219,7 +242,7 @@ class Robot():
     def state13(self, func): # Wait to finished loading BR
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len): # Time condition
+            if (timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -238,7 +261,7 @@ class Robot():
     def state15(self, func): # Wait to finish loading FR
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len): # Time condition
+            if (timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
@@ -250,7 +273,7 @@ class Robot():
             x_dot = abs(self.state[1].curVal())
             y_err = abs(self.pid_e[1])
             y_dot = abs(self.state[3].curVal())
-            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot) \  # e(x)=0, v(x)=0
+            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot) and  # e(x)=0, v(x)=0
                 (y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
                 self.sm_state += 1
                 self.sm_time_start = timer()
@@ -260,11 +283,11 @@ class Robot():
     def state17(self, func): # Rotate to C/D target and fire
         time_len = 1. # second
         if (func == 0):
-            if (Timer() - self.sm_time_start > time_len): # Time condition
+            if (timer() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
                 self.sm_time_start = timer()
         elif (func == 1):
-            if (self.target_cycle = 0):
+            if (self.target_cycle == 0):
                 self.sm_des = self.POS_FIRE_D
             else:
                 self.sm_des = self.POS_FIRE_C
@@ -311,7 +334,12 @@ class Robot():
                  19 : state19
     }
 
-    def __init__(self, field_area_init):
+    def __init__(self, simulate, field_area_init):
+        self.sim = simulate
+        if (self.sim):
+            import robotsim
+            self.env = robotsim.SimRobot(train = 'sim')
+
         self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
 
         # robot setup
@@ -352,16 +380,25 @@ class Robot():
         self.pid_e = np.zeros(3)    # Error
         self.pid_int = np.zeros(3)  # Integral
         # PID gains          x,    y,    th
-        self.Kp = np.array([0.00, 3.66, 8.00])
-        self.Ki = np.array([0.00, 0.00, 0.60])
-        self.Kd = np.array([0.00, 0.08, 4.00])
+        if (self.sim):
+            self.Kp = np.array([0.10, 0.10, 8.00])
+            self.Ki = np.array([0.00, 0.00, 0.00])
+            self.Kd = np.array([0.00, 0.000, 0.02])
+        else:
+            self.Kp = np.array([0.00, 3.66, 8.00])
+            self.Ki = np.array([0.00, 0.00, 0.60])
+            self.Kd = np.array([0.00, 0.08, 4.00])
 
         # State machine vars
-        self.sm_state = 0
+        if (self.sim):
+            self.sm_state = 1
+        else:
+            self.sm_state = 0
         self.sm_state_prev = 0
         self.button_pressed = False
         self.target_cycle = 0 # 0 for targets B/D, 1 for targets A/C
         self.sm_des = np.array([0., 0., 0.])  # Desired X, Y, Theta
+        self.sm_time_start = timer()
 
         # Sensor array. Each contains a running history, offset factor, scaling factor
         # Rangefinders: Units of mm
@@ -394,10 +431,14 @@ class Robot():
 #        self.kalman_dy = RunningStat(self.max_hist_len)
 
     def openSerial(self):
-        return self.console.openSerial()
+        if (self.sim):
+            return 0
+        else:
+            return self.console.openSerial()
 
     def close(self):
-        self.console.close()
+        if (not self.sim):
+            self.console.close()
         try:
             self.angle_ann.close()
             self.transx_ann.close()
@@ -453,22 +494,47 @@ class Robot():
         y_des  = self.state[7].curVal()
         th_des = self.state[8].curVal()
 
-        setpoint = np.array([x_des, y_des th_des])
+        setpoint = np.array([x_des, y_des, th_des])
         measval = np.array([x, y, th])
+
+#        print("PID set point: ", end='')
+#        print(setpoint)
+#        print("PID meas point: ", end='')
+#        print(measval)
 
         new_error = setpoint - measval
         self.pid_int = self.pid_int + new_error*self.dt
         der = (new_error - self.pid_e) / self.dt
         self.u = np.multiply(self.Kp, new_error) + np.multiply(self.Ki, self.pid_int) + np.multiply(self.Kd, der)
         self.pid_e = new_error
-        print(self.u)
-        self.u[0] = 0
+#        print("PID Error: ", end='')
+#        print(self.pid_e)
+#        print("PID Ctrls: ", end='')
+#        print(self.u)
 
     def execute(self):
-        self.mechanumCommand(self.u[0], self.u[1], self.u[2])
+        if (self.sim):
+            self.env.step([self.u[0], -self.u[1], -self.u[2]])
+            #self.env.step([-1, 0, -self.u[2]])
+        else:
+            self.mechanumCommand(self.u[0], self.u[1], self.u[2])
+
+    def render(self):
+        self.env.render()
 
     def updateSensorValue(self):
-        if (self.console.ser_available):
+        if (self.sim):
+            self.env.updateObservation()
+            sim_obs = self.env.obs
+
+            # Simulate rangefinder readings
+            for i in range(0, 4):
+                self.sensors[i][0].push(sim_obs[i*2])
+
+            # Simulate heading, no need to simulated individual magnetometer and accel readings
+            sim_th = np.arctan2(sim_obs[9], sim_obs[8])
+
+        else:
             try:
                 # Request data
                 while True:
@@ -481,141 +547,152 @@ class Robot():
                     else:
 #                        print("Malformed UART data. Len: %d. Retrying..." % len(data))
                         pass
-
-                # Start next sensor collection
-                self.console.ser.write(self.sense_cmd)
-
-                for i in range(0, self.num_sensors):
-                    val = int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True)
-                    # Push data * scaling factor + offset - DC_calibration
-                    self.sensors[i][0].push(val * self.sensors[i][1] + self.sensors[i][2])
-
-                # Log data
-                if (self.data_log_enable):
-                    self.data_log += '%0.1f, %0.1f, %d, %d, \n' \
-                            % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
-
-                # Update state array-----------------------------------------------------
-                y_front = self.sensors[0][0].curVal()
-                x_left  = self.sensors[1][0].curVal()
-                y_back  = self.sensors[2][0].curVal()
-                x_right = self.sensors[3][0].curVal()
-                magx    = self.sensors[4][0].curVal()
-                magy    = self.sensors[5][0].curVal()
-                magz    = self.sensors[6][0].curVal()
-                accelx  = self.sensors[7][0].curVal()
-                accely  = self.sensors[8][0].curVal()
-                accelz  = self.sensors[9][0].curVal()
-
-                x       = self.state[0].curVal()
-                xdot    = self.state[1].curVal()
-                y       = self.state[2].curVal()
-                ydot    = self.state[3].curVal()
-                th      = self.state[4].curVal()
-                thdot   = self.state[5].curVal()
-                x_des   = self.state[6].curVal()
-                y_des   = self.state[7].curVal()
-                th_des  = self.state[8].curVal()
-                hopbl   = self.state[9].curVal()
-                hopbr   = self.state[10].curVal()
-                hopfr   = self.state[11].curVal()
-                field_area = self.state[12].curVal()
-
-                #-------------------------------------------------------------
-                # Update field area
-                if (field_area == -1): # Left field
-                    if (x_left > kAREA_THRESHOLD):
-                        new_field_area = 0
-                    else:
-                        new_field_area = -1
-                elif (field_area == 1): # Right field
-                    if (x_right > kAREA_THRESHOLD):
-                        new_field_area = 0
-                    else:
-                        new_field_area = 1
-                else:                   # Center field
-                    if (x_left < kAREA_THRESHOLD):
-                        new_field_area = -1
-                    elif (x_right < 900):
-                        new_field_area = 1
-                    else:
-                        new_field_area = 0
-
-                #-------------------------------------------------------------
-                # Update x, and xdot states
-                if (new_field_area == -1):      # Left
-                    new_x = x_left
-                elif (new_field_area == -1):    # Right
-                    new_x = x_left
-                else:                           # Center
-                    new_x = (x_left + FIELD_XMAX - x_right) / 2.0
-                new_xdot = self.getVel(0)
-
-                #-------------------------------------------------------------
-                # Update y and ydot states
-                new_y = (y_back + FIELD_YMAX - y_front) / 2.0
-                new_ydot = self.getVel(2)
-
-                #-------------------------------------------------------------
-                # Update theta and thetadot states
-                self.prev_th_part = self.th_part
-
-                # Returns a heading from +pi to -pi
-                # Tilt compensated heading calculation
-                pitch = np.arcsin(-accelx)
-                if (np.cos(pitch) == 0.):
-                    pitch = 0.
-                roll = np.arcsin(accely / np.cos(pitch))
-                # print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
-                xh = magx * np.cos(pitch) + magz * np.sin(pitch)
-                yh = magx * np.sin(roll) * np.sin(pitch) + magy * np.cos(roll) - \
-                        magz * np.sin(roll) * np.cos(pitch)
-                self.th_part = np.arctan2(yh, xh)
-
-                # If previous theta is near the upper limit (between 90 and 180 degrees) and
-                # current theta is past the 180 degree limit (which means between -90 and -180 degrees)
-                if (self.prev_th_part > np.pi/2 and self.th_part < -np.pi/2):
-                    self.full_th += 1  # Increment full rotation count
-                # If previous th is near the lower limit (between -90 and -180 degrees)
-                elif (self.prev_th_part < -np.pi/2 and self.th_part > np.pi/2):
-                    self.full_th -= 1  # Increment full rotation count
-
-                new_th = self.full_th*2*np.pi + self.th_part - self.th_start
-                new_thdot = self.getVel(4)
-
-                #-------------------------------------------------------------
-                # Update hopper states
-                new_hopbl = 0
-                new_hopbr = 0
-                new_hopfr = 0
-
-                #-------------------------------------------------------------
-                # Update desired x,y coordinate
-                new_x_des = self.sm_des[0]
-                new_y_des = self.sm_des[1]
-                new_th_des = self.sm_des[2]
-
-                #-------------------------------------------------------------
-                # Push new states
-                self.state[0].push(new_x)
-                self.state[1].push(new_xdot)
-                self.state[2].push(new_y)
-                self.state[3].push(new_ydot)
-                self.state[4].push(new_th)
-                self.state[5].push(new_thdot)
-                self.state[6].push(new_x_des)
-                self.state[7].push(new_y_des)
-                self.state[8].push(new_th_des)
-                self.state[9].push(new_hopbl)
-                self.state[10].push(new_hopbr)
-                self.state[11].push(new_hopfr)
-                self.state[12].push(new_field_area)
             except OSError:
                 print("Error")
 
+            # Start next sensor collection
+            self.console.ser.write(self.sense_cmd)
+
+            for i in range(0, self.num_sensors):
+                val = int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True)
+                # Push data * scaling factor + offset - DC_calibration
+                self.sensors[i][0].push(val * self.sensors[i][1] + self.sensors[i][2])
+
+        # Log data
+        if (self.data_log_enable):
+            self.data_log += '%0.1f, %0.1f, %d, %d, \n' \
+                    % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
+
+        # Update state array-----------------------------------------------------
+        y_front = self.sensors[0][0].curVal()
+        x_left  = self.sensors[1][0].curVal()
+        y_back  = self.sensors[2][0].curVal()
+        x_right = self.sensors[3][0].curVal()
+        if (not self.sim):
+            magx    = self.sensors[4][0].curVal()
+            magy    = self.sensors[5][0].curVal()
+            magz    = self.sensors[6][0].curVal()
+            accelx  = self.sensors[7][0].curVal()
+            accely  = self.sensors[8][0].curVal()
+            accelz  = self.sensors[9][0].curVal()
+
+        x       = self.state[0].curVal()
+        xdot    = self.state[1].curVal()
+        y       = self.state[2].curVal()
+        ydot    = self.state[3].curVal()
+        th      = self.state[4].curVal()
+        thdot   = self.state[5].curVal()
+        x_des   = self.state[6].curVal()
+        y_des   = self.state[7].curVal()
+        th_des  = self.state[8].curVal()
+        hopbl   = self.state[9].curVal()
+        hopbr   = self.state[10].curVal()
+        hopfr   = self.state[11].curVal()
+        field_area = self.state[12].curVal()
+
+        #-------------------------------------------------------------
+        # Update field area
+        if (field_area == -1): # Left field
+            if (x_left > kAREA_THRESHOLD):
+                new_field_area = 0
+            else:
+                new_field_area = -1
+        elif (field_area == 1): # Right field
+            if (x_right > kAREA_THRESHOLD):
+                new_field_area = 0
+            else:
+                new_field_area = 1
+        else:                   # Center field
+            if (x_left < kAREA_THRESHOLD):
+                new_field_area = -1
+            elif (x_right < kAREA_THRESHOLD):
+                new_field_area = 1
+            else:
+                new_field_area = 0
+
+        #-------------------------------------------------------------
+        # Update x, and xdot states
+        if (new_field_area == -1):      # Left
+            new_x = x_left + LEN_X / 2
+        elif (new_field_area == 1):    # Right
+            new_x = FIELD_XMAX - x_right - LEN_X / 2
+        else:                           # Center
+            new_x = (x_left + FIELD_XMAX - x_right) / 2.0
+        new_xdot = self.getVel(0)
+
+        print("Field area: %d" % field_area)
+        print("newX: %0.3f, actual: %0.3f error: %0.3f x_left: %0.3f, x_right: %0.3f" % (new_x, self.env.state[0], new_x - self.env.state[0], x_left, x_right))
+        #-------------------------------------------------------------
+        # Update y and ydot states
+        new_y = (y_back + FIELD_YMAX - y_front) / 2.0
+        new_ydot = self.getVel(2)
+
+        #-------------------------------------------------------------
+        # Update theta and thetadot states
+        self.prev_th_part = self.th_part
+        if (self.sim):
+            self.th_part = sim_th
+        else:
+            self.th_part = self.calcTiltCompass(magx, magy, magz, accelx, accely, accelz)
+
+        # If previous theta is near the upper limit (between 90 and 180 degrees) and
+        # current theta is past the 180 degree limit (which means between -90 and -180 degrees)
+        if (self.prev_th_part > np.pi/2 and self.th_part < -np.pi/2):
+            self.full_th += 1  # Increment full rotation count
+        # If previous th is near the lower limit (between -90 and -180 degrees)
+        elif (self.prev_th_part < -np.pi/2 and self.th_part > np.pi/2):
+            self.full_th -= 1  # Increment full rotation count
+
+        new_th = self.full_th*2*np.pi + self.th_part - self.th_start
+        new_thdot = self.getVel(4)
+
+        #-------------------------------------------------------------
+        # Update hopper states
+        new_hopbl = 0
+        new_hopbr = 0
+        new_hopfr = 0
+
+        #-------------------------------------------------------------
+        # Update desired x,y coordinate
+        new_x_des = self.sm_des[0]
+        new_y_des = self.sm_des[1]
+        new_th_des = self.sm_des[2]
+
+        #-------------------------------------------------------------
+        # Push new states
+        self.state[0].push(new_x)
+        self.state[1].push(new_xdot)
+        self.state[2].push(new_y)
+        self.state[3].push(new_ydot)
+        self.state[4].push(new_th)
+        self.state[5].push(new_thdot)
+        self.state[6].push(new_x_des)
+        self.state[7].push(new_y_des)
+        self.state[8].push(new_th_des)
+        self.state[9].push(new_hopbl)
+        self.state[10].push(new_hopbr)
+        self.state[11].push(new_hopfr)
+        self.state[12].push(new_field_area)
+
+    def calcTiltCompass(self, magx, magy, magz, accelx, accely, accelz):
+        # Returns a heading from +pi to -pi
+        # Tilt compensated heading calculation
+        pitch = np.arcsin(-accelx)
+        if (np.cos(pitch) == 0.):
+            pitch = 0.
+        roll = np.arcsin(accely / np.cos(pitch))
+        # print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
+        xh = magx * np.cos(pitch) + magz * np.sin(pitch)
+        yh = magx * np.sin(roll) * np.sin(pitch) + magy * np.cos(roll) - \
+                magz * np.sin(roll) * np.cos(pitch)
+        th = np.arctan2(yh, xh)
+
+        return th
+
+
     # Calculates the average of forwards and backwards derivatives
     def getVel(self, stateIdx):
-        deriv_len = 4
+        deriv_len = 1
         future = self.state[stateIdx].vals[0]
         past = self.state[stateIdx].vals[deriv_len]
         return (future - past)/(deriv_len * self.dt)

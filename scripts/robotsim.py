@@ -54,7 +54,7 @@ class SimRobot():
             state_start = [FIELD_XMAX/2, 0, FIELD_YMAX/2, 0, 0, 0, FIELD_XMAX/2, FIELD_YMAX/2, 0, 0, 0, 0]):
         # For rendering
         self.viewer = None
-        self.dt = 0.01
+        self.dt = 0.05
         self.train = train
         self.state_start = np.array(state_start)
 
@@ -91,9 +91,11 @@ class SimRobot():
         self.sensors.append(SimActualXY('y', FIELD_XMAX, FIELD_YMAX, LEN_X, LEN_Y))                             # 8
 
         # Sensor indices to include in observation for each network
-        self.obs_settings = [[0],    # Angle network
-                             [7],    # Trans X network
-                             [8]]    # Trans Y network
+        self.obs_settings = [[0],         # Angle network
+                             [7],         # Trans X network
+                             [8],         # Trans Y network
+                             [],          # Pathfind network
+                             [1,2,3,4,0]] # General simulation
 
         # Add sensors depending on what network is being trained
         if (train == 'angle'):
@@ -130,7 +132,11 @@ class SimRobot():
 
         elif (train == 'pathfind'):
             self.net_index = 3
-            pass
+
+        if (train == 'sim'):
+            act_dim = 3
+            self.net_index = 4
+
 
         # Calculate the number of elements in the observation array
         obs_high = np.array([])
@@ -165,9 +171,9 @@ class SimRobot():
         self.last_u = np.zeros(self.u_len)
 
         if (randomize):
-            high = np.array([(FIELD_XMAX - LEN_X)/2, 0,
-                             (FIELD_YMAX - LEN_Y)/2, 0,
-                             0.8, 0,
+            high = np.array([(FIELD_XMAX - LEN_X)/2, 0, # X, xdot
+                             (FIELD_YMAX - LEN_Y)/2, 0, # Y, ydot
+                             0.8, 0,                    # th, thdot
                              (FIELD_XMAX - LEN_X)/2, (FIELD_YMAX - LEN_Y)/2,
                              0, 0, 0, 0])
             self.state = self.state_start + np.random.uniform(low=-high, high=high)
@@ -201,7 +207,14 @@ class SimRobot():
         # u[2]: Desired field y velocity
         # u[3]: Desired field x position
         # u[4]: Desired field y position
-        if self.train == 'angle':
+        if self.train == 'sim':
+            u_transx = [u[0]]
+            u_transy = [u[1]]
+            u_angle = [u[2]]
+            u_desx = [0]
+            u_desy = [0]
+
+        elif self.train == 'angle':
             u_angle = u
             u_transx = [0]
             u_transy = [0]
@@ -284,16 +297,15 @@ class SimRobot():
             y_space = abs(self.diag_len * np.sin(np.pi - self.diag_angle + angle))
 
         # Assign new x,y location
-        newx = np.clip(x + newxdot * dt, x_space - 150, FIELD_XMAX - x_space + 150)
-        newy = np.clip(y + newydot * dt, y_space - 150, FIELD_YMAX - y_space + 150)
+        newx = np.clip(x + newxdot * dt, x_space - 0, FIELD_XMAX - x_space + 0)
+        newy = np.clip(y + newydot * dt, y_space - 0, FIELD_YMAX - y_space + 0)
         # else:
-        #     newx = x + newxdot * dt
-        #     newy = y + newydot * dt
+        #newx = x + newxdot * dt
+        #newy = y + newydot * dt
 
         # Determine new desired location
         newxdes = np.interp(u[3], [-2,2], [LEN_X/2, FIELD_XMAX - LEN_X/2])
         newydes = np.interp(u[4], [-2,2], [LEN_Y/2, FIELD_YMAX - LEN_Y/2])
-
 
         # Determine hopper states
         newhopfl = False
@@ -308,7 +320,10 @@ class SimRobot():
         self.updateObservation()
 
         # Get reward from executing the action
-        self.updateReward()
+        if (self.train == 'sim'):
+            pass
+        else:
+            self.updateReward()
         #time.sleep(0.2)
         # End of sim
         if (self.time > TIME_MAX):
