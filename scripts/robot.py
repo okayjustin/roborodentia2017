@@ -13,7 +13,7 @@ import time
 #from filterpy.kalman import MerweScaledSigmaPoints
 #from filterpy.kalman import UnscentedKalmanFilter as UKF
 #import pygame as pygame
-#from timeit import default_timer as timer
+from timeit import default_timer as timer
 
 # Thresholds for changing areas
 kAREA_THRESHOLD = 900
@@ -61,6 +61,199 @@ FIELD_YMAX = 1219.2  # Maximum y dimension in mm
 class Robot():
     sense_cmd = 'A\n'.encode('utf-8')
     data_cmd = 'B\n'.encode('utf-8')
+    check_btn_cmd = 'Z\n'.encode('utf-8')
+    fire_left_cmd = 'LL\n'.encode('utf-8')
+    fire_right_cmd = 'LR\n'.encode('utf-8')
+
+    # State machine
+    def stateMachineCycle(self):
+        self.sm_state_prev = self.sm_state
+
+        # Check if time exceeds 3 minutes
+        if False: #(time > 3 minutes):
+            self.sm_state = 0
+        else:
+            # Update the state to the next state
+            sm_states[self.sm_state](0)
+
+        # Run the next state
+        sm_states[self.sm_state](1)
+
+    # State functions
+    def state0(self, func):  # Reset state, no movement until button pressed
+        if (func == 0):
+            if (self.button_pressed):
+                self.button_pressed = False
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            # Check if button has been pressed
+            self.console.ser.reset_input_buffer()
+            self.console.ser.write(self.check_btn_cmd)
+            data = self.console.ser.readline()
+            if data = 'T':
+                self.button_pressed = True
+
+    def state1(self, func): # Fire the five balls, only executed once
+        time_len = 1. # second
+        if (func == 0):
+            if (Timer() - self.sm_time_start > time_len):
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            if (self.sm_state_prev == 0):
+                self.console.ser.write(self.fire_left_cmd)
+
+    def state2(self, func): # Move diagonally to BL preload position
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            self.sm_des = self.POS_BL_PRELOAD
+
+    def state3(self, func): # Move backwards to start loading BL
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            self.sm_des = self.POS_BL_LOAD
+
+    def state4(self, func): # Wait to finish loading BL
+        time_len = 1. # second
+        if (func == 0):
+            if (Timer() - self.sm_time_start > time_len):
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            pass
+
+    def state5(self, func): # Move forward to load FL
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            self.sm_des = self.POS_FL_LOAD
+
+    def state6(self, func): # Wait to finish loading FL
+        time_len = 1. # second
+        if (func == 0):
+            if (Timer() - self.sm_time_start > time_len):
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            pass
+
+    def state7(self, func): # Move diagonally to left of left ramp
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            self.sm_des = self.POS_RAMP_LEFT
+
+    def state8(self, func): # Rotate to A/B target + fire balls
+        time_len = 1. # second
+        if (func == 0):
+            if (Timer() - self.sm_time_start > time_len):
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+            self.
+    def state9(self, func): # Rotate to 0 degrees
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state10(self, func): # Go to right of right ramp
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state11(self, func): # Move diagonally to BR preload position
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state12(self, func): # Move backwards to start loading BR
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state13(self, func): # Wait to finished loading BR
+        time_len = 1. # second
+        if (func == 0):
+            if (Timer() - self.sm_time_start > time_len):
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state14(self, func): # Move forward to load FR
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state15(self, func): # Wait to finish loading FR
+        time_len = 1. # second
+        if (func == 0):
+            if (Timer() - self.sm_time_start > time_len):
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state16(self, func): # Move diagonally to right of right ramp
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state17(self, func): # Rotate to C/D target and fire
+        time_len = 1. # second
+        if (func == 0):
+            if (Timer() - self.sm_time_start > time_len):
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state18(self, func): # Rotate to 0 degrees
+        if (func == 0):
+            if ():
+                self.sm_state += 1
+                self.sm_time_start = timer()
+        elif (func == 1):
+    def state19(self, func): # Go to left of left ramp
+        if (func == 0):
+            if ():
+                self.sm_state = 2   # Go back to state 2
+                self.sm_time_start = timer()
+        elif (func == 1):
+
+    # State mapping
+    sm_states = { 0 : state0,
+                  1 : state1,
+                  2 : state2,
+                  3 : state3,
+                  4 : state4,
+                  5 : state5,
+                  6 : state6,
+                  7 : state7,
+                  8 : state8,
+                  9 : state9,
+                 10 : state10,
+                 11 : state11,
+                 12 : state12,
+                 13 : state13,
+                 14 : state14,
+                 15 : state15,
+                 16 : state16,
+                 17 : state17,
+                 18 : state18,
+                 19 : state19
+    }
 
     def __init__(self, field_area_init):
         self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
@@ -82,7 +275,7 @@ class Robot():
         [5]: th dot
         [6]: desired x
         [7]: desired y
-        [8]: Hopper FL state
+        [8]: desired theta
         [9]: Hopper BL state
         [10]: Hopper BR state
         [11]: Hopper FR state:
@@ -103,10 +296,16 @@ class Robot():
         self.pid_e = np.zeros(3)    # Error
         self.pid_int = np.zeros(3)  # Integral
         # PID gains th,   x,   y
-        self.Kp = np.array([8.0, 0.0, 0.09])
+        self.Kp = np.array([8.0, 0.0, 3.66])
         self.Ki = np.array([0.6, 0.0, 0.0])
-        self.Kd = np.array([4.0, 0.0, 0.02])
+        self.Kd = np.array([4.0, 0.0, 0.08])
 
+        # State machine vars
+        self.sm_state = 0
+        self.sm_state_prev = 0
+        self.button_pressed = False
+        self.target_cycle = 0 # 0 for targets B/D, 1 for targets A/C
+        self.sm_des = np.array([0., 0., 0.])  # Desired X, Y, Theta
 
         # Sensor array. Each contains a running history, offset factor, scaling factor
         # Rangefinders: Units of mm
@@ -208,7 +407,6 @@ class Robot():
         self.pid_e = new_error
         print(self.u)
         self.u[1] = 0
-        self.u[2] = 0
 
     def execute(self):
         self.mechanumCommand(self.u[1], self.u[2], self.u[0])
@@ -261,7 +459,7 @@ class Robot():
                 thdot   = self.state[5].curVal()
                 x_des   = self.state[6].curVal()
                 y_des   = self.state[7].curVal()
-                hopfl   = self.state[8].curVal()
+                th_des  = self.state[8].curVal()
                 hopbl   = self.state[9].curVal()
                 hopbr   = self.state[10].curVal()
                 hopfr   = self.state[11].curVal()
@@ -331,15 +529,15 @@ class Robot():
 
                 #-------------------------------------------------------------
                 # Update hopper states
-                new_hopfl = 0
                 new_hopbl = 0
                 new_hopbr = 0
                 new_hopfr = 0
 
                 #-------------------------------------------------------------
                 # Update desired x,y coordinate
-                new_x_des = 0
-                new_y_des = FIELD_YMAX / 2
+                new_x_des = self.sm_des[0]
+                new_y_des = self.sm_des[1]
+                new_th_des = self.sm_des[2]
 
                 #-------------------------------------------------------------
                 # Push new states
@@ -351,7 +549,7 @@ class Robot():
                 self.state[5].push(new_thdot)
                 self.state[6].push(new_x_des)
                 self.state[7].push(new_y_des)
-                self.state[8].push(new_hopfl)
+                self.state[8].push(new_th_des)
                 self.state[9].push(new_hopbl)
                 self.state[10].push(new_hopbr)
                 self.state[11].push(new_hopfr)
@@ -361,12 +559,10 @@ class Robot():
 
     # Calculates the average of forwards and backwards derivatives
     def getVel(self, stateIdx):
+        deriv_len = 4
         future = self.state[stateIdx].vals[0]
-        current = self.state[stateIdx].vals[1]
-        past = self.state[stateIdx].vals[2]
-        forward_deriv = future - current
-        backwards_deriv = current - past
-        return (forward_deriv + backwards_deriv)/(2*self.dt)
+        past = self.state[stateIdx].vals[deriv_len]
+        return (future - past)/(deriv_len * self.dt)
 
 
     # Recalculates the starting theta position to "zero out" theta
@@ -376,13 +572,14 @@ class Robot():
 
         # Get the theta averaged over a number of samples
         num_pts = 100
-        #theta = []
         for i in range(0, num_pts):
             self.updateSensorValue()
-        #    theta.append(self.state[4].curVal())
             time.sleep(0.01)
-        self.th_start = self.state[4].mean() #np.sum(theta) / num_pts
+        self.th_start = self.state[4].winMean()
 
+    def initXY(self):
+        self.sm_des[0] = self.state[0].winMean()
+        self.sm_des[1] = self.state[2].winMean()
 
     def printSensorVals(self):
         print("Sensor values:")
