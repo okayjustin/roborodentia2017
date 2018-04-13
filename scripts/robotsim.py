@@ -173,7 +173,7 @@ class SimRobot():
         if (randomize):
             high = np.array([(FIELD_XMAX - LEN_X)/2, 0, # X, xdot
                              (FIELD_YMAX - LEN_Y)/2, 0, # Y, ydot
-                             0.8, 0,                    # th, thdot
+                             0.0, 0,                    # th, thdot
                              (FIELD_XMAX - LEN_X)/2, (FIELD_YMAX - LEN_Y)/2,
                              0, 0, 0, 0])
             self.state = self.state_start + np.random.uniform(low=-high, high=high)

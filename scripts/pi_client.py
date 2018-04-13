@@ -23,10 +23,8 @@ if __name__ == "__main__":
     if kUSE_ANN:
         print("Initializing neural nets...")
         robot.initializeNets()
-    #print("Zeroing theta...")
-    #robot.zeroTheta()
-    print("Initializing desired x/y...")
-    robot.initXY()
+    print("Initializing desired x, y, theta...")
+    robot.initXYT()
     print("Ready to go!")
 
     try:
@@ -42,15 +40,15 @@ if __name__ == "__main__":
                 robot.calcU()
                 robot.execute()
 
-#            robot.printSensorVals()
-            robot.render()
-
+            robot.printSensorVals()
             end = timer()
 #            print("Cycle time: %0.1f" % (1000*(end - start)))
 
             if kUSE_SIM:
+                robot.incTime()
+                robot.render()
                 # Limit speed
-                while (timer() < start + 0.350):
+                while (timer() < start + 0.150):
                     pass
             else:
                 # Limit speed to 20 Hz
