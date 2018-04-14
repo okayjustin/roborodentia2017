@@ -78,6 +78,7 @@ volatile uint8_t wd_reset = 0;
 uint8_t data_updating = 0;
 unsigned char data_packet[21];
 volatile uint8_t sensor_update_req = 0;
+volatile uint8_t dbg_btn_latch = 0;
 
 // WARNING!! Do not spam the UART or else Raspberry PI doesn't communicate well
 //#define DATA_PRINT_EN
@@ -158,7 +159,9 @@ int main(void)
     printf("Initializing rangefinders...\r\n");
     VL53L0X_begin();
 
-    // Move servo to center position
+    // Set servo default position
+//    sConfigOC.Pulse = SERVO1_PULSE_2;
+//    if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
     if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
 
   /* USER CODE END 2 */
@@ -175,6 +178,7 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+
         // Reset watchdog start time if flag is set
         if (wd_reset == 1){
             wd_start = TimeStamp_Get();  // Units of 0.1 ms based on Timer5
@@ -204,6 +208,9 @@ int main(void)
                 }
             }
         }
+
+        // Read debug button
+        dbg_btn_latch = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) && dbg_btn_latch;
 
         if (sensor_update_req == 1){
             int i;
@@ -360,6 +367,12 @@ void consoleCommand(uint8_t *ptr, int len)
         transmitUART(data_packet, 21);
     }
      
+    // Z for send data in binary
+    else if (ptr[0] == 'Z' || ptr[0] == 'z') {
+        printf("%d\n", dbg_btn_latch);
+        dbg_btn_latch = 1;
+    }
+
     // D for send data in human readable format
     else if (ptr[0] == 'D' || ptr[0] == 'd') {
         printf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
@@ -454,9 +467,8 @@ void consoleCommand(uint8_t *ptr, int len)
         if (ptr[1] == 'L' || ptr[1] == 'l' || ptr[1] == 'R' || ptr[1] == 'r'){
             uint32_t cur_time = 0;
             uint32_t cur_time2 = 0;
-            uint32_t wiggle_amt = 100;
-            uint32_t wiggle_period = 1000;
-
+            uint32_t wiggle_amt = 200;
+            uint32_t wiggle_period = 1200;
 
             TIM_OC_InitTypeDef sConfigOC;
             sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -472,7 +484,7 @@ void consoleCommand(uint8_t *ptr, int len)
 
             // Wait for balls to finish firing first slot
             cur_time = TimeStamp_Get();
-            while (TimeStamp_Get() - cur_time < 13000){
+            while (TimeStamp_Get() - cur_time < 20000){
                 // Move servo to release first slot and jiggle it
                 sConfigOC.Pulse = slot_pulse1 + wiggle_amt;
                 if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
@@ -491,7 +503,7 @@ void consoleCommand(uint8_t *ptr, int len)
 
             // Wait for balls to finish firing second slot
             cur_time = TimeStamp_Get();
-            while (TimeStamp_Get() - cur_time < 27000){
+            while (TimeStamp_Get() - cur_time < 20000){
                 // Move servo to release first slot and jiggle it
                 sConfigOC.Pulse = slot_pulse2 + wiggle_amt;
                 if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }

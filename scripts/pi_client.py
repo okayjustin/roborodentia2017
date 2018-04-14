@@ -10,12 +10,12 @@ kUSE_ANN = 0
 kUSE_PID = 1
 
 # Initialize field area, -1 Left, 0 Center, 1 Right
-kFIELD_AREA_INIT = -1
+kFIELD_AREA_INIT = 1
 
 if __name__ == "__main__":
     robot = Robot(kUSE_SIM, kFIELD_AREA_INIT)
-    robot.env.setWallCollision(True)
-    robot.env.reset()
+    if kUSE_SIM:
+        robot.env.setWallCollision(True)
 
     if robot.openSerial():
         print("Failed to connect to robot. Quitting.")
@@ -48,7 +48,7 @@ if __name__ == "__main__":
                 robot.incTime()
                 robot.render()
                 # Limit speed
-                while (timer() < start + 0.150):
+                while (timer() < start + 0.050):
                     pass
             else:
                 # Limit speed to 20 Hz

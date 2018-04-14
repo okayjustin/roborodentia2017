@@ -65,26 +65,44 @@ class Robot():
     fire_left_cmd = 'LL\n'.encode('utf-8')
     fire_right_cmd = 'LR\n'.encode('utf-8')
 
+    # Time delay lengths
+    TIME_LAUNCHER = 3
+    TIME_LOAD = 0.5
+
     # Set point positions
-    POS_BL_PRELOAD = [360, 400, 0]
-    POS_BL_LOAD = [360, 350, 0]
-    POS_FL_LOAD = [360, 850, 0]
-    POS_BR_PRELOAD = [2200, 400, 0]
-    POS_BR_LOAD = [2200, 350, 0]
-    POS_FR_LOAD = [2200, 850, 0]
-    POS_RAMP_LEFT = [800, 610, 0]
-    POS_RAMP_RIGHT = [1600, 610, 0]
-    POS_FIRE_A = [POS_RAMP_LEFT[0], POS_RAMP_LEFT[1], 0.0]
-    POS_FIRE_B = [POS_RAMP_LEFT[0], POS_RAMP_LEFT[1], -0.3]
-    POS_FIRE_C = [POS_RAMP_RIGHT[0], POS_RAMP_RIGHT[1], 0.3]
-    POS_FIRE_D = [POS_RAMP_RIGHT[0], POS_RAMP_RIGHT[1], 0.0]
+    POSX_LEFT_SIDE = 190
+    POSX_RAMP_LEFT = 560
+    POSX_RAMP_RIGHT = FIELD_XMAX - POSX_RAMP_LEFT
+    POSX_RIGHT_SIDE = FIELD_XMAX - POSX_LEFT_SIDE
+    POSX_START = 2150
+
+    POSY_FRONT = 860
+    POSY_CENTER = 620
+    POSY_PREBACK = 350
+    POSY_BACK = 280
+
+    POS_BL_PRELOAD  = [POSX_LEFT_SIDE,  POSY_PREBACK, 0]
+    POS_BL_LOAD     = [POSX_LEFT_SIDE,  POSY_BACK,    0]
+    POS_FL_LOAD     = [POSX_LEFT_SIDE,  POSY_FRONT,   0]
+
+    POS_RAMP_LEFT   = [POSX_RAMP_LEFT,  POSY_CENTER,  0]
+    POS_RAMP_RIGHT  = [POSX_RAMP_RIGHT, POSY_CENTER,  0]
+
+    POS_BR_PRELOAD  = [POSX_RIGHT_SIDE, POSY_PREBACK, 0]
+    POS_BR_LOAD     = [POSX_RIGHT_SIDE, POSY_BACK,    0]
+    POS_FR_LOAD     = [POSX_RIGHT_SIDE, POSY_FRONT,   0]
+
+    POS_FIRE_A      = [POSX_RAMP_RIGHT, POSY_CENTER, -0.020]
+    POS_FIRE_B      = [POSX_RAMP_RIGHT, POSY_CENTER, +0.070]
+    POS_FIRE_C      = [POSX_RAMP_LEFT,  POSY_CENTER, -0.005]
+    POS_FIRE_D      = [POSX_RAMP_LEFT,  POSY_CENTER, +0.005]
 
     epsilon_x = 10
-    epsilon_xdot = 0.5
+    epsilon_xdot = 5.0
     epsilon_y = 10
-    epsilon_ydot = 0.5
-    epsilon_th = 0.1
-    epsilon_thdot = 0.01
+    epsilon_ydot = 5.0
+    epsilon_th = np.radians(1)
+    epsilon_thdot = np.radians(1)
 
     def getTime(self):
         if (self.sim):
@@ -102,6 +120,9 @@ class Robot():
         # Check if time exceeds 3 minutes
         if False: #(time > 3 minutes):
             self.sm_state = 0
+        elif ((self.button_pressed) and (self.sm_state != 0)):
+            # If debug button pressed, go to reset
+            self.sm_state = 0
         else:
             # Update the state to the next state
             self.sm_states[self.sm_state](self, 0)
@@ -115,19 +136,15 @@ class Robot():
     def state0(self, func):  # Reset state
         if (func == 0):
             if (self.button_pressed):
-                self.button_pressed = False
-                self.sm_state += 1
+                self.sm_state = 11
+                print("Going to state 1")
+                quit()
                 self.sm_time_start = self.getTime()
         elif (func == 1):
-            # Check if button has been pressed
-            self.console.ser.reset_input_buffer()
-            self.console.ser.write(self.check_btn_cmd)
-            data = self.console.ser.readline()
-            if data == 'T':
-                self.button_pressed = True
+            pass
 
     def state1(self, func): # Fire the five balls that the robot starts with
-        time_len = 1. # second
+        time_len = self.TIME_LAUNCHER # second
         if (func == 0):
             if (self.getTime() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
@@ -157,7 +174,7 @@ class Robot():
             self.setDesired(self.POS_BL_LOAD)
 
     def state4(self, func): # Wait to finish loading BL
-        time_len = 1. # second
+        time_len = self.TIME_LOAD # second
         if (func == 0):
             if (self.getTime() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
@@ -179,7 +196,7 @@ class Robot():
             self.setDesired(self.POS_FL_LOAD)
 
     def state6(self, func): # Wait to finish loading FL
-        time_len = 1. # second
+        time_len = self.TIME_LOAD # second
         if (func == 0):
             if (self.getTime() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
@@ -200,17 +217,21 @@ class Robot():
         elif (func == 1):
             self.setDesired(self.POS_RAMP_LEFT)
 
-    def state8(self, func): # Rotate to A/B target + fire balls
-        time_len = 1. # second
+    def state8(self, func): # Rotate to C/D target + fire balls
+        time_len = self.TIME_LAUNCHER # second
         if (func == 0):
             if (self.getTime() - self.sm_time_start > time_len): # Time condition
+                if (self.target_cycle == 0):
+                    self.target_cycle = 1
+                else:
+                    self.target_cycle = 0
                 self.sm_state += 1
                 self.sm_time_start = self.getTime()
         elif (func == 1):
             if (self.target_cycle == 0):
-                self.setDesired(self.POS_FIRE_B)
+                self.setDesired(self.POS_FIRE_D)
             else:
-                self.setDesired(self.POS_FIRE_A)
+                self.setDesired(self.POS_FIRE_C)
 
     def state9(self, func): # Rotate to 0 degrees
         if (func == 0):
@@ -252,7 +273,7 @@ class Robot():
             self.setDesired(self.POS_BR_LOAD)
 
     def state13(self, func): # Wait to finished loading BR
-        time_len = 1. # second
+        time_len = self.TIME_LOAD # second
         if (func == 0):
             if (self.getTime() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
@@ -271,7 +292,7 @@ class Robot():
             self.setDesired(self.POS_FR_LOAD)
 
     def state15(self, func): # Wait to finish loading FR
-        time_len = 1. # second
+        time_len = self.TIME_LOAD # second
         if (func == 0):
             if (self.getTime() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
@@ -292,22 +313,17 @@ class Robot():
         elif (func == 1):
             self.setDesired(self.POS_RAMP_RIGHT)
 
-    def state17(self, func): # Rotate to C/D target and fire
-        time_len = 1. # second
+    def state17(self, func): # Rotate to A/B target and fire
+        time_len = self.TIME_LAUNCHER # second
         if (func == 0):
             if (self.getTime() - self.sm_time_start > time_len): # Time condition
                 self.sm_state += 1
-                if (self.target_cycle == 0):
-                    self.target_cycle = 1
-                else:
-                    self.target_cycle = 0
-                self.setDesired(self.POS_FIRE_C)
                 self.sm_time_start = self.getTime()
         elif (func == 1):
             if (self.target_cycle == 0):
-                self.setDesired(self.POS_FIRE_D)
+                self.setDesired(self.POS_FIRE_B)
             else:
-                self.setDesired(self.POS_FIRE_C)
+                self.setDesired(self.POS_FIRE_A)
 
     def state18(self, func): # Rotate to 0 degrees
         if (func == 0):
@@ -355,7 +371,8 @@ class Robot():
         self.sim = simulate
         if (self.sim):
             import robotsim
-            self.env = robotsim.SimRobot(train = 'sim')
+            state_start = [self.POSX_START, 0, self.POSY_CENTER, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            self.env = robotsim.SimRobot(train = 'sim', state_start = state_start)
 
         self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
 
@@ -384,7 +401,7 @@ class Robot():
         [12]: field area (-1 for left, 0 for center platform, 1 for right)
         '''
         self.state = [RunningStat(3) for x in range(0,13)]
-        self.state[6].push(field_area_init)
+        self.state[12].push(field_area_init)
 
         ''' Control array U. All values range from -2 to 2
         [0]: x translation
@@ -399,9 +416,9 @@ class Robot():
         self.pid_int = np.zeros(3)  # Integral
         # PID gains          x,    y,    th
         if (self.sim):
-            self.Kp = np.array([0.10, 0.10, 8.00])
+            self.Kp = np.array([0.05, 0.05, 8.00])
             self.Ki = np.array([0.00, 0.00, 0.00])
-            self.Kd = np.array([0.00, 0.000, 0.02])
+            self.Kd = np.array([0.0001, 0.0001, 0.02])
         else:
             self.Kp = np.array([0.00, 3.66, 8.00])
             self.Ki = np.array([0.00, 0.00, 0.60])
@@ -409,7 +426,7 @@ class Robot():
 
         # State machine vars
         if (self.sim):
-            self.sm_state = 1
+            self.sm_state = 11
         else:
             self.sm_state = 0
         self.sm_state_prev = 0
@@ -527,8 +544,8 @@ class Robot():
 
         # Disable x and y movement when rotated
         if (th_des != 0):
-            u[0] = 0
-            u[1] = 0
+            self.u[0] = 0
+            self.u[1] = 0
 #        print("PID Error: ", end='')
 #        print(self.pid_e)
 #        print("PID Ctrls: ", end='')
@@ -558,6 +575,15 @@ class Robot():
 
         else:
             try:
+                # Check if button has been pressed
+                self.console.ser.reset_input_buffer()
+                self.console.ser.write(self.check_btn_cmd)
+                data = self.console.ser.readline()
+                if data == b'0\n':
+                    self.button_pressed = True
+                else:
+                    self.button_pressed = False
+
                 # Request data
                 while True:
                     self.console.ser.reset_input_buffer()
