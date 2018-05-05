@@ -133,8 +133,8 @@ typedef struct lsm303MagData_s
     int32_t x_filt;
     int32_t y_filt;
     int32_t z_filt;
-//    int16_t orientation;   // In units of degrees
-//    int16_t orientation_prev;   // In units of degrees
+    int16_t orientation;   // In units of degrees
+    int16_t orientation_prev;   // In units of degrees
 } lsm303MagData;
 
 void IMU_begin (void);

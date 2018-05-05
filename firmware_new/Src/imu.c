@@ -113,13 +113,13 @@ void magnetometer_read() {
 //        magData.z = -1 * (int16_t)((read_data[3]) | read_data[2] << 8);  
 //    } while (magData.x == 10 && magData.y == 0 && magData.z == 0);
 
-//    float x_uT = (float)(magData.x);
-//    float y_uT = (float)(magData.y);
-//    float z_uT = (float)(magData.z);
+    float x_uT = (float)(magData.x);
+    float y_uT = (float)(magData.y);
+    float z_uT = (float)(magData.z);
 
     // Calculate orientation
-//    magData.orientation_prev = magData.orientation;
-//    magData.orientation = (int16_t)((atan2(y_uT, x_uT) * 1800.0 / M_PI + 1800.0));
+    magData.orientation_prev = magData.orientation;
+    magData.orientation = (int16_t)((atan2(y_uT, x_uT) * 1800.0 / M_PI + 1800.0));
 }
 
 

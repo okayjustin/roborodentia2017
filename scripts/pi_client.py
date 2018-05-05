@@ -5,9 +5,10 @@ from robot import *
 from timeit import default_timer as timer
 import time
 
-kUSE_SIM = 1
+kUSE_SIM = 0
 kUSE_ANN = 0
-kUSE_PID = 1
+kUSE_SM = 0
+kTUNE_PID = 1
 
 # Initialize field area, -1 Left, 0 Center, 1 Right
 kFIELD_AREA_INIT = 1
@@ -29,31 +30,43 @@ if __name__ == "__main__":
 
     try:
         while True:
-            start = timer()
-            robot.updateSensorValue()
-            if kUSE_ANN:
-                robot.predict()
-                robot.execute()
+            try:
+                while True:
+                    start = timer()
+                    robot.updateSensorValue()
+                    if kUSE_ANN:
+                        robot.predict()
+                        robot.execute()
+                    if kUSE_SM:
+                        robot.stateMachineCycle()
 
-            if kUSE_PID:
-                robot.stateMachineCycle()
-                robot.calcU()
-                robot.execute()
+                    robot.calcU()
+                    robot.execute()
 
-            robot.printSensorVals()
-            end = timer()
+                    robot.printSensorVals()
+                    end = timer()
 #            print("Cycle time: %0.1f" % (1000*(end - start)))
 
-            if kUSE_SIM:
-                robot.incTime()
-                robot.render()
-                # Limit speed
-                while (timer() < start + 0.050):
+                    if kUSE_SIM:
+                        robot.incTime()
+                        robot.render()
+                        # Limit speed
+                        while (timer() < start + 0.050):
+                            pass
+                    else:
+                        # Limit speed to 20 Hz
+                        while (timer() < start + 0.050):
+                            pass
+            except KeyboardInterrupt:
+                if kTUNE_PID:
                     pass
-            else:
-                # Limit speed to 20 Hz
-                while (timer() < start + 0.050):
-                    pass
+                else:
+                    raise KeyboardInterrupt
+
+            x_des = int(input("\rEnter desired X: "))
+            y_des = int(input("Enter desired Y: "))
+            robot.state[6].push(x_des)
+            robot.state[7].push(y_des)
     except KeyboardInterrupt:
         pass
 

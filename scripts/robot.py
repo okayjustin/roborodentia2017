@@ -104,6 +104,17 @@ class Robot():
     epsilon_th = np.radians(1)
     epsilon_thdot = np.radians(1)
 
+    motor_scale = [1.0, 0.9, 1.0, 0.9]
+
+    # PID gains          x,    y,    th
+    #    Kp = np.array([0.05, 0.05, 8.00])
+    #    Ki = np.array([0.00, 0.00, 0.00])
+    #    Kd = np.array([0.0001, 0.0001, 0.02])
+    Kp = np.array([0.008, 0.008, 3.00])
+    Ki = np.array([0.002, 0.002, 0.20])
+    Kd = np.array([0.0007, 0.0007, 0.30])
+
+
     def getTime(self):
         if (self.sim):
             return self.time
@@ -414,15 +425,6 @@ class Robot():
         # Initialize PID vars
         self.pid_e = np.zeros(3)    # Error
         self.pid_int = np.zeros(3)  # Integral
-        # PID gains          x,    y,    th
-        if (self.sim):
-            self.Kp = np.array([0.05, 0.05, 8.00])
-            self.Ki = np.array([0.00, 0.00, 0.00])
-            self.Kd = np.array([0.0001, 0.0001, 0.02])
-        else:
-            self.Kp = np.array([0.00, 3.66, 8.00])
-            self.Ki = np.array([0.00, 0.00, 0.60])
-            self.Kd = np.array([0.00, 0.08, 4.00])
 
         # State machine vars
         if (self.sim):
@@ -546,10 +548,12 @@ class Robot():
         if (th_des != 0):
             self.u[0] = 0
             self.u[1] = 0
-#        print("PID Error: ", end='')
-#        print(self.pid_e)
-#        print("PID Ctrls: ", end='')
-#        print(self.u)
+        self.u[0] = 0
+        self.u[2] = 0
+        print("PID Error: ", end='')
+        print(self.pid_e)
+        print("PID Ctrls: ", end='')
+        print(self.u)
 
     def execute(self):
         if (self.sim):
@@ -758,17 +762,14 @@ class Robot():
         self.state[7].push(self.state[2].winMean())
 
     def printSensorVals(self):
-        print("Sensor values:")
-#        for i in range(0,self.num_sensors):
-#            print("%+03.3f" % (self.sensors[i][0].curVal()), end = '| ')
-#        print("")
-#        return
-
-        for i in range(0,10):
-            print("%+0.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
+        print("Rangefinder values:")
+        for i in range(0,4):
+            print("\tRF%d: %+0.3f | Var: %+0.3f" % (i, self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
         print("State values:")
-        for i in range(0, 12):
-            print("%+0.3f" % self.state[i].curVal())
+        print("\tX: %+0.3f | Xdot: %+0.3f" % (self.state[0].curVal(), self.state[1].curVal()))
+        print("\tY: %+0.3f | Ydot: %+0.3f" % (self.state[2].curVal(), self.state[3].curVal()))
+        print("\tTh: %+0.3f | Thdot: %+0.3f" % (self.state[4].curVal(), self.state[5].curVal()))
+        print("\tXdes: %+0.3f | Ydes: %+0.3f | Thdes: %+0.3f" % (self.state[6].curVal(), self.state[7].curVal(), self.state[8].curVal()))
 
     def loopAngle(self, angle):
         while ((angle >= 360.0) or (angle < 0.0)):
@@ -797,12 +798,20 @@ class Robot():
         maxval = np.amax(np.absolute(v))
         v = v / maxval if (maxval > 1) else v
         self.motorSpeeds = v
+        print("Motor speeds: ", end='')
+        print(self.motorSpeeds)
 
         # Send motor control commands
-        self.cmdMotor([int(x * MAX_PWM_CYCLES) for x in self.motorSpeeds])
+        motorCmd = []
+        for i in range(0,4):
+            motorCmd.append(int(self.motorSpeeds[i] * MAX_PWM_CYCLES * self.motor_scale[i]))
+        self.cmdMotor(motorCmd)
 
     # speed : 0 to 2047, duty cycle value out of 2047
     def cmdMotor(self, motorCmd):
+
+        print("Motor cmd: ", end='')
+        print(motorCmd)
         for cmd in motorCmd:
             if (checkValue(cmd, -MAX_PWM_CYCLES, MAX_PWM_CYCLES)):
                 raise ValueError("motorCmd is not within bounds")

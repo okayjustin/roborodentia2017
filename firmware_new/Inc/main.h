@@ -155,6 +155,15 @@
 
 #define WD_LEN 10000 // In units of 0.1 ms
 
+#define POSX_LEFT_SIDE 190
+#define POSX_RAMP_LEFT 560 
+#define POSX_RAMP_RIGHT 1878
+#define POSX_RIGHT_SIDE 2248
+#define POSY_FRONT 830
+#define POSY_CENTER 620
+#define POSY_PREBACK 350
+#define POSY_BACK 280
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
