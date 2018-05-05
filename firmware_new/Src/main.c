@@ -42,6 +42,7 @@
 #include "dma.h"
 #include "i2c.h"
 #include "tim.h"
+#include "math.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -76,13 +77,14 @@ struct motor_t* motorConfigsPtr = motorConfigs;
 volatile uint8_t wd_reset = 0;
 
 uint8_t data_updating = 0;
-unsigned char data_packet[21];
+#define DATA_PACKET_LEN 11
+unsigned char data_packet[DATA_PACKET_LEN];
 volatile uint8_t sensor_update_req = 0;
 volatile uint8_t dbg_btn_latch = 0;
 
 // WARNING!! Do not spam the UART or else Raspberry PI doesn't communicate well
 //#define DATA_PRINT_EN
-//
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -171,7 +173,7 @@ int main(void)
     uint32_t wd_start = 0;
     uint32_t cur_time = 0;
     uint8_t wd_en = 0;
-    data_packet[20] = '\n';
+    data_packet[DATA_PACKET_LEN - 1] = '\n';
 
     while (1)
     {
@@ -223,30 +225,9 @@ int main(void)
             sensor_update_req = 0;
         }
 
-        magnetometer_read();
-        data_packet[ 8] = (magData.x >> 8) & 0xFF;
-        data_packet[ 9] =  magData.x       & 0xFF;
-        data_packet[10] = (magData.y >> 8) & 0xFF;
-        data_packet[11] =  magData.y       & 0xFF;
-        data_packet[12] = (magData.z >> 8) & 0xFF;
-        data_packet[13] =  magData.z       & 0xFF;
-
-        accelerometer_read();
-        data_packet[14] = (accelData.x >> 8) & 0xFF;
-        data_packet[15] =  accelData.x       & 0xFF;
-        data_packet[16] = (accelData.y >> 8) & 0xFF;
-        data_packet[17] =  accelData.y       & 0xFF;
-        data_packet[18] = (accelData.z >> 8) & 0xFF;
-        data_packet[19] =  accelData.z       & 0xFF;
-
-    //        gyro_read();
-//        data_packet[20] = (gyroData.x >> 8) & 0xFF;
-//        data_packet[21] =  gyroData.x       & 0xFF;
-//        data_packet[22] = (gyroData.y >> 8) & 0xFF;
-//        data_packet[23] =  gyroData.y       & 0xFF;
-//        data_packet[24] = (gyroData.z >> 8) & 0xFF;
-//        data_packet[25] =  gyroData.z       & 0xFF;
-//
+        calc_compass();
+        data_packet[ 8] = (heading >> 8) & 0xFF;
+        data_packet[ 9] =  heading       & 0xFF;
     }
   /* USER CODE END 3 */
 
@@ -364,7 +345,7 @@ void consoleCommand(uint8_t *ptr, int len)
 
     // B for send data in binary
     else if (ptr[0] == 'B' || ptr[0] == 'b') {
-        transmitUART(data_packet, 21);
+        transmitUART(data_packet, DATA_PACKET_LEN);
     }
      
     // Z for send data in binary
@@ -375,12 +356,15 @@ void consoleCommand(uint8_t *ptr, int len)
 
     // D for send data in human readable format
     else if (ptr[0] == 'D' || ptr[0] == 'd') {
-        printf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", 
-                rangeData[0], rangeData[1], 
-                rangeData[2], rangeData[3], 
+        printf("%f,%f,%f,%f,%f,%f,%d\r\n", 
                 magData.x, magData.y, magData.z,
-                accelData.x, accelData.y, accelData.z, 
-                gyroData.x, gyroData.y, gyroData.z);
+                accelData.x, accelData.y, accelData.z, heading);
+//        printf("%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%d\r\n", 
+//                rangeData[0], rangeData[1], 
+//                rangeData[2], rangeData[3], 
+//                magData.x_raw, magData.y_raw, magData.z_raw,
+//                magData.x, magData.y, magData.z,
+//                accelData.x, accelData.y, accelData.z, heading);
     }
     
     // M for motor control commands

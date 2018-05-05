@@ -8,7 +8,7 @@ import time
 kUSE_SIM = 0
 kUSE_ANN = 0
 kUSE_SM = 0
-kTUNE_PID = 1
+kTUNE_PID = 0
 
 # Initialize field area, -1 Left, 0 Center, 1 Right
 kFIELD_AREA_INIT = 1
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         print("Initializing neural nets...")
         robot.initializeNets()
     print("Initializing desired x, y, theta...")
-    robot.initXYT()
+#    robot.initXYT()
     print("Ready to go!")
 
     try:
@@ -40,10 +40,10 @@ if __name__ == "__main__":
                     if kUSE_SM:
                         robot.stateMachineCycle()
 
-                    robot.calcU()
-                    robot.execute()
+#                    robot.calcU()
+#                    robot.execute()
 
-                    robot.printSensorVals()
+#                    robot.printSensorVals()
                     end = timer()
 #            print("Cycle time: %0.1f" % (1000*(end - start)))
 

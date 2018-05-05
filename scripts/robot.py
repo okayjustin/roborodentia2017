@@ -25,18 +25,6 @@ BUTTON_PWM_CYCLES = 1700
 # CALIBRATION VALUES, offset and scale
 RANGE_S = 0.965025066
 RANGE_O = -3.853474266
-MAG_S_X = 1 / 504.66782878550237
-MAG_S_Y = 1 / 625.6254797589748
-MAG_S_Z = 1 / 458.78374856276935
-MAG_O_X = 55 * -MAG_S_X
-MAG_O_Y = 249 * -MAG_S_Y
-MAG_O_Z = 142 * -MAG_S_Z
-ACC_S_X = 1 / 1030.9868342172633
-ACC_S_Y = 1 / 1059.8985318881996
-ACC_S_Z = 1 / 1063.2448503229036
-ACC_O_X = 30 * -ACC_S_X
-ACC_O_Y = 0 * -ACC_S_Y
-ACC_O_Z = -76 * -ACC_S_Z
 GYR_S_X = 1 / 131.068
 GYR_S_Y = 1 / 131.068
 GYR_S_Z = 1 / 131.068
@@ -438,19 +426,12 @@ class Robot():
 
         # Sensor array. Each contains a running history, offset factor, scaling factor
         # Rangefinders: Units of mm
-        # Magnetometer: Units of  uTesla?. Arbitrary since converted to heading later
-        # Accelerometer: Units of g's (gravity)
         # Gyro: Units of degrees per second
         self.sensors = [[RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 0     0
                         [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 1     1
                         [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 2     2
                         [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 3     3
-                        [RunningStat(self.max_hist_len), MAG_S_X, MAG_O_X], # MAG X    4
-                        [RunningStat(self.max_hist_len), MAG_S_Y, MAG_O_Y], # MAG Y    5
-                        [RunningStat(self.max_hist_len), MAG_S_Z, MAG_O_Z], # MAG Z    6
-                        [RunningStat(self.max_hist_len), ACC_S_X, ACC_O_X], # ACCEL X  7
-                        [RunningStat(self.max_hist_len), ACC_S_Y, ACC_O_Y], # ACCEL Y  8
-                        [RunningStat(self.max_hist_len), ACC_S_Z, ACC_O_Z]] # ACCEL Z  9
+                        [RunningStat(self.max_hist_len),1/10000.,     0.0]] # Heading
         self.num_sensors = len(self.sensors)
 #                        [RunningStat(self.max_hist_len), GYR_S_X, GYR_O_X, 0.], # GYRO X  10
 #                        [RunningStat(self.max_hist_len), GYR_S_Y, GYR_O_Y, 0.], # GYRO Y  11
@@ -597,7 +578,7 @@ class Robot():
                         if (data[-1] == 10):
                             break
                     else:
-#                        print("Malformed UART data. Len: %d. Retrying..." % len(data))
+                        print("Malformed UART data. Len: %d. Retrying..." % len(data))
                         pass
             except OSError:
                 print("Error")
@@ -621,12 +602,8 @@ class Robot():
         y_back  = self.sensors[2][0].curVal()
         x_right = self.sensors[3][0].curVal()
         if (not self.sim):
-            magx    = self.sensors[4][0].curVal()
-            magy    = self.sensors[5][0].curVal()
-            magz    = self.sensors[6][0].curVal()
-            accelx  = self.sensors[7][0].curVal()
-            accely  = self.sensors[8][0].curVal()
-            accelz  = self.sensors[9][0].curVal()
+            heading = self.sensors[4][0].curVal()
+            print(heading)
 
         x       = self.state[0].curVal()
         xdot    = self.state[1].curVal()
@@ -685,7 +662,7 @@ class Robot():
         if (self.sim):
             self.th_part = sim_th
         else:
-            self.th_part = self.calcTiltCompass(magx, magy, magz, accelx, accely, accelz)
+            self.th_part = heading
 
         # If previous theta is near the upper limit (between 90 and 180 degrees) and
         # current theta is past the 180 degree limit (which means between -90 and -180 degrees)
@@ -716,21 +693,6 @@ class Robot():
         self.state[10].push(new_hopbr)
         self.state[11].push(new_hopfr)
         self.state[12].push(new_field_area)
-
-    def calcTiltCompass(self, magx, magy, magz, accelx, accely, accelz):
-        # Returns a heading from +pi to -pi
-        # Tilt compensated heading calculation
-        pitch = np.arcsin(-accelx)
-        if (np.cos(pitch) == 0.):
-            pitch = 0.
-        roll = np.arcsin(accely / np.cos(pitch))
-        # print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
-        xh = magx * np.cos(pitch) + magz * np.sin(pitch)
-        yh = magx * np.sin(roll) * np.sin(pitch) + magy * np.cos(roll) - \
-                magz * np.sin(roll) * np.cos(pitch)
-        th = np.arctan2(yh, xh)
-
-        return th
 
     # Sets a new desired X,Y,Th
     def setDesired(self, coordinates):

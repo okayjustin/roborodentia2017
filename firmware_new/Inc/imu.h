@@ -13,6 +13,19 @@
 #define FILTER_SHIFT_ACCEL 12
 #define FILTER_SHIFT_MAG 2 
 
+#define MAG_S_X  (1 / 504.66782878550237)
+#define MAG_S_Y  (1 / 625.6254797589748)
+#define MAG_S_Z  (1 / 458.78374856276935)
+#define MAG_O_X  (55 * -MAG_S_X)
+#define MAG_O_Y  (249 * -MAG_S_Y)
+#define MAG_O_Z  (142 * -MAG_S_Z)
+#define ACC_S_X  (1 / 1030.9868342172633)
+#define ACC_S_Y  (1 / 1059.8985318881996)
+#define ACC_S_Z  (1 / 1063.2448503229036)
+#define ACC_O_X  (30 * -ACC_S_X)
+#define ACC_O_Y  (0 * -ACC_S_Y)
+#define ACC_O_Z  (-76 * -ACC_S_Z)
+
 typedef enum
 {                                                
     L3G4200D_REG_WHO_AM_I               = 0x0F, 
@@ -117,33 +130,39 @@ typedef struct l3g4200dGyroData_s
 
 typedef struct lsm303AccelData_s
 {
-    int16_t x;
-    int16_t y;
-    int16_t z;
+    int16_t x_raw;
+    int16_t y_raw;
+    int16_t z_raw;
     int32_t x_filt;
     int32_t y_filt;
     int32_t z_filt;
+    double x;
+    double y;
+    double z;
 } lsm303AccelData;
 
 typedef struct lsm303MagData_s
 {
-    int16_t x;
-    int16_t y;
-    int16_t z;
+    int16_t x_raw;
+    int16_t y_raw;
+    int16_t z_raw;
     int32_t x_filt;
     int32_t y_filt;
     int32_t z_filt;
-    int16_t orientation;   // In units of degrees
-    int16_t orientation_prev;   // In units of degrees
+    double x;
+    double y;
+    double z;
 } lsm303MagData;
 
 void IMU_begin (void);
 void gyro_read (void);
 void accelerometer_read (void);
 void magnetometer_read (void);
+void calc_compass(void);
 
 l3g4200dGyroData gyroData;     // Last read gyro data will be available here
 lsm303AccelData accelData;    // Last read accelerometer data will be available here
 lsm303MagData magData;        // Last read magnetometer data will be available here
+int16_t heading;              // Tilt compensated compass heading in tenths of degree
 
 #endif

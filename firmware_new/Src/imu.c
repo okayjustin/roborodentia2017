@@ -80,13 +80,13 @@ void accelerometer_read() {
     accelData.z_filt = accelData.z_filt - (accelData.z_filt >> FILTER_SHIFT_ACCEL) + 
         ((int16_t)((read_data[5] << 8) | read_data[4]) >> 4);  
 
-    accelData.x = -1 * (accelData.x_filt >> FILTER_SHIFT_ACCEL);
-    accelData.y = accelData.y_filt >> FILTER_SHIFT_ACCEL;
-    accelData.z = accelData.z_filt >> FILTER_SHIFT_ACCEL;
+    accelData.x_raw = -1 * (accelData.x_filt >> FILTER_SHIFT_ACCEL);
+    accelData.y_raw = accelData.y_filt >> FILTER_SHIFT_ACCEL;
+    accelData.z_raw = accelData.z_filt >> FILTER_SHIFT_ACCEL;
 
-//    accelData.x = -1 * (int16_t)((read_data[1] << 8) | read_data[0]);
-//    accelData.y = (int16_t)((read_data[3] << 8) | read_data[2]);
-//    accelData.z = (int16_t)((read_data[5] << 8) | read_data[4]);
+    accelData.x = -1 * (double)accelData.x_filt * ACC_S_X / pow(2,FILTER_SHIFT_ACCEL) + ACC_O_X; 
+    accelData.y = (double)accelData.y_filt * ACC_S_Y / pow(2,FILTER_SHIFT_ACCEL) + ACC_O_Y; 
+    accelData.z = (double)accelData.z_filt * ACC_S_Z / pow(2,FILTER_SHIFT_ACCEL) + ACC_O_Z; 
 }
 
 void magnetometer_read() {
@@ -104,22 +104,35 @@ void magnetometer_read() {
         magData.z_filt = magData.z_filt - (magData.z_filt >> FILTER_SHIFT_MAG) + 
             (int16_t)((read_data[2] << 8) | read_data[3]);  
 
-        magData.x = magData.x_filt >> FILTER_SHIFT_MAG;
-        magData.y = -1 * (magData.y_filt >> FILTER_SHIFT_MAG);
-        magData.z = -1 * (magData.z_filt >> FILTER_SHIFT_MAG);
+        magData.x_raw = magData.x_filt >> FILTER_SHIFT_MAG;
+        magData.y_raw = -1 * (magData.y_filt >> FILTER_SHIFT_MAG);
+        magData.z_raw = -1 * (magData.z_filt >> FILTER_SHIFT_MAG);
 
-//        magData.x = (int16_t)((read_data[1]) | read_data[0] << 8);
-//        magData.y = -1 * (int16_t)((read_data[5]) | read_data[4] << 8);
-//        magData.z = -1 * (int16_t)((read_data[3]) | read_data[2] << 8);  
-//    } while (magData.x == 10 && magData.y == 0 && magData.z == 0);
-
-    float x_uT = (float)(magData.x);
-    float y_uT = (float)(magData.y);
-    float z_uT = (float)(magData.z);
-
-    // Calculate orientation
-    magData.orientation_prev = magData.orientation;
-    magData.orientation = (int16_t)((atan2(y_uT, x_uT) * 1800.0 / M_PI + 1800.0));
+    magData.x = (double)magData.x_filt * MAG_S_X + MAG_O_X; 
+    magData.y = -1 * (double)magData.y_filt * MAG_S_Y + MAG_O_Y; 
+    magData.z = -1 * (double)magData.z_filt * MAG_S_Z + MAG_O_Z; 
 }
 
+void calc_compass(void){
+    double pitch;
+    double cos_pitch;
+    double roll;
+    double xh;
+    double yh;
+
+    magnetometer_read();
+    accelerometer_read();
+
+    // Returns a heading from +pi to -pi
+    // Tilt compensated heading calculation
+    pitch = asin(-1.0 * accelData.x);
+    cos_pitch = cos(pitch);
+    if (cos_pitch == 0.){
+        cos_pitch = 0.000000001;
+    }
+    roll = asin(accelData.y / cos_pitch);
+    xh = magData.x * cos(pitch) + magData.z * sin(pitch);
+    yh = magData.x * sin(roll) * sin(pitch) + magData.y * cos(roll) - magData.z * sin(roll) * cos(pitch);
+    heading = (int16_t)(atan2(yh, xh) * 10000);
+}
 
