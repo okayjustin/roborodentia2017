@@ -484,7 +484,7 @@ void consoleCommand(uint8_t *ptr, int len)
 
             // Wait for balls to finish firing first slot
             cur_time = TimeStamp_Get();
-            while (TimeStamp_Get() - cur_time < 20000){
+            while (TimeStamp_Get() - cur_time < 25000){
                 // Move servo to release first slot and jiggle it
                 sConfigOC.Pulse = slot_pulse1 + wiggle_amt;
                 if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }
@@ -503,7 +503,7 @@ void consoleCommand(uint8_t *ptr, int len)
 
             // Wait for balls to finish firing second slot
             cur_time = TimeStamp_Get();
-            while (TimeStamp_Get() - cur_time < 20000){
+            while (TimeStamp_Get() - cur_time < 25000){
                 // Move servo to release first slot and jiggle it
                 sConfigOC.Pulse = slot_pulse2 + wiggle_amt;
                 if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) { Error_Handler(); }

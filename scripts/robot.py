@@ -759,10 +759,10 @@ class Robot():
 
     def printSensorVals(self):
         print("Sensor values:")
-#        for i in range(0,self.num_sensors):
-#            print("%+03.3f" % (self.sensors[i][0].curVal()), end = '| ')
-#        print("")
-#        return
+        for i in range(0,self.num_sensors):
+            print("%+03.3f" % (self.sensors[i][0].curVal()), end = '| ')
+        print("")
+        return
 
         for i in range(0,10):
             print("%+0.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
