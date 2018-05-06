@@ -57,7 +57,10 @@ class SerialConsole():
     def readSerial(self):
         try:
             while (1):
+                cmd = 'd\n'
+                self.ser.write(cmd.encode('utf-8'))
                 print(self.ser.readline().decode('utf-8'), end='')
+                time.sleep(0.2)
         except KeyboardInterrupt:
             pass
 

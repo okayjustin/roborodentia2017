@@ -603,7 +603,7 @@ class Robot():
         x_right = self.sensors[3][0].curVal()
         if (not self.sim):
             heading = self.sensors[4][0].curVal()
-            print(heading)
+            print(np.degrees(heading))
 
         x       = self.state[0].curVal()
         xdot    = self.state[1].curVal()

@@ -164,5 +164,8 @@ l3g4200dGyroData gyroData;     // Last read gyro data will be available here
 lsm303AccelData accelData;    // Last read accelerometer data will be available here
 lsm303MagData magData;        // Last read magnetometer data will be available here
 int16_t heading;              // Tilt compensated compass heading in tenths of degree
+double heading_f;              // Tilt compensated compass heading in tenths of degree
+int16_t pitch_int;
+int16_t roll_int;
 
 #endif

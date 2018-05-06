@@ -356,9 +356,10 @@ void consoleCommand(uint8_t *ptr, int len)
 
     // D for send data in human readable format
     else if (ptr[0] == 'D' || ptr[0] == 'd') {
-        printf("%f,%f,%f,%f,%f,%f,%d\r\n", 
+        printf("%d,%d,%d,    %f,%f,%f,   %f,%f,%f,    %d,%f,   %d,%d\r\n", 
+                magData.x_raw, magData.y_raw, magData.z_raw,
                 magData.x, magData.y, magData.z,
-                accelData.x, accelData.y, accelData.z, heading);
+                accelData.x, accelData.y, accelData.z, heading,heading_f, pitch_int, roll_int);
 //        printf("%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%d\r\n", 
 //                rangeData[0], rangeData[1], 
 //                rangeData[2], rangeData[3], 

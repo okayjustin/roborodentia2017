@@ -80,37 +80,36 @@ void accelerometer_read() {
     accelData.z_filt = accelData.z_filt - (accelData.z_filt >> FILTER_SHIFT_ACCEL) + 
         ((int16_t)((read_data[5] << 8) | read_data[4]) >> 4);  
 
-    accelData.x_raw = -1 * (accelData.x_filt >> FILTER_SHIFT_ACCEL);
-    accelData.y_raw = accelData.y_filt >> FILTER_SHIFT_ACCEL;
-    accelData.z_raw = accelData.z_filt >> FILTER_SHIFT_ACCEL;
+    accelData.x_raw = (accelData.x_filt >> FILTER_SHIFT_ACCEL);
+    accelData.y_raw = (accelData.y_filt >> FILTER_SHIFT_ACCEL);
+    accelData.z_raw = (accelData.z_filt >> FILTER_SHIFT_ACCEL);
 
-    accelData.x = -1 * (double)accelData.x_filt * ACC_S_X / pow(2,FILTER_SHIFT_ACCEL) + ACC_O_X; 
-    accelData.y = (double)accelData.y_filt * ACC_S_Y / pow(2,FILTER_SHIFT_ACCEL) + ACC_O_Y; 
-    accelData.z = (double)accelData.z_filt * ACC_S_Z / pow(2,FILTER_SHIFT_ACCEL) + ACC_O_Z; 
+    accelData.x = -1 * ((double)accelData.x_raw * ACC_S_X + ACC_O_X); 
+    accelData.y = ((double)accelData.y_raw * ACC_S_Y + ACC_O_Y); 
+    accelData.z = ((double)accelData.z_raw * ACC_S_Z + ACC_O_Z); 
 }
 
 void magnetometer_read() {
-//    do{
-        // Read the magnetometer
-        uint8_t write_data[1] = {LSM303_REG_MAG_OUT_X_H_M};
-        uint8_t read_data[6];
-        I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data, 1, read_data, 6); 
+    // Read the magnetometer
+    uint8_t write_data[1] = {LSM303_REG_MAG_OUT_X_H_M};
+    uint8_t read_data[6];
+    I2C_WriteRead(IMU_I2C_INTERFACE, LSM303_ADDRESS_MAG, write_data, 1, read_data, 6); 
 
-        // Shift values to create properly formed integer 
-        magData.x_filt = magData.x_filt - (magData.x_filt >> FILTER_SHIFT_MAG) + 
-            (int16_t)((read_data[0] << 8) | read_data[1]);
-        magData.y_filt = magData.y_filt - (magData.y_filt >> FILTER_SHIFT_MAG) + 
-            (int16_t)((read_data[4] << 8) | read_data[5]);
-        magData.z_filt = magData.z_filt - (magData.z_filt >> FILTER_SHIFT_MAG) + 
-            (int16_t)((read_data[2] << 8) | read_data[3]);  
+    // Shift values to create properly formed integer 
+    magData.x_filt = magData.x_filt - (magData.x_filt >> FILTER_SHIFT_MAG) + 
+        (int16_t)((read_data[0] << 8) | read_data[1]);
+    magData.y_filt = magData.y_filt - (magData.y_filt >> FILTER_SHIFT_MAG) + 
+        (int16_t)((read_data[4] << 8) | read_data[5]);
+    magData.z_filt = magData.z_filt - (magData.z_filt >> FILTER_SHIFT_MAG) + 
+        (int16_t)((read_data[2] << 8) | read_data[3]);  
 
-        magData.x_raw = magData.x_filt >> FILTER_SHIFT_MAG;
-        magData.y_raw = -1 * (magData.y_filt >> FILTER_SHIFT_MAG);
-        magData.z_raw = -1 * (magData.z_filt >> FILTER_SHIFT_MAG);
+    magData.x_raw = magData.x_filt >> FILTER_SHIFT_MAG;
+    magData.y_raw = -1 * (magData.y_filt >> FILTER_SHIFT_MAG);
+    magData.z_raw = -1 * (magData.z_filt >> FILTER_SHIFT_MAG);
 
-    magData.x = (double)magData.x_filt * MAG_S_X + MAG_O_X; 
-    magData.y = -1 * (double)magData.y_filt * MAG_S_Y + MAG_O_Y; 
-    magData.z = -1 * (double)magData.z_filt * MAG_S_Z + MAG_O_Z; 
+    magData.x = (double)magData.x_raw;// * MAG_S_X + MAG_O_X; 
+    magData.y = (double)magData.y_raw;// * MAG_S_Y + MAG_O_Y; 
+    magData.z = (double)magData.z_raw;// * MAG_S_Z + MAG_O_Z; 
 }
 
 void calc_compass(void){
@@ -131,8 +130,14 @@ void calc_compass(void){
         cos_pitch = 0.000000001;
     }
     roll = asin(accelData.y / cos_pitch);
+
+    pitch_int = (int16_t)(pitch*1800/3.14159);
+    roll_int = (int16_t)(roll*1800/3.14159);
+
     xh = magData.x * cos(pitch) + magData.z * sin(pitch);
     yh = magData.x * sin(roll) * sin(pitch) + magData.y * cos(roll) - magData.z * sin(roll) * cos(pitch);
-    heading = (int16_t)(atan2(yh, xh) * 10000);
+    heading_f = atan2(yh, xh);
+    heading = (int16_t)heading_f;
+    //heading = (int16_t)(atan2(yh, xh) * 10000);
 }
 
