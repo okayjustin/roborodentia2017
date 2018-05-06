@@ -9,6 +9,15 @@ The algorithm is tested on the Pendulum-v0 OpenAI gym task
 and developed with tflearn + Tensorflow
 
 Author: Patrick Emami
+
+Usage:
+    python3 ddpg.py
+
+    Options:
+    --env [angle | transx | transy]
+    --online [0 | 1]
+    --model './results/models/model.cpkt'
+    --test [0 | 1]
 """
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
@@ -29,7 +38,7 @@ from ann import *
 
 from replay_buffer import ReplayBuffer
 
-kRENDER_EVERY = 20 # Render only every xth episode to speed up training
+kRENDER_EVERY = 1 # Render only every xth episode to speed up training
 
 # Taken from https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py, which is
 # based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
@@ -200,11 +209,18 @@ def train(sess, env, args, actor, critic, actor_noise):
             else:
                 ep_reward_threshold = -30
 
+            if (int(args['online'])):
+                num_test_cases = 5
+            else:
+                num_test_cases = 50
+
             test_seed = int(np.random.uniform(1, 99999999))
+
             if (ep_reward > ep_reward_threshold):
+                print("Testing network in %d cases..." % (num_test_cases))
                 tf.set_random_seed(test_seed)
                 env.seed(test_seed)
-                test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
+                test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases)
                  # Save model temporarily
                 save_path = saver.save(sess, "./results/models-temp/model.ckpt")
 
@@ -213,7 +229,7 @@ def train(sess, env, args, actor, critic, actor_noise):
                     saver.restore(sess, "./results/models/model.ckpt")
                     tf.set_random_seed(test_seed)
                     env.seed(test_seed)
-                    best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases = 50)
+                    best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases)
                 except:
                     best_total_reward = -99999999999.
 
@@ -226,7 +242,7 @@ def train(sess, env, args, actor, critic, actor_noise):
                     print("Model saved in path: %s" % save_path)
             else:
                 test_total_reward = -999
-            
+
             print('| Reward: {:d} | Test Reward: {:d} | Episode: {:d} | Qmax: {:.4f}'.format(int(ep_reward), \
                     int(test_total_reward), i, (ep_ave_max_q / float(j))))
 
@@ -256,7 +272,7 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
             if terminal:
                 break
         test_total_reward += ep_reward
-    
+
     env.setWallCollision(False)
     # Return the average test reward
     return test_total_reward / (m+1)
@@ -316,11 +332,11 @@ def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
 def main(args):
 
     if (args['env'] == 'angle'):
-        env = robotsim.SimRobot(train = 'angle')
+        env = robotsim.SimRobot(train = 'angle', online = int(args['online']))
     elif (args['env'] == 'transx'):
-        env = robotsim.SimRobot(train = 'transx')
+        env = robotsim.SimRobot(train = 'transx', online = int(args['online']))
     elif (args['env'] == 'transy'):
-        env = robotsim.SimRobot(train = 'transy')
+        env = robotsim.SimRobot(train = 'transy', online = int(args['online']))
     else:
         env = gym.make(args['env'])
 
@@ -380,6 +396,7 @@ if __name__ == '__main__':
 
     # run parameters
     parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='angle')
+    parser.add_argument('--online', help='choose the gym env- tested on {Robot}', default='0')
     parser.add_argument('--random-seed', help='random seed for repeatability', default=1018)
     parser.add_argument('--max-episodes', help='max num of episodes to do while training', default=50000)
     parser.add_argument('--max-episode-len', help='max length of 1 episode', default=1000)

@@ -5,9 +5,9 @@ from robot import *
 from timeit import default_timer as timer
 import time
 
-kUSE_SIM = 1
+kUSE_SIM = 0
 kUSE_ANN = 0
-kUSE_PID = 1
+kUSE_PID = 0
 
 # Initialize field area, -1 Left, 0 Center, 1 Right
 kFIELD_AREA_INIT = 1
@@ -40,7 +40,7 @@ if __name__ == "__main__":
                 robot.calcU()
                 robot.execute()
 
-            robot.printSensorVals()
+           # robot.printSensorVals()
             end = timer()
 #            print("Cycle time: %0.1f" % (1000*(end - start)))
 
