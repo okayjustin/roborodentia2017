@@ -42,11 +42,15 @@ class SerialConsole():
         # Enumerate all serial ports
         ports = serial.tools.list_ports.comports()
         for port in ports:
-            #print(port)
-            # Check port string for identifier
-            if ("STLink" in port[1]):
+#            for element in port:
+#                print(element)
+#            print(port)
+
+            # Check port string for identifier or VID:PID
+            if (("STLink" in port[1]) or ("0483:374B" in port[2])):
                 STLink_port = port[0]
                 success = True
+
         return STLink_port, success
 
     def close(self):
@@ -82,7 +86,9 @@ class SerialConsole():
 
 if __name__ == "__main__":
     console = SerialConsole()
-    console.openSerial()
+    if (console.openSerial()):
+        print("Quitting...")
+        quit()
     serInUse = console.ser_available
     while(serInUse == True):
         console.readSerial()
