@@ -43,7 +43,7 @@ kRENDER_EVERY = 1 # Render only every xth episode to speed up training
 # Taken from https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py, which is
 # based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
 class OrnsteinUhlenbeckActionNoise:
-    def __init__(self, mu, sigma=0.3, theta=.15, dt=5e-2, x0=None):
+    def __init__(self, mu, sigma=0.2, theta=.15, dt=5e-2, x0=None):
         self.theta = theta
         self.mu = mu
         self.sigma = sigma
@@ -135,7 +135,7 @@ def train(sess, env, args, actor, critic, actor_noise):
                 start = timer()
 
                 s2, r, terminal, info = env.step(action)
-                #print(s2)
+                print(s2)
                 #print("Reward: %f" % r)
                 #time.sleep(0.11)
 
@@ -201,7 +201,7 @@ def train(sess, env, args, actor, critic, actor_noise):
 
             # Determine network performance in actual test cases if the episode reward is low
             if (args['env'] == 'angle'):
-                ep_reward_threshold = -30
+                ep_reward_threshold = -5
             elif (args['env'] == 'transx'):
                 ep_reward_threshold = -500
             elif (args['env'] == 'transy'):
@@ -210,13 +210,14 @@ def train(sess, env, args, actor, critic, actor_noise):
                 ep_reward_threshold = -30
 
             if (int(args['online'])):
-                num_test_cases = 5
+                num_test_cases = 2
             else:
                 num_test_cases = 50
 
             test_seed = int(np.random.uniform(1, 99999999))
+            should_test = input("Do you want to test network (Y/N(default))?: ")
 
-            if (ep_reward > ep_reward_threshold):
+            if ((ep_reward > ep_reward_threshold) or (should_test == 'y')):
                 print("Testing network in %d cases..." % (num_test_cases))
                 tf.set_random_seed(test_seed)
                 env.seed(test_seed)
@@ -247,6 +248,8 @@ def train(sess, env, args, actor, critic, actor_noise):
                     int(test_total_reward), i, (ep_ave_max_q / float(j))))
 
     except KeyboardInterrupt:
+        if int(args['online']):
+            env.halt()
         return
 
 
@@ -407,7 +410,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', help='saved model to restore', default='')
     parser.add_argument('--test', help='test model', default=0)
 
-    parser.set_defaults(render_env=True)
+    parser.set_defaults(render_env=False)
 
     args = vars(parser.parse_args())
 

@@ -63,6 +63,7 @@ class SimRobot():
         if (self.online):
             self.robot = Robot(0, 0)
             self.dt = self.robot.dt
+            self.reset_dir = 0
 
             # Connect to robot
             if self.robot.openSerial():
@@ -126,10 +127,10 @@ class SimRobot():
             angle_model_path = './results/models-angle/model.ckpt'
             self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = 2.0)
 
-            # Load transy control ann
-            print("Loading transy ANN")
-            transy_model_path = './results/models-transy/model.ckpt'
-            self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
+            # # Load transy control ann
+            # print("Loading transy ANN")
+            # transy_model_path = './results/models-transy/model.ckpt'
+            # self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
         elif (train == 'transy'):
             act_dim = 1
@@ -186,11 +187,25 @@ class SimRobot():
         self.last_u = np.zeros(self.u_len)
 
         if (self.online):
-            input("Press enter after moving robot to new position.")
+            # Resets the robot into a random position
+            if (randomize):
+                reset_u = [0, 0, 0]
+                if (self.train == 'angle'):
+                    reset_u[2] = np.random.uniform(low=-2, high=2)
+                if (self.train == 'transx'):
+                    reset_u[0] = np.random.uniform(low=-2, high=2)
+                if (self.train == 'transy'):
+                    reset_u[1] = np.random.uniform(low=-2, high=2)
+
+                self.robot.u = reset_u
+                self.robot.execute()
+                time.sleep(1)
+                self.halt()
+                time.sleep(0.2)
 
             # Update online state
             self.updateStateOnline()
-            self.last_time = self.robot.getTime()
+
         else:
             if (randomize):
                 high = np.array([(FIELD_XMAX - LEN_X)/2, 0, # X, xdot
@@ -210,6 +225,10 @@ class SimRobot():
 
         # Update sensors and observation array
         self.updateObservation()
+
+        # Keep track of time for cycle timing
+        if (self.online):
+            self.last_time = self.robot.getTime()
 
         return self.obs
 
@@ -232,35 +251,35 @@ class SimRobot():
             u_desy = [0]
 
         elif self.train == 'angle':
-            u_angle = u
             u_transx = [0]
             u_transy = [0]
+            u_angle = u
             u_desx = [0]
             u_desy = [0]
 
         elif self.train == 'transx':
-            u_angle = self.angle_ann.predict(self.obs_sets[0])
             u_transx = u
-            u_transy = self.transy_ann.predict(self.obs_sets[2])
+            u_transy = [0] #self.transy_ann.predict(self.obs_sets[2])
+            u_angle = self.angle_ann.predict(self.obs_sets[0])
             u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
             u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
 
         elif self.train == 'transy':
-            u_angle = self.angle_ann.predict(self.obs_sets[0])
             u_transx = self.transx_ann.predict(self.obs_sets[1])
             u_transy = u
+            u_angle = self.angle_ann.predict(self.obs_sets[0])
             u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
             u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
 
         elif self.train == 'pathfind':
             # Determine new desired location
-            u_angle = self.angle_ann.predict(self.obs_sets[0])
             u_transx = self.transx_ann.predict(self.obs_sets[1])
             u_transy = self.transy_ann.predict(self.obs_sets[2])
+            u_angle = self.angle_ann.predict(self.obs_sets[0])
             u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
             u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
 
-        u = np.concatenate((u_angle, u_transx, u_transy, u_desx, u_desy))
+        u = np.concatenate((u_transx, u_transy, u_angle, u_desx, u_desy))
         u = np.clip(u, -2., 2.)
         #print(u)
         self.last_u = u
@@ -271,16 +290,17 @@ class SimRobot():
         if (self.online):
             # Execute command on robot
             self.robot.u = u
-            #self.robot.execute()
+            self.robot.execute()
 
             # Delay excess time in cycle to make all cycles equal time
             cur_time = self.robot.getTime()
-#            while ((cur_time - self.last_time) < dt):
-#                cur_time = self.robot.getTime()
-            cyc_time = cur_time - self.last_time
-            if (cyc_time > self.max_cyc_time):
-                self.max_cyc_time = cyc_time
-                print("Tcyc %0.6f" % self.max_cyc_time)
+            while ((cur_time - self.last_time) < dt):
+                cur_time = self.robot.getTime()
+            #cyc_time = cur_time - self.last_time
+            #if (cyc_time > self.max_cyc_time):
+            #    self.max_cyc_time = cyc_time
+                #print("MAX Tcyc %0.6f" % self.max_cyc_time)
+            #print("Tcyc %0.6f" % cyc_time)
             self.last_time = cur_time
 
             # Update online state
@@ -364,8 +384,9 @@ class SimRobot():
             self.updateReward()
         #time.sleep(0.2)
 
-        # End of sim
-        if (self.time > TIME_MAX):
+        # End cycle if time hits max or robot moves to an extreme bound
+        if ((self.time > TIME_MAX)):# or (self.online and (abs(self.state[4]) > 1.2))):
+            self.halt()
             self.terminal = 1
 
         info = {}
@@ -510,3 +531,6 @@ class SimRobot():
     def angle_normalize(self, x):
         return (((x+np.pi) % (2*np.pi)) - np.pi)
 
+    def halt(self):
+        if (self.online):
+            self.robot.halt()

@@ -400,7 +400,7 @@ class Robot():
         [11]: Hopper FR state:
         [12]: field area (-1 for left, 0 for center platform, 1 for right)
         '''
-        self.state = [RunningStat(3) for x in range(0,13)]
+        self.state = [RunningStat(5) for x in range(0,13)]
         self.state[12].push(field_area_init)
 
         ''' Control array U. All values range from -2 to 2
@@ -558,6 +558,9 @@ class Robot():
         else:
             self.mechanumCommand(self.u[0], self.u[1], self.u[2])
 
+    def halt(self):
+        self.mechanumCommand(0, 0, 0)
+
     def render(self):
         self.env.render()
 
@@ -666,14 +669,14 @@ class Robot():
             new_x = FIELD_XMAX - x_right - LEN_X / 2
         else:                           # Center
             new_x = (x_left + FIELD_XMAX - x_right) / 2.0
-        new_xdot = self.getVel(0)
+        
 
 #        print("Field area: %d" % field_area)
 #        print("newX: %0.3f, actual: %0.3f error: %0.3f x_left: %0.3f, x_right: %0.3f" % (new_x, self.env.state[0], new_x - self.env.state[0], x_left, x_right))
         #-------------------------------------------------------------
         # Update y and ydot states
         new_y = (y_back + FIELD_YMAX - y_front) / 2.0
-        new_ydot = self.getVel(2)
+        
 
         #-------------------------------------------------------------
         # Update theta and thetadot states
@@ -692,7 +695,6 @@ class Robot():
             self.full_th -= 1  # Increment full rotation count
 
         new_th = self.full_th*2*np.pi + self.th_part - self.th_start
-        new_thdot = self.getVel(4)
 
         #-------------------------------------------------------------
         # Update hopper states
@@ -703,15 +705,20 @@ class Robot():
         #-------------------------------------------------------------
         # Push new states
         self.state[0].push(new_x)
-        self.state[1].push(new_xdot)
         self.state[2].push(new_y)
-        self.state[3].push(new_ydot)
         self.state[4].push(new_th)
-        self.state[5].push(new_thdot)
         self.state[9].push(new_hopbl)
         self.state[10].push(new_hopbr)
         self.state[11].push(new_hopfr)
         self.state[12].push(new_field_area)
+
+        # Update velocities
+        new_xdot = self.getVel(0)
+        new_ydot = self.getVel(2)
+        new_thdot = self.getVel(4)
+        self.state[1].push(new_xdot)
+        self.state[3].push(new_ydot)
+        self.state[5].push(new_thdot)
 
     def calcTiltCompass(self, magx, magy, magz, accelx, accely, accelz):
         # Returns a heading from +pi to -pi
@@ -736,7 +743,7 @@ class Robot():
 
     # Calculates the average of forwards and backwards derivatives
     def getVel(self, stateIdx):
-        deriv_len = 1
+        deriv_len = 3
         future = self.state[stateIdx].vals[0]
         past = self.state[stateIdx].vals[deriv_len]
         return (future - past)/(deriv_len * self.dt)
@@ -758,14 +765,14 @@ class Robot():
         self.state[7].push(self.state[2].winMean())
 
     def printSensorVals(self):
-        print("Sensor values:")
-        for i in range(0,self.num_sensors):
-            print("%+03.3f" % (self.sensors[i][0].curVal()), end = '| ')
-        print("")
-        return
+        # print("Sensor values:")
+        # for i in range(0,self.num_sensors):
+        #     print("%+03.3f" % (self.sensors[i][0].curVal()), end = '| ')
+        # print("")
+        # return
 
-        for i in range(0,10):
-            print("%+0.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
+        # for i in range(0,10):
+        #     print("%+0.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
         print("State values:")
         for i in range(0, 12):
             print("%+0.3f" % self.state[i].curVal())
