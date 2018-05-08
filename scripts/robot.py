@@ -25,12 +25,12 @@ BUTTON_PWM_CYCLES = 1700
 # CALIBRATION VALUES, offset and scale
 RANGE_S = 0.965025066
 RANGE_O = -3.853474266
-MAG_S_X = 1 / 504.66782878550237
-MAG_S_Y = 1 / 625.6254797589748
-MAG_S_Z = 1 / 458.78374856276935
-MAG_O_X = 55 * -MAG_S_X
-MAG_O_Y = 249 * -MAG_S_Y
-MAG_O_Z = 142 * -MAG_S_Z
+MAG_S_X = 1 / 545.1754644628942
+MAG_S_Y = 1 / 550.0729613545005
+MAG_S_Z = 1 / 421.44904386765774
+MAG_O_X = -32 * -MAG_S_X
+MAG_O_Y = 432 * -MAG_S_Y
+MAG_O_Z = 79 * -MAG_S_Z
 ACC_S_X = 1 / 1030.9868342172633
 ACC_S_Y = 1 / 1059.8985318881996
 ACC_S_Z = 1 / 1063.2448503229036
@@ -636,47 +636,47 @@ class Robot():
         x_des   = self.state[6].curVal()
         y_des   = self.state[7].curVal()
         th_des  = self.state[8].curVal()
-        hopbl   = self.state[9].curVal()
-        hopbr   = self.state[10].curVal()
-        hopfr   = self.state[11].curVal()
-        field_area = self.state[12].curVal()
+        # hopbl   = self.state[9].curVal()
+        # hopbr   = self.state[10].curVal()
+        # hopfr   = self.state[11].curVal()
+        # field_area = self.state[12].curVal()
 
         #-------------------------------------------------------------
         # Update field area
-        if (field_area == -1): # Left field
-            if (x_left > kAREA_THRESHOLD):
-                new_field_area = 0
-            else:
-                new_field_area = -1
-        elif (field_area == 1): # Right field
-            if (x_right > kAREA_THRESHOLD):
-                new_field_area = 0
-            else:
-                new_field_area = 1
-        else:                   # Center field
-            if (x_left < kAREA_THRESHOLD):
-                new_field_area = -1
-            elif (x_right < kAREA_THRESHOLD):
-                new_field_area = 1
-            else:
-                new_field_area = 0
+        # if (field_area == -1): # Left field
+        #     if (x_left > kAREA_THRESHOLD):
+        #         new_field_area = 0
+        #     else:
+        #         new_field_area = -1
+        # elif (field_area == 1): # Right field
+        #     if (x_right > kAREA_THRESHOLD):
+        #         new_field_area = 0
+        #     else:
+        #         new_field_area = 1
+        # else:                   # Center field
+        #     if (x_left < kAREA_THRESHOLD):
+        #         new_field_area = -1
+        #     elif (x_right < kAREA_THRESHOLD):
+        #         new_field_area = 1
+        #     else:
+        #         new_field_area = 0
 
-        #-------------------------------------------------------------
-        # Update x, and xdot states
-        if (new_field_area == -1):      # Left
-            new_x = x_left + LEN_X / 2
-        elif (new_field_area == 1):    # Right
-            new_x = FIELD_XMAX - x_right - LEN_X / 2
-        else:                           # Center
-            new_x = (x_left + FIELD_XMAX - x_right) / 2.0
-        
+        # #-------------------------------------------------------------
+        # # Update x, and xdot states
+        # if (new_field_area == -1):      # Left
+        #     new_x = x_left + LEN_X / 2
+        # elif (new_field_area == 1):    # Right
+        #     new_x = FIELD_XMAX - x_right - LEN_X / 2
+        # else:                           # Center
+        #     new_x = (x_left + FIELD_XMAX - x_right) / 2.0
+        new_x = x_left
 
 #        print("Field area: %d" % field_area)
 #        print("newX: %0.3f, actual: %0.3f error: %0.3f x_left: %0.3f, x_right: %0.3f" % (new_x, self.env.state[0], new_x - self.env.state[0], x_left, x_right))
         #-------------------------------------------------------------
         # Update y and ydot states
-        new_y = (y_back + FIELD_YMAX - y_front) / 2.0
-        
+        #new_y = (y_back + FIELD_YMAX - y_front) / 2.0
+        new_y = y_front
 
         #-------------------------------------------------------------
         # Update theta and thetadot states
@@ -695,22 +695,23 @@ class Robot():
             self.full_th -= 1  # Increment full rotation count
 
         new_th = self.full_th*2*np.pi + self.th_part - self.th_start
+        #print("%f" % (np.degrees(new_th)))
 
         #-------------------------------------------------------------
         # Update hopper states
-        new_hopbl = 0
-        new_hopbr = 0
-        new_hopfr = 0
+        # new_hopbl = 0
+        # new_hopbr = 0
+        # new_hopfr = 0
 
         #-------------------------------------------------------------
         # Push new states
         self.state[0].push(new_x)
         self.state[2].push(new_y)
         self.state[4].push(new_th)
-        self.state[9].push(new_hopbl)
-        self.state[10].push(new_hopbr)
-        self.state[11].push(new_hopfr)
-        self.state[12].push(new_field_area)
+        # self.state[9].push(new_hopbl)
+        # self.state[10].push(new_hopbr)
+        # self.state[11].push(new_hopfr)
+        #self.state[12].push(new_field_area)
 
         # Update velocities
         new_xdot = self.getVel(0)
@@ -723,16 +724,16 @@ class Robot():
     def calcTiltCompass(self, magx, magy, magz, accelx, accely, accelz):
         # Returns a heading from +pi to -pi
         # Tilt compensated heading calculation
-        pitch = np.arcsin(-accelx)
-        if (np.cos(pitch) == 0.):
-            pitch = 0.
-        roll = np.arcsin(accely / np.cos(pitch))
-        # print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
-        xh = magx * np.cos(pitch) + magz * np.sin(pitch)
-        yh = magx * np.sin(roll) * np.sin(pitch) + magy * np.cos(roll) - \
-                magz * np.sin(roll) * np.cos(pitch)
-        th = np.arctan2(yh, xh)
-
+        # pitch = np.arcsin(-accelx)
+        # if (np.cos(pitch) == 0.):
+        #     pitch = 0.
+        # roll = np.arcsin(accely / np.cos(pitch))
+        # # print("Pitch: %f Roll: %f" % (np.degrees(pitch), np.degrees(roll)))
+        # xh = magx * np.cos(pitch) + magz * np.sin(pitch)
+        # yh = magx * np.sin(roll) * np.sin(pitch) + magy * np.cos(roll) - \
+        #         magz * np.sin(roll) * np.cos(pitch)
+        # th = np.arctan2(yh, xh)
+        th = np.arctan2(magy, magx)
         return th
 
     # Sets a new desired X,Y,Th
@@ -743,7 +744,7 @@ class Robot():
 
     # Calculates the average of forwards and backwards derivatives
     def getVel(self, stateIdx):
-        deriv_len = 3
+        deriv_len = 1
         future = self.state[stateIdx].vals[0]
         past = self.state[stateIdx].vals[deriv_len]
         return (future - past)/(deriv_len * self.dt)

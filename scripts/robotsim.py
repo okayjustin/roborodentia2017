@@ -53,6 +53,7 @@ class SimRobot():
         self.viewer = None
         self.train = train
         self.online = online
+        self.last_reset_dir = 1
 
         self.max_cyc_time = 0
 
@@ -189,19 +190,18 @@ class SimRobot():
         if (self.online):
             # Resets the robot into a random position
             if (randomize):
-                reset_u = [0, 0, 0]
                 if (self.train == 'angle'):
-                    reset_u[2] = np.random.uniform(low=-2, high=2)
-                if (self.train == 'transx'):
-                    reset_u[0] = np.random.uniform(low=-2, high=2)
-                if (self.train == 'transy'):
-                    reset_u[1] = np.random.uniform(low=-2, high=2)
+                    u_angle = np.random.uniform(low=0.5, high=2)
+                    self.last_reset_dir = -self.last_reset_dir
+                    self.robot.u = [0, 0, u_angle * self.last_reset_dir]
+                    self.robot.execute()
+                    time.sleep(3)
+                    self.halt()
+                    time.sleep(0.2)
 
-                self.robot.u = reset_u
-                self.robot.execute()
-                time.sleep(1)
-                self.halt()
-                time.sleep(0.2)
+                x_des = np.random.uniform(low=40, high=1000)
+                y_des = np.random.uniform(low=40, high=1000)
+                self.robot.setDesired([x_des, y_des, 0])
 
             # Update online state
             self.updateStateOnline()
@@ -237,6 +237,10 @@ class SimRobot():
         return [seed]
 
     def step(self,u):
+        #print(self.obs_sets[0])
+        # Get state vars
+        x, xdot, y, ydot, th, thdot, x_des, y_des = self.state
+
         # Determine the control input array u depending on what's being trained
         # u[0]: Desired rotational speed, -1 to 1, +1 CW, -1 CCW
         # u[1]: Desired field x velocity
@@ -258,7 +262,7 @@ class SimRobot():
             u_desy = [0]
 
         elif self.train == 'transx':
-            u_transx = u
+            u_transx = [0]#u
             u_transy = [0] #self.transy_ann.predict(self.obs_sets[2])
             u_angle = self.angle_ann.predict(self.obs_sets[0])
             u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
@@ -282,14 +286,14 @@ class SimRobot():
         u = np.concatenate((u_transx, u_transy, u_angle, u_desx, u_desy))
         u = np.clip(u, -2., 2.)
         #print(u)
-        self.last_u = u
 
         dt = self.dt
         self.time += dt
 
         if (self.online):
             # Execute command on robot
-            self.robot.u = u
+            reduce = 0.3
+            self.robot.u = u #reduce * u + (1 - reduce) * self.last_u
             self.robot.execute()
 
             # Delay excess time in cycle to make all cycles equal time
@@ -308,9 +312,6 @@ class SimRobot():
 
         else:
             # Simulate command on robot
-
-            # Get state vars
-            x, xdot, y, ydot, th, thdot, x_des, y_des = self.state
 
             #  Trajectory control inputs
             v_theta = u[0]
@@ -373,7 +374,10 @@ class SimRobot():
 
             # Determine new state
             self.state = np.array([newx, newxdot, newy, newydot, newth, newthdot, newxdes, newydes])
-
+        
+        # Update last u
+        self.last_u = u
+        
         # Update sensor measurements
         self.updateObservation()
 
@@ -442,7 +446,7 @@ class SimRobot():
             # Keep angle at 0
             self.reward_theta = -1.0 * self.angle_normalize(self.state[4])**2.
             # Minimize effort
-            self.reward_effort = -0.001 * self.last_u[0]**2
+            self.reward_effort = -0.005 * self.last_u[0]**2
             # Minimize velocities
             self.reward_rvel = -0.1 * self.state[5]**2
             self.reward = self.reward_theta + self.reward_rvel
@@ -465,7 +469,7 @@ class SimRobot():
             self.reward_vel = -0.0000005 * self.state[3]**2
             self.reward_effort = -0.001 * self.last_u[2]**2
             self.reward = self.reward_dist + self.reward_vel + self.reward_effort
-        #print(self.reward)
+        print("Reward: %f" % self.reward)
         return self.reward
 
     def render(self, mode='human'):
