@@ -1,0 +1,59 @@
+\chapter{Software}
+
+\section{Kalman Filters}
+The system relies on several different sensors to determine where it is within the environment, a problem commonly referred to as robot localization. The \textit{Kalman Filter} (KF), an optimal state estimator, performs noise filtering and sensor fusion, the process of combining measurements from multiple sensors. The filter operates on the principles of Bayesian inference and uses statistically noisy measurements over time and knowledge of the system to produce a more accurate estimate of an unknown variable than with measurement alone.
+
+\subsection{Algorithm}
+The Kalman Filter algorithm and equations are reproduced here from Roger Labbe's excellent interactive online book \cite{labbe_2017}.  The algorithm consists of two stages (not including initialization): prediction and update. During the first stage, the filter uses the current state and a process model (typically a function of time) to estimate the state in the next time step along with its uncertainty. The second stage uses sensor measurements to update the estimation by taking a weighted average based on the ratio of uncertainty between the prediction and measurement. 
+
+\subsubsection*{Initialization}
+Before the first run of the filter, initialize the estimated state (\textbf{x}, also called the posterior) and estimated state covariance matrix (\textbf{P}).
+\subsubsection*{Predict}
+During the predict phase, the process model is used to predict the future state (known as the prior) (\textbf{\=x}) after one time step by summing the posterior (\textbf{x}) multiplied by the \textit{state transition function} (\textbf{F}) with the control input model (\textbf{B}) multiplied by the control input (\textbf{u}). The covariance of prior (\textbf{\=P}) is larger than the posterior covariance (\textbf{P}) due to uncertainty in the process model (\textbf{Q}).
+\begin{align*}
+\bar{\textbf{x}} &= \textbf{Fx} + \textbf{Bu}\\
+\bar{\textbf{P}} &= \textbf{FPF}^T + \textbf{Q}\\
+\end{align*}
+
+\subsubsection*{Update}
+Make measurements (\textbf{z}, measurement mean) and determine their accuracy (\textbf{R}, measurement noise covariance). Calculate the residual (or difference) (\textbf{y}) between the measurement and the product of the measurement function (\textbf{H}) and the prior from the previous phase. \textbf{H} converts the prior from the state space to the measurement space. Calculate the weighting factor (\textbf{K}, Kalman gain), valued between 0 and 1, based on the whether the measurement or prior is more accurate. Set the new posterior, \textbf{x}, to an average of the measurement and prior, weighted by \textbf{K}. Finally, update the posterior's covariance, \textbf{P}, based on the measurement certainty. The algorithm then loops back to the predict phase using the newly-calculated posterior.
+\begin{align*}
+\textbf{y} &= \textbf{z} - \textbf{H}\bar{\textbf{x}}\\
+\textbf{K} &= \bar{\textbf{P}}\textbf{H}^T(\textbf{H}\bar{\textbf{P}}\textbf{H}^T+\textbf{R})^{-1}\\
+\textbf{x} &= \bar{\textbf{x}} + \textbf{Ky}\\
+\textbf{P} &= (\textbf{I}-\textbf{KH})\bar{\textbf{P}}\\
+\end{align*}
+
+\subsection{Design}
+The desired state variable \textbf{x} is chosen as the linear position, velocity, and acceleration in the x and y directions as well as the angular position, velocity, and acceleration about the z-axis:
+\begin{align*}
+\textbf{x} &= [x\ y\ \theta]^T\\
+\dot{\textbf{x}} &= [\dot{x}\ \dot{y}\ \dot{\theta}]^T\\
+\ddot{\textbf{x}} &= [\ddot{x}\ \ddot{y}\ \ddot{\theta}]^T\\
+\end{align*}
+The process model for position and velocity:
+\[ \begin{cases} 
+\bar{x}=x+\dot{x}\Delta t+0.5\ddot{x}(\Delta t)^2\\
+\bar{\dot{x}}=\dot{x}+\ddot{x}\Delta t\\
+\bar{\ddot{x}}=\ddot{x}\\
+\end{cases} \]
+Which can be written in the form:
+\begin{align*}
+\begin{bmatrix}\bar{x}\\ \bar{\dot{x}}\\ \bar{\ddot{x}} \end{bmatrix} &=
+\begin{bmatrix}1 & \Delta t & 0.5(\Delta t)^2 \\
+0 & 1 & \Delta t \\
+0 & 0 & 1 \\\end{bmatrix}
+\begin{bmatrix}x\\ \dot{x}\\ \ddot{x} \end{bmatrix}\\ 
+\bar{\textbf{x}}&=\textbf{F}\textbf{x}
+\end{align*}
+The measurement vector is chosen as:
+\[\textbf{z}=
+\begin{bmatrix}z_x & z_{\ddot{x}} & z_y & z_{\ddot{y}} & z_{\theta} & z_{\dot{\theta}} \end{bmatrix}^T\]
+The measurement noise matrix is shown below. The off-diagonals are 0 because the noise between sensors is assumed to be uncorrelated.
+\[\textbf{R}=
+\begin{bmatrix}\sigma^2_x & 0 & 0 & 0 &0 & 0\\
+0 & \sigma^2_{\ddot{x}} & 0 & 0 & 0 & 0\\
+0 & 0 & \sigma^2_y & 0 & 0 & 0 \\
+0 & 0 & 0 & \sigma^2_{\ddot{y}} & 0 & 0\\
+0 & 0 & 0 & 0 & \sigma^2_{\theta} & 0\\
+0 & 0 & 0 & 0 & 0 & \sigma^2_{\dot{\theta}} \end{bmatrix}\]
