@@ -4,7 +4,7 @@ The electronics of the robot use a combination of off-the-shelf parts and custom
 
 
 \section{Power}
-A four cell, 1800 mAH lithium polymer (LiPo) battery powers the entire system. The battery is connected using polarized XT60 connectors to prevent reverse connection. The battery voltage varies between 16.8 V when fully charged and 14.8 V when depleted so two off-the-shelf DC-DC buck regulators, shown in Figure \ref{fig:smps} buck battery voltage down to 12 V and 7 V supplies. The switching regulators accept a 7 -- 40 V supply and can output 1.2 -- 35 V at 8 A each. The 12 V bus powers the three motor drivers boards while the 7 V bus powers the STM32 Nucleo-64 development board and two AZ1085CD low-dropout linear regulators (LDO). One LDO produces a 5 V bus while the other provides 3.3 V, each at 3 A. 
+A four cell, 1800 mAH lithium polymer (LiPo) battery powers the entire system. The battery is connected using polarized XT60 connectors to prevent reverse connection. The battery voltage varies between 16.8 V when fully charged and 14.8 V when depleted so two off-the-shelf DC-DC switching regulators, shown in Figure \ref{fig:smps}, buck battery voltage down to 12 V and 7 V supplies. The switching regulators accept a 7 -- 40 V supply and can output 1.2 -- 35 V at 8 A each. The 12 V bus powers the three motor drivers boards while the 7 V bus powers the STM32 Nucleo-64 development board and two AZ1085CD low-dropout linear regulators (LDO). One LDO produces a 5 V bus while the other provides 3.3 V, each at 3 A. 
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/smps.png}
@@ -12,8 +12,46 @@ A four cell, 1800 mAH lithium polymer (LiPo) battery powers the entire system. T
 \end{figure}
 
 \section{Sensors}
+The robot uses five off-the-shelf sensors for determining its position: four VL53L0X 1-D LIDAR rangefinders and one Adafruit 9-DOF inertial measurement unit (IMU).
 
+\subsection{Adafruit 9-DOF IMU}
+The Adafruit 9-DOF IMU incorporates the L3DG20H gyroscope and LSM303DLHC accelerometer/compass combo on a single carrier board to allow full inertial measurement in a convenient form factor \cite{adafruit_imu}. Figure \ref{fig:imu} shows the IMU mounted in the 3D printed bracket. The robot only utilizes the accelerometer and magnetic compass to realize a tilt-compensated compass. The LSM303DLHC can measure both acceleration and magnetic fields in three dimensions with configurable bandwidth and full-scale ranges. It uses I\textsuperscript{2}C for control and data transfer
 
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/imu.png}
+	\caption{Adafruit 9-DOF IMU Mounted}\label{fig:imu}
+\end{figure}
+
+\subsection{VL53L0X Rangefinders}
+The rangefinders, marketed by STMicroelectronics as the "world's smallest Time-of-Flight ranging sensor", are capable of measuring between 30 and 2000 mm with a 30 Hz sample rate \cite{vl53l0x}. It operates by firing pulsed light from a vertical cavity surface emitting laser (VCSEL), measuring time taken for the laser pulse to reflect back to the sensor, and calculating the distance based on the known speed of light. The robot uses cheap \$8 VL53L0X breakout boards in lieu of designing and assembling custom carriers; the sensor itself comes in a 4.4 x 2.4 mm lead-less package making hand soldering prohibitively difficult. Figure \ref{fig:rangefinder} shows the sensor board mounted in the 3D printed bracket. The sensor breakout boards include the VL53L0X module, decoupling capacitors, an LDO for the sensor's 2.8 V power supply, and level shifters for the I\textsuperscript{2}C lines. Control and data transfer both occur over 400 kHz I\textsuperscript{2}C so the breakout only requires four wires: 3.3 V, ground, and the I\textsuperscript{2}C data and clock lines. To characterize the accuracy and precision of the sensor, distance measurements were taken by targeting the sensor at a sheet of standard white printer paper. The data is compared with measurements from a tape measure; results are shown in Figure \ref{fig:rangefinder_measurement}. 
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/rangefinder.png}
+	\caption{VL53L0X Rangefinder Mounted}\label{fig:rangefinder}
+\end{figure}
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/rangefinder_measurement.png}
+	\caption{VL53L0X Measured vs. Actual Distance}\label{fig:rangefinder_measurement}
+\end{figure}
+
+Since the measurements are linear, only a linear correction is required as follows:
+\begin{equation}
+	d_{calibrated} = m_{scale} d_{measurement} + b_{offset}
+\end{equation}
+where $m_{scale} = 0.96502507$ and $b_{offset} = -3.8534743$. The squared error for each data point before and after calibration is shown in Figure \ref{fig:rangefinder_calibrated}. The mean squared error for the uncalibrated data points is 342.3 mm and 15.0 mm after calibration, indicating the use of an appropriate model and constants.
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/rangefinder_calibrated.png}
+	\caption{VL53L0X Squared Error for Uncalibrated vs. Calibrated}\label{fig:rangefinder_calibrated}
+\end{figure}
+
+Additionally, 100 measurements were taken at each distance and the variance computed to characterize the spread. The results are shown in \ref{fig:rangefinder_stddev}. The rangefinders are very accurate; at 900 mm with calibration, the error is only 7 mm or 0.8\% error. Of course, this error is with respect to the average measurement at 900 mm. At 900 mm, the standard deviation is 14 mm so individual measurements can vary, especially with non-ideal surfaces. The closer the target, the more accurate and less varied the measurement. No experiments were carried out to determine the measurement characteristics on various colored, textured, transparent, or angled surfaces as the expected target surface is white painted wood.
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/rangefinder_stddev.png}
+	\caption{VL53L0X Standard Deviation}\label{fig:rangefinder_stddev}
+\end{figure}
 
 \section{Motor Drivers}
 The system uses three off-the-shelf L298N motor driver boards since they are easily obtainable for less than \$6 each and incorporate features such as heat-sinking, flyback voltage protection, supply filtering, and screw terminal connections. Implementing comparable motor drivers with a similar feature set would undoubtedly cost more. Each L298N is a dual H-bridge driver with 2 A maximum output per bridge using a 5 -- 35 V supply. Two motor drivers handle the four robot drive motors while the third powers the blower fan and shooting mechanism motors. 
