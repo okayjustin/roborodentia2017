@@ -15,12 +15,46 @@ A four cell, 1800 mAH lithium polymer (LiPo) battery powers the entire system. T
 The robot uses five off-the-shelf sensors for determining its position: four VL53L0X 1-D LIDAR rangefinders and one Adafruit 9-DOF inertial measurement unit (IMU).
 
 \subsection{Adafruit 9-DOF IMU}
-The Adafruit 9-DOF IMU incorporates the L3DG20H gyroscope and LSM303DLHC accelerometer/compass combo on a single carrier board to allow full inertial measurement in a convenient form factor \cite{adafruit_imu}. Figure \ref{fig:imu} shows the IMU mounted in the 3D printed bracket. The robot only utilizes the accelerometer and magnetic compass to realize a tilt-compensated compass. The LSM303DLHC can measure both acceleration and magnetic fields in three dimensions with configurable bandwidth and full-scale ranges. It uses I\textsuperscript{2}C for control and data transfer
+The Adafruit 9-DOF IMU incorporates the L3DG20H gyroscope and LSM303DLHC accelerometer/compass combo on a single carrier board to allow full inertial measurement in a convenient form factor \cite{adafruit_imu}. Figure \ref{fig:imu} shows the IMU mounted in the 3D printed bracket. The robot only utilizes the accelerometer and magnetic compass to realize a tilt-compensated compass. The LSM303DLHC can measure both acceleration and magnetic fields in three dimensions with configurable bandwidth and full-scale ranges. It uses 400 kHz I\textsuperscript{2}C for control and data transfer and draws power from the 3.3 V supply. Raw measurements from the IMU possess significant offset and scaling error so a calibration routine is required.
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/imu.png}
 	\caption{Adafruit 9-DOF IMU Mounted}\label{fig:imu}
 \end{figure}
+
+The accelerometer and magnetometer calibration process utilizes the FreeIMU program written by Fabio Varesano in Python \cite{freeimu}. The program features a graphical user interface (GUI), shown in Figure \ref{fig:cal_gui},  to display accelerometer and magnetometer measurements in real time and plots them in 3D space. The calibration program was originally designed to calibrate the open-source FreeIMU IMU when connected to an Arduino with the FreeIMU calibration firmware so the program's device communication back-end was modified to accept the LSM303DLHC IMU connected to an STM32 microcontroller with custom firmware. The calibration routine assumes that the sensor's measurements are still linear so it produces a linear scaling factor and offset for each of 6 measurements (accelerometer X, Y, Z and magnetometer X, Y, Z). 
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/cal_gui.png}
+	\caption{FreeIMU GUI}\label{fig:cal_gui}
+\end{figure}
+
+\begin{align}
+mag_{calibrated} &= m_{mag x} mag_{x measurement} + b_{mag x}\\
+acc_{x calibrated} &= m_{acc x} acc_{z measurement} + b_{acc x}\\
+acc_{y calibrated} &= m_{acc y} acc_{z measurement} + b_{acc y}\\
+acc_{z calibrated} &= m_{acc z} acc_{z measurement} + b_{acc z}\\
+\end{align}
+
+The calibration process is as follows:
+\begin{table}[h]
+	\centering	\caption{IMU Calibration Process}
+	\begin{tabular}{ccc}
+		\hline 
+		Step & Action \\ \hline 
+		1 & Connect microcontroller serial port to computer through Serial-to-USB converter.  \\ \hline 
+		2 &  \\ \hline 
+		 &  \\ \hline 
+		 &  \\ \hline 
+		 &  \\ \hline 
+		 &  \\ \hline 
+		 &  \\ \hline 
+	\end{tabular} 
+	\label{tab:L298N_truth_table}
+\end{table}
+
+
+
 
 \subsection{VL53L0X Rangefinders}
 The rangefinders, marketed by STMicroelectronics as the "world's smallest Time-of-Flight ranging sensor", are capable of measuring between 30 and 2000 mm with a 30 Hz sample rate \cite{vl53l0x}. It operates by firing pulsed light from a vertical cavity surface emitting laser (VCSEL), measuring time taken for the laser pulse to reflect back to the sensor, and calculating the distance based on the known speed of light. The robot uses cheap \$8 VL53L0X breakout boards in lieu of designing and assembling custom carriers; the sensor itself comes in a 4.4 x 2.4 mm lead-less package making hand soldering prohibitively difficult. Figure \ref{fig:rangefinder} shows the sensor board mounted in the 3D printed bracket. The sensor breakout boards include the VL53L0X module, decoupling capacitors, an LDO for the sensor's 2.8 V power supply, and level shifters for the I\textsuperscript{2}C lines. Control and data transfer both occur over 400 kHz I\textsuperscript{2}C so the breakout only requires four wires: 3.3 V, ground, and the I\textsuperscript{2}C data and clock lines. To characterize the accuracy and precision of the sensor, distance measurements were taken by targeting the sensor at a sheet of standard white printer paper. The data is compared with measurements from a tape measure; results are shown in Figure \ref{fig:rangefinder_measurement}. 
@@ -39,7 +73,7 @@ Since the measurements are linear, only a linear correction is required as follo
 \begin{equation}
 	d_{calibrated} = m_{scale} d_{measurement} + b_{offset}
 \end{equation}
-where $m_{scale} = 0.96502507$ and $b_{offset} = -3.8534743$. The squared error for each data point before and after calibration is shown in Figure \ref{fig:rangefinder_calibrated}. The mean squared error for the uncalibrated data points is 342.3 mm and 15.0 mm after calibration, indicating the use of an appropriate model and constants.
+where $d_{measurement} $ is distance as returned by the sensor, $m_{scale} = 0.96502507$, $b_{offset} = -3.8534743$, and $d_{calibrated}$ is the calibrated distance. The squared error for each data point before and after calibration is shown in Figure \ref{fig:rangefinder_calibrated}. The mean squared error for the uncalibrated data points is 342.3 mm and 15.0 mm after calibration, indicating the use of an appropriate model and constants.
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/rangefinder_calibrated.png}
