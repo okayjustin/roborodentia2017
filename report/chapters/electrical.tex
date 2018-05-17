@@ -2,7 +2,6 @@
 \section{Introduction}
 The electronics of the robot use a combination of off-the-shelf parts and custom designed circuits. 
 
-
 \section{Power}
 A four cell, 1800 mAH lithium polymer (LiPo) battery powers the entire system. The battery is connected using polarized XT60 connectors to prevent reverse connection. The battery voltage varies between 16.8 V when fully charged and 14.8 V when depleted so two off-the-shelf DC-DC switching regulators, shown in Figure \ref{fig:smps}, buck battery voltage down to 12 V and 7 V supplies. The switching regulators accept a 7 -- 40 V supply and can output 1.2 -- 35 V at 8 A each. The 12 V bus powers the three motor drivers boards while the 7 V bus powers the STM32 Nucleo-64 development board and two AZ1085CD low-dropout linear regulators (LDO). One LDO produces a 5 V bus while the other provides 3.3 V, each at 3 A. 
 
@@ -22,39 +21,30 @@ The Adafruit 9-DOF IMU incorporates the L3DG20H gyroscope and LSM303DLHC acceler
 	\caption{Adafruit 9-DOF IMU Mounted}\label{fig:imu}
 \end{figure}
 
-The accelerometer and magnetometer calibration process utilizes the FreeIMU program written by Fabio Varesano in Python \cite{freeimu}. The program features a graphical user interface (GUI), shown in Figure \ref{fig:cal_gui},  to display accelerometer and magnetometer measurements in real time and plots them in 3D space. The calibration program was originally designed to calibrate the open-source FreeIMU IMU when connected to an Arduino with the FreeIMU calibration firmware so the program's device communication back-end was modified to accept the LSM303DLHC IMU connected to an STM32 microcontroller with custom firmware. The calibration routine assumes that the sensor's measurements are still linear so it produces a linear scaling factor and offset for each of 6 measurements (accelerometer X, Y, Z and magnetometer X, Y, Z). 
+The accelerometer and magnetometer calibration process utilizes the FreeIMU program written by Fabio Varesano in Python \cite{freeimu}. The program features a graphical user interface (GUI), shown in Figure \ref{fig:cal_gui},  to display accelerometer and magnetometer measurements in real time and plots them in 3D space. The calibration program was originally designed to calibrate the open-source FreeIMU IMU when connected to an Arduino with the FreeIMU calibration firmware so the program's device communication back-end was modified to accept the LSM303DLHC IMU connected to an STM32 microcontroller with custom firmware. The calibration algorithm assumes that the sensor's measurements are linearly distorted and therefore produces a linear scaling factor and offset for each of six measurements (accelerometer X, Y, Z and magnetometer X, Y, Z). The correction algorithm is shown below where $val$ can represent any of the six measurements.
+
+\begin{equation}
+val_{calibrated} = m_{scale} val_{measurement} + b_{offset}
+\end{equation}
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/cal_gui.png}
-	\caption{FreeIMU GUI}\label{fig:cal_gui}
+	\caption{FreeIMU GUI \cite{freeimu}}\label{fig:cal_gui}
 \end{figure}
 
-\begin{align}
-mag_{calibrated} &= m_{mag x} mag_{x measurement} + b_{mag x}\\
-acc_{x calibrated} &= m_{acc x} acc_{z measurement} + b_{acc x}\\
-acc_{y calibrated} &= m_{acc y} acc_{z measurement} + b_{acc y}\\
-acc_{z calibrated} &= m_{acc z} acc_{z measurement} + b_{acc z}\\
-\end{align}
+The calibration procedure is as follows:
+\begin{enumerate}
+	\item \ssp IMU should be mounted on fully assembled robot and connected to microcontroller.
+	\item \ssp Connect microcontroller serial port to computer through Serial-to-USB converter.
+	\item \ssp Click "Begin Sampling" to start recording magnetometer and accelerometer measurements.
+	\item \ssp Point the IMU x-axis at the ground and rotate \ang{360} around that axis. Repeat for y-axis and z-axis.
+	\item \ssp Point the IMU x-axis at the sky and rotate \ang{360} around that axis. Repeat for y-axis and z-axis.
+	\item \ssp Repeat Steps 3 and 4 at least twice to increase data size.
+	\item \ssp Click "Stop Sampling".
+	\item \ssp Click "Calibrate" to calculate scaling and offset constants.
+\end{enumerate}
 
-The calibration process is as follows:
-\begin{table}[h]
-	\centering	\caption{IMU Calibration Process}
-	\begin{tabular}{ccc}
-		\hline 
-		Step & Action \\ \hline 
-		1 & Connect microcontroller serial port to computer through Serial-to-USB converter.  \\ \hline 
-		2 &  \\ \hline 
-		 &  \\ \hline 
-		 &  \\ \hline 
-		 &  \\ \hline 
-		 &  \\ \hline 
-		 &  \\ \hline 
-	\end{tabular} 
-	\label{tab:L298N_truth_table}
-\end{table}
-
-
-
+The procedure ensures that ends of each axis eventually receive the maximum acceleration and magnetic field. To ensure hard-iron errors (such as from motors and permanent magnets) as well as soft iron errors (from local ferromagnetic materials like steel) are compensated for in the calibration, the process should be performed with the fully assembled robot and redone each time the robot is modified \cite{hard_soft_correction}. Since the expected fields are known (acceleration due to gravity, strength of Earth's magnetic field), the required linear transformation can be calculated. See \cite{freeimu} for details of the exact algorithm.
 
 \subsection{VL53L0X Rangefinders}
 The rangefinders, marketed by STMicroelectronics as the "world's smallest Time-of-Flight ranging sensor", are capable of measuring between 30 and 2000 mm with a 30 Hz sample rate \cite{vl53l0x}. It operates by firing pulsed light from a vertical cavity surface emitting laser (VCSEL), measuring time taken for the laser pulse to reflect back to the sensor, and calculating the distance based on the known speed of light. The robot uses cheap \$8 VL53L0X breakout boards in lieu of designing and assembling custom carriers; the sensor itself comes in a 4.4 x 2.4 mm lead-less package making hand soldering prohibitively difficult. Figure \ref{fig:rangefinder} shows the sensor board mounted in the 3D printed bracket. The sensor breakout boards include the VL53L0X module, decoupling capacitors, an LDO for the sensor's 2.8 V power supply, and level shifters for the I\textsuperscript{2}C lines. Control and data transfer both occur over 400 kHz I\textsuperscript{2}C so the breakout only requires four wires: 3.3 V, ground, and the I\textsuperscript{2}C data and clock lines. To characterize the accuracy and precision of the sensor, distance measurements were taken by targeting the sensor at a sheet of standard white printer paper. The data is compared with measurements from a tape measure; results are shown in Figure \ref{fig:rangefinder_measurement}. 
@@ -115,7 +105,45 @@ Figure \ref{fig:l298n} shows a wiring diagram for each motor driver. The board u
 	\label{tab:L298N_truth_table}
 \end{table}
 
+\section{Servo}
+A GWS S03N standard servo powered from the 5 V bus actuates the gating mechanism in the ball hopper. Most servos are controlled by driving the control wire with a pulse width modulated (PWM) signal with a period of 15 -- 25 ms and a pulse width between 0.5 ms and 2.5 ms where the pulse width determines the position of the servo as shown in Figure \ref{fig:servo_pulse_width}. 
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/servo_pulse_width.png}
+	\caption{Servo PWM Control Scheme \cite{servo_pulse_width}}\label{fig:servo_pulse_width}
+\end{figure}
+
+Due to cheap manufacturing and loose tolerances, the actual required pulse widths can vary from servo to servo, requiring calibration to obtain accurate positional control. The process for calibration is simple: apply various pulse widths and record the resulting servo positions. The calibrated pulse widths and servo angles are recorded in Table \ref{tab:servo_angles}.
+
+\begin{table}[h]
+	\centering	\caption{Servo Required Pulse Widths}
+	\begin{tabular}{cc}
+		\hline 
+		Servo Position & Pulse Width (ms) \\ \hline 
+		\ang{0} & 0.674 \\ \hline 
+		\ang{45} & 1.082 \\ \hline 
+		\ang{90} & 1.490 \\ \hline 
+		\ang{135} & 1.898 \\ \hline 
+		\ang{180} & 2.306 \\ \hline 
+	\end{tabular} 
+	\label{tab:servo_angles}
+\end{table}
+
+\section{Microcontroller}
+An STMicroelectronics STM32F446RE microcontroller (MCU) serves as the bridge between the robot's low-level electronics and the high-level control system running on a desktop computer. Specifically, the MCU collects data from sensors over I\textsuperscript{2}C and general purpose input/output (GPIO), generates control signals for the motor drivers and servo, and services commands from UART (universal asynchronous receiver-transmitter). The MCU resides on an STMicroelectronics Nucleo-64 development board, shown in Figure \ref{fig:nucleo64}, which conveniently integrates an ST-LINK V2 debugger, programmer, and USB-to-UART interface.
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/nucleo64.png}
+	\caption{STM32 Nucleo-64 Development Board \cite{nucleo64_manual}}\label{fig:nucleo64}
+\end{figure}
+
 \section{Interconnect PCB}
+The interconnect PCB is a custom designed board with three goals: regulate voltage, route power, and connect peripherals to the development board. The PCB routes input battery power to two external buck regulators, producing 12 V and 7 V. The 7 V bus is further regulated to 5 V and 3.3 V logic rails using two AZ1085CD LDOs and then routed to the development board, sensors, etc. Most importantly, the interconnect board provides dedicated 2.0 mm JST connectors for all sensors, motor drivers, and the servo to simplify and robustify wiring across the robot. In addition, hand-crimped cables made with JST connectors and 28 gauge ribbon cable prevent rats nest wiring. A block diagram is shown in Figure \ref{fig:interconnect_block}.
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/interconnect_block.png}
+	\caption{Interconnect PCB Block Diagram}\label{fig:interconnect_block}
+\end{figure}
 
 \subsection{Schematic Capture}
 
