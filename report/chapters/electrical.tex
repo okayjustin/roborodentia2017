@@ -29,7 +29,7 @@ val_{calibrated} = m_{scale} val_{measurement} + b_{offset}
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/cal_gui.png}
-	\caption{FreeIMU GUI \cite{freeimu}}\label{fig:cal_gui}
+5	\caption{FreeIMU GUI \cite{freeimu}}\label{fig:cal_gui}
 \end{figure}
 
 The calibration procedure is as follows:
@@ -138,12 +138,27 @@ An STMicroelectronics STM32F446RE microcontroller (MCU) serves as the bridge bet
 \end{figure}
 
 \section{Interconnect PCB}
-The interconnect PCB is a custom designed board with three goals: regulate voltage, route power, and connect peripherals to the development board. The PCB routes input battery power to two external buck regulators, producing 12 V and 7 V. The 7 V bus is further regulated to 5 V and 3.3 V logic rails using two AZ1085CD LDOs and then routed to the development board, sensors, etc. Most importantly, the interconnect board provides dedicated 2.0 mm JST connectors for all sensors, motor drivers, and the servo to simplify and robustify wiring across the robot. In addition, hand-crimped cables made with JST connectors and 28 gauge ribbon cable prevent rats nest wiring. A block diagram is shown in Figure \ref{fig:interconnect_block}.
+The interconnect PCB is a custom designed board with three goals: regulate voltage, route power, and connect peripherals to the development board. The PCB routes input battery power to two external buck regulators, producing 12 V and 7 V. The 7 V bus is further regulated to 5 V and 3.3 V logic rails using two AZ1085CD LDOs and then routed to the development board, sensors, etc. Most importantly, the interconnect board provides dedicated 2.0 mm JST connectors for all sensors, motor drivers, and the servo to simplify and robustify wiring across the robot. In addition, hand-crimped cables made with JST connectors and 28 gauge ribbon cable prevent rats nest wiring. A block diagram is shown in Figure 
 
-\begin{figure}[H]   % [h] means here
-	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/interconnect_block.png}
-	\caption{Interconnect PCB Block Diagram}\label{fig:interconnect_block}
-\end{figure}
+\begin{tikzpicture}[node distance=2.5cm,auto,>=latex']
+\node [int](battery){LiPo Battery};
+\node[int, right of = battery,minimum size=2cm,text height=2em, align=center](ldo5v){5V LDO\\ AZ1085CD};
+\node[int, right of = battery, below of=ldo5v](ldo3v3){3V3 LDO\\ AZ1085CD};
+\path[->] (battery) edge node {} (ldo5v);
+\path[->] (battery) edge node {} (ldo3v3);
+
+\end{tikzpicture}
+
+\begin{tikzpicture}[node distance=2.5cm,auto,>=latex']
+\node [int, pin={[init]above:$v_0$}] (a) {$\frac{1}{s}$};
+\node [left of=a,node distance=2cm, coordinate] (b) {};
+\node [int, pin={[init]above:$p_0$}] (c) [right of=a] {$\frac{1}{s}$};
+\node [coordinate] (end) [right of=c, node distance=2cm]{};
+\path[->] (b) edge node {$a$} (a);
+\path[->] (a) edge node {$v$} (c);
+\draw[->] (c) edge node {$p$} (end) ;
+\end{tikzpicture}
+
 
 \subsection{Schematic Capture}
 
