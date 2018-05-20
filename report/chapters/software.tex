@@ -1,5 +1,41 @@
 \chapter{Software}
 
+\section{STM32CubeMX}
+The robot uses an STMicroelectronics STM32F446RE microcontroller (MCU) for low level sensor interfacing and motor control. Before starting the electrical design, the various hardware signals must be assigned to the MCU's GPIO with consideration for the device's peripherals such as timers and I\textsuperscript{2}C buses. STMIcroelectronics provides a program to this end called STM32CubeMX, shown in Figure \ref{fig:stm32cubemx}. Within the program, the user selects which MCU to configure and a graphical representation of the chip is shown on the GUI. The MCU's GPIO pins are arranged into banks of up to 16 pins each called ports. For example, PC2 is the second pin in Port C while PB11 is Pin 11 in Port B. The left column of the GUI lists the device peripherals including analog-to-digital converters (ADCs); various buses such as SPI, USART, and USB; and timers. Peripheral modes can be selected here such as USART mode (asynchronous, single-wire, LIN, etc) and flow control as well as timer clock sourcing and channel modes.
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, keepaspectratio]{figures/stm32cubemx.png}
+	\caption{STM32CubeMX}\label{fig:stm32cubemx}
+\end{figure}
+
+The program greatly simplifies the puzzle-like process of pin assignment. Clicking a pin on the GUI brings up a menu of possible assignments. For example, clicking PB15, seen in Figure \ref{fig:stm32cubemx_pin}, shows that the pin can be used for the ADC, I2S2, as SPI2's MOSI, TIMER12's CH2 output, part of the USB differential data pair, as standard GPIO input or output, and more. As pins are assigned to various purposes, the true benefit of STM32CubeMX becomes clear. The program continually checks for compatibility issues and pin conflicts so pins can be iteratively assigned until errors are eliminated. For example, using a particular set of timers may actually prevent the use of I2C1 so either I2C2 or I2C3 must be used instead. This process is much faster and less error-prone than searching through the MCU's immense datasheet to manually check for assignment conflicts within every peripheral.
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, keepaspectratio]{figures/stm32cubemx_pin.png}
+	\caption{STM32CubeMX -- Pin Menu}\label{fig:stm32cubemx_pin}
+\end{figure}
+
+The software also provides device-wide clock and PLL configuration as shown in Figure \ref{fig:stm32cubemx_clocks}. The MCU uses an external 8 MHz crystal to drive the internal PLL which then generates a 180 MHz system clock. Since the system is optimized for performance instead of power-saving, all advanced peripheral bus (APB) clocks are run at max frequency of 45 MHz for APB1 and 90 MHz for APB2. 
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, keepaspectratio]{figures/stm32cubemx_clocks.png}
+	\caption{STM32CubeMX -- Clock Configurator}\label{fig:stm32cubemx_clocks}
+\end{figure}
+
+Another tab within STM32CubeMX provides detailed peripheral configuration. Both I\textsuperscript{2}C buses are set to 400 kHz with a 2:1 T\textsubscript{low}:T\textsubscript{high} duty cycle to meet the minimum pulse width requirement of slave devices. The USART peripheral is configured to 921,600 bits/s, 8-bit words, no parity, and one stop bit. The direct memory access (DMA) controller is set to process requests from the I\textsuperscript{2}C and UART peripherals to reduce processor load. 
+
+The robot uses four of the MCU's timers: TIMER3, TIMER4, TIMER5, and TIMER12. Each of these timers sources its base clock from the APB1 clock which is 90 MHz. TIMER3 and TIMER4 output 6 PWM control signals for the motor drivers. They are set to count upward and reset after the counter reaches 2047 to produce a 43.9 kHz PWM frequency in the ultrasonic range. TIMER5, used for delay and timing functions, employs a clock prescaler of 9000 so the counter increases every 0.1 ms and never resets; the 32-bit counter has a maximum value of 4,294,967,295 corresponding to a counter rollover period of about 5 days. Finally, TIMER12 drives the PWM signals for servo control. It uses a 45 prescaler and a 50,000 counter period to produce a 40 Hz PWM frequency.
+
+After configuring the various items above, STM32CubeMX can generate common boilerplate plate code to initialize and configure all the devices. Include and source files are generated on a by-peripheral basis to compartmentalize code. The program also generates a report of the device configuration, attached in Appendix \ref{appendix:stm32cubemx_report}.
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, keepaspectratio]{figures/stm32cubemx_config.png}
+	\caption{STM32CubeMX -- Peripheral Configurator}\label{fig:stm32cubemx_config}
+\end{figure}
+
+\section{Microcontroller Firmware}
+
+
 \section{Definitions and Assumptions}
 The robot is designed to only travel within a rectangular closed area of eight feet in the x direction and five feet in the y direction. The coordinate system is chosen as Cartesian with the origin placed at the bottom-left corner of the field. The position of the robot is always in the xy-plane since it cannot move vertically (z = 0). Therefore, $x$ refers to the robot position along the x-axis and ranges from 0 to 8 feet, and $y$ refers to position along the y-axis and ranges from 0 to 5 feet. Additionally, the robot can only rotate around the z-axis so $\theta$ refers to the angle of the robot in the xy-plane. Maintaining standard Cartesian coordinates, $\theta=\ang{0}$ is along the positive x direction while $\theta=\ang{90}$ is along the positive y direction.
 
