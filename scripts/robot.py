@@ -5,14 +5,6 @@ import numpy as np
 from console import *
 import struct
 import time
-
-#import time
-#from numpy import linalg
-#from filterpy.kalman import KalmanFilter
-#from filterpy.common import Q_discrete_white_noise
-#from filterpy.kalman import MerweScaledSigmaPoints
-#from filterpy.kalman import UnscentedKalmanFilter as UKF
-#import pygame as pygame
 from timeit import default_timer as timer
 
 # Thresholds for changing areas
@@ -37,18 +29,8 @@ ACC_S_Z = 1 / 1063.2448503229036
 ACC_O_X = 30 * -ACC_S_X
 ACC_O_Y = 0 * -ACC_S_Y
 ACC_O_Z = -76 * -ACC_S_Z
-GYR_S_X = 1 / 131.068
-GYR_S_Y = 1 / 131.068
-GYR_S_Z = 1 / 131.068
-GYR_O_X = 0.0
-GYR_O_Y = 0.0
-GYR_O_Z = 0.0
 
-# Kalman settings
-RANGE_VAR = 140
-KAL_DT = 0.01
-Q_VAR = 0.001  # Process covariance
-
+# Corrects setpoint offset error in networks
 X_OFFSET = 10
 Y_OFFSET = 10
 

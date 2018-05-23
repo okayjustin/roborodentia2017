@@ -1,6 +1,4 @@
 #!/usr/local/bin/python3
-#import numpy as np
-#import robotsim
 from robot import *
 from timeit import default_timer as timer
 import time

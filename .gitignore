@@ -17,6 +17,7 @@ firmware_new/build/*
 arm/build/*
 arm/orig/*
 arm/src/*
+doxygen/
 
 .DS_Store
 *.dSYM
