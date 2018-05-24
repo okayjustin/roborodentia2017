@@ -1,6 +1,6 @@
 \chapter{Mechanical Design}
 \section{Introduction}
-The robot meets the design specification shown in Table \ref{tab:roborodentia_reqs}. It consists of four subassemblies: the base platform, shooting mechanism, ball hopper, and control unit. Each section was first modeled in SolidWorks, an industry-standard solid modeling CAD program. The designed parts were then fabricated using a laser cutter or 3D printer and assembled with metric hardware. Figures \ref{fig:render_isometric} through \ref{fig:render_right} show standard view renders of the robot. Note that the robot uses mecanum wheels (a type of omni-directional wheel) which are modeled here as regular wheels for simplicity.
+The robot meets the design specification shown in Table \ref{tab:roborodentia_reqs}. It consists of four subassemblies: the base platform, shooting mechanism, ball hopper, and control unit. Each section was first modeled in SolidWorks, an industry-standard solid modeling CAD program. The designed parts were then fabricated using a laser cutter or 3D printer and assembled with metric hardware. Figure \ref{fig:robot_photo} displays a photograph of the robot while figures \ref{fig:render_isometric} through \ref{fig:render_right} show standard view renders of the SolidWorks model. Note that the robot uses mecanum wheels (a type of omni-directional wheel) which are modeled here as regular wheels for simplicity.
 
 \begin{table}[h]
 	\centering	\caption{Roborodentia 2018 Mechanical Requirements}
@@ -23,6 +23,10 @@ The robot meets the design specification shown in Table \ref{tab:roborodentia_re
 \end{table}
 
 \begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=7in, keepaspectratio]{figures/robot_photo.png}
+	\caption{Photograph of Robot}	\label{fig:robot_photo}
+\end{figure}
+\begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/render_isometric.png}
 	\caption{Full Robot Render -- Isometric View}\label{fig:render_isometric}
 \end{figure}
@@ -40,14 +44,19 @@ The robot meets the design specification shown in Table \ref{tab:roborodentia_re
 \end{figure}
 
 \section{Base Platform}
-The base platform of the robot, made from 1/4" medium density fiberboard (MDF), serves as the primary structural component and a mounting point for the motors, electronics, shooting mechanism, and hopper. The wood is laser cut with a 20 mm grid of 4.5 mm holes to allow modular placement of components and the corners are removed to allow clearance for the wheels. Figures \ref{fig:base_platform} shows the assembled view of the subassembly.
+The base platform of the robot, made from 1/4" medium density fiberboard (MDF), serves as the primary structural component and a mounting point for the motors, electronics, shooting mechanism, and hopper. The wood is laser cut with a 20 mm grid of 4.5 mm diameter holes to allow modular placement of components and the corner cutouts allow clearance for the wheels. Figures \ref{fig:base_platform} shows the assembled view of the subassembly.
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/base_platform.png}
 	\caption{Base Platform}	\label{fig:base_platform}
 \end{figure}
 
-Four 12V Pololu 37D motors geared at a 70:1 ratio drive each of the 60 mm mecanum wheels. Each wheel contains eight angled rollers so unlike regular wheels which only produce a force vector perpendicular to the axis, mecanum wheels also produce a vector parallel to the axis. With the appropriate combination of speed and direction of each wheel, the robot can achieve simultaneous translation and rotation in any direction. 
+Four 12V Pololu 37D motors geared at a 70:1 ratio drive each of the 60 mm mecanum wheels. 3D printed couplings shown in Figure \ref{fig:wheel_coupler} connect the wheels to the D-shaped motor shafts. Each wheel contains eight angled rollers so unlike regular wheels which only produce a force vector perpendicular to the axis, mecanum wheels also produce a vector parallel to the axis. With the appropriate combination of speed and direction of each wheel, the robot can achieve simultaneous translation and rotation in any direction. 
+
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/wheel_coupler.png}
+	\caption{Wheel Coupler}	\label{fig:wheel_coupler}
+\end{figure}
 
 Several electronic components are mounted directly on the base platform. Along the four edges of the platform, four ST Microelectronics VL53L0X laser rangefinders mounted on 3D printed brackets sense distance. These sensors cost between \$6 to \$20 mounted on a small PCB with supporting circuitry and can sense distances between 30 mm and 2000 mm at a rate of 30 Hz and less than 10\% error in most test conditions \cite{vl53l0x_datasheet}. A 4S, 1200 mAH LiPo battery powers the system through a on/off toggle switch. 
 
