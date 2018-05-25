@@ -1,42 +1,39 @@
 \chapter{Interconnect PCB Bill of Materials}
-\label{appendix:bom}
-%\begin{table}[]
-%\resizebox{\textwidth}{!}{%
+\label{appendix:pcb_bom}
+
 \begin{landscape}
-
 \small
-\begin{longtable}{rrlp{2.6in}p{1.7in}p{1.7in}}
-%	\caption{Interconnect PCB Bill of Materials}
-%	\label{my-label}
-
-	
-		\hline
-		\multicolumn{1}{c}{Qty} & \multicolumn{1}{c}{Value} & \multicolumn{1}{c}{Package} & \multicolumn{1}{c}{Parts} & \multicolumn{1}{c}{Description} & \multicolumn{1}{c}{DIGIKEY PN} \\ \hline
-		2 & AZ1085CD & TO252 & U2, U7 & AZ1085C & AZ1085CD-ADJTRG1DICT-ND \\ \hline
-		7 & 0.1uF & C0603 & C3, C4, C5, C6, C7, C8, C9 & CAPACITOR & 445-5667-1-ND \\ \hline
-		2 & 10uF & C0603 & C1, C2 & CAPACITOR & 490-13248-1-NDÊ \\ \hline
-		2 & 22uF & C0603 & C10, C11 & CAPACITOR & 490-10476-1-ND \\ \hline
-		3 & TCA9554A & SOIC16 & U1, U5, U6 & I2C 8-bit GPIO Expander & 296-45456-1-ND \\ \hline
-		6 &  & JST-XH-02 & X1, X12, X16, X18, X19, X20 & JST XH Connector 2 Pin & 455-2247-ND \\ \hline
-		2 &  & JST-XH-03 & X13, X14 & JST XH Connector 3 Pin & 455-2248-ND \\ \hline
-		1 &  & JST-XH-04 & X8 & JST XH Connector 4 Pin & 455-2249-ND \\ \hline
-		6 &  & JST-XH-06 & X2, X3, X4, X5, X6, X7 & JST XH Connector 6 Pin & 455-2271-ND \\ \hline
-		3 &  & JST-XH-07 & X9, X10, X11 & JST XH Connector 7 Pin & 455-2252-ND \\ \hline
-		2 &  & JST-XH-08 & X15, X17 & JST XH Connector 8 Pin & 455-2251-ND \\ \hline
-		6 & GREEN & CHIPLED\_0805 & LED1, LED2, LED3, LED4, LED5, LED6 & LED & 732-4971-1-ND \\ \hline
-		2 & RE1C002UN & SOT416FL & Q1, Q2 & Logic-level N-FET & RE1C002UNTCLCT-ND \\ \hline
-		4 & 82 & R0603 & R7, R9, R10, R18 & RESISTOR & 311-82.0HRCT-ND \\ \hline
-		5 & 100 & R0603 & R3, R11, R12, R15, R16 & RESISTOR & 311-100HRCT-ND \\ \hline
-		1 & 178 & R0603 & R1 & RESISTOR & 311-178HRCT-ND \\ \hline
-		1 & 287 & R0603 & R2 & RESISTOR & 311-287HRCT-ND \\ \hline
-		1 & 301 & R0603 & R4 & RESISTOR & 311-301HRCT-ND \\ \hline
-		2 & 430 & R0603 & R8, R17 & RESISTOR & 311-430HRCT-ND \\ \hline
-		4 & 3.3k & R0603 & R19, R20, R21, R22 & RESISTOR & 311-3.30KHRCT-ND \\ \hline
-		4 & 4.7k & R0603 & R5, R6, R13, R14 & RESISTOR & 311-4.70KHRCT-ND \\ \hline
-		2 & SPST & EVQ-Q2 & SW1, SW2 & SMT 6mm switch & P12955SCT-ND \\ \hline
-		1 & STM32F446 & NUCLEO & U4 & STM32 NUCLEO-64 & 497-15882-ND \\ \hline
-		10 &  & 3,17/1,1 & PAD1, PAD2, PAD3, PAD4, PAD5, PAD6, PAD7, PAD8, PAD9, PAD10 & Wire PAD connect wire on PCB & n/a \\ \hline
-		105 &  & BRIDGE & SB1, SB2, SB3, SB4, SB5, SB6, SB7, SB8, SB9, SB10, SB11, SB12, SB13, SB14, SB15, SB16, SB17, SB18, SB19, SB20, SB21, SB22, SB23, SB24, SB25, SB26, SB27, SB28, SB29, SB30, SB31, SB32, SB33, SB34, SB35, SB36, SB37, SB38, SB39, SB40, SB41, SB42, SB43, SB44, SB45, SB46, SB47, SB48, SB49, SB50, SB51, SB52, SB54, SB55, SB56, SB57, SB58, SB59, SB60, SB61, SB62, SB63, SB64, SB65, SB66, SB67, SB68, SB69, SB70, SB71, SB72, SB73, SB75, SB76, SB77, SB78, SB80, SB81, SB82, SB83, SB94, SB96, SB98, SB99, SB100, SB101, SB102, SB103, SB104, SB105, SB106, SB107, SB108, SB109, SB110, SB111, SB112, SB113, SB114, SB115, SB116, SB117, SB118, SB119, SB120 & Solder bridge with knife-cuttable prebridged connection. & n/a \\ \hline
+\begin{longtable}{rrlp{2.7in}p{1.7in}p{1.7in}}
+	\caption{Interconnect PCB Bill of Materials}
+	\label{tab:pcb_bom}
+	\endfirsthead
+	\endhead
+	\hline
+	\multicolumn{1}{c}{Qty} & \multicolumn{1}{c}{Value} & \multicolumn{1}{c}{Package} & \multicolumn{1}{c}{Parts} & \multicolumn{1}{c}{Description} & \multicolumn{1}{c}{DIGIKEY PN} \\ \hline
+	2 & AZ1085CD & TO252 & U2, U7 & AZ1085C & AZ1085CD-ADJTRG1DICT-ND \\ \hline
+	7 & 0.1uF & C0603 & C3, C4, C5, C6, C7, C8, C9 & CAPACITOR & 445-5667-1-ND \\ \hline
+	2 & 10uF & C0603 & C1, C2 & CAPACITOR & 490-13248-1-NDÊ \\ \hline
+	2 & 22uF & C0603 & C10, C11 & CAPACITOR & 490-10476-1-ND \\ \hline
+	3 & TCA9554A & SOIC16 & U1, U5, U6 & I2C 8-bit GPIO Expander & 296-45456-1-ND \\ \hline
+	6 &  & JST-XH-02 & X1, X12, X16, X18, X19, X20 & JST XH Connector 2 Pin & 455-2247-ND \\ \hline
+	2 &  & JST-XH-03 & X13, X14 & JST XH Connector 3 Pin & 455-2248-ND \\ \hline
+	1 &  & JST-XH-04 & X8 & JST XH Connector 4 Pin & 455-2249-ND \\ \hline
+	6 &  & JST-XH-06 & X2, X3, X4, X5, X6, X7 & JST XH Connector 6 Pin & 455-2271-ND \\ \hline
+	3 &  & JST-XH-07 & X9, X10, X11 & JST XH Connector 7 Pin & 455-2252-ND \\ \hline
+	2 &  & JST-XH-08 & X15, X17 & JST XH Connector 8 Pin & 455-2251-ND \\ \hline
+	6 & GREEN & CHIPLED\_0805 & LED1, LED2, LED3, LED4, LED5, LED6 & LED & 732-4971-1-ND \\ \hline
+	2 & RE1C002UN & SOT416FL & Q1, Q2 & Logic-level N-FET & RE1C002UNTCLCT-ND \\ \hline
+	4 & 82 & R0603 & R7, R9, R10, R18 & RESISTOR & 311-82.0HRCT-ND \\ \hline
+	5 & 100 & R0603 & R3, R11, R12, R15, R16 & RESISTOR & 311-100HRCT-ND \\ \hline
+	1 & 178 & R0603 & R1 & RESISTOR & 311-178HRCT-ND \\ \hline
+	1 & 287 & R0603 & R2 & RESISTOR & 311-287HRCT-ND \\ \hline
+	1 & 301 & R0603 & R4 & RESISTOR & 311-301HRCT-ND \\ \hline
+	2 & 430 & R0603 & R8, R17 & RESISTOR & 311-430HRCT-ND \\ \hline
+	4 & 3.3k & R0603 & R19, R20, R21, R22 & RESISTOR & 311-3.30KHRCT-ND \\ \hline
+	4 & 4.7k & R0603 & R5, R6, R13, R14 & RESISTOR & 311-4.70KHRCT-ND \\ \hline
+	2 & SPST & EVQ-Q2 & SW1, SW2 & SMT 6mm switch & P12955SCT-ND \\ \hline
+	1 & STM32F446 & NUCLEO & U4 & STM32 NUCLEO-64 & 497-15882-ND \\ \hline
+	10 &  & 3,17/1,1 & PAD1, PAD2, PAD3, PAD4, PAD5, PAD6, PAD7, PAD8, PAD9, PAD10 & Wire PAD connect wire on PCB & n/a \\ \hline
+	105 &  & BRIDGE & SB1, SB2, SB3, SB4, SB5, SB6, SB7, SB8, SB9, SB10, SB11, SB12, SB13, SB14, SB15, SB16, SB17, SB18, SB19, SB20, SB21, SB22, SB23, SB24, SB25, SB26, SB27, SB28, SB29, SB30, SB31, SB32, SB33, SB34, SB35, SB36, SB37, SB38, SB39, SB40, SB41, SB42, SB43, SB44, SB45, SB46, SB47, SB48, SB49, SB50, SB51, SB52, SB54, SB55, SB56, SB57, SB58, SB59, SB60, SB61, SB62, SB63, SB64, SB65, SB66, SB67, SB68, SB69, SB70, SB71, SB72, SB73, SB75, SB76, SB77, SB78, SB80, SB81, SB82, SB83, SB94, SB96, SB98, SB99, SB100, SB101, SB102, SB103, SB104, SB105, SB106, SB107, SB108, SB109, SB110, SB111, SB112, SB113, SB114, SB115, SB116, SB117, SB118, SB119, SB120 & Solder bridge with knife-cuttable prebridged connection. & n/a \\ \hline
 \end{longtable}
 \end{landscape}
-%\end{table}
