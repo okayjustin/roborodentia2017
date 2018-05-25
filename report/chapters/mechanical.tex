@@ -1,6 +1,6 @@
 \chapter{Mechanical Design}
 \section{Introduction}
-The robot meets the design specification shown in Table \ref{tab:roborodentia_reqs}. It consists of four subassemblies: the base platform, shooting mechanism, ball hopper, and control unit. Each section was first modeled in SolidWorks, an industry-standard solid modeling CAD program. The designed parts were then fabricated using a laser cutter or 3D printer and assembled with metric hardware. Figure \ref{fig:robot_photo} displays a photograph of the robot while figures \ref{fig:render_isometric} through \ref{fig:render_right} show standard view renders of the SolidWorks model. Note that the robot uses mecanum wheels (a type of omni-directional wheel) which are modeled here as regular wheels for simplicity.
+The robot meets the design specification shown in Table \ref{tab:roborodentia_reqs}. It consists of four subassemblies: the base platform, shooting mechanism, ball hopper, and control unit. Each section was first modeled in SolidWorks, an industry-standard solid modeling CAD program. The designed parts were then fabricated using a laser cutter or 3D printer and assembled with metric hardware. Figure \ref{fig:robot_photo} displays a photograph of the robot while figures \ref{fig:render_isometric} through \ref{fig:render_right} show standard view renders of the SolidWorks model. Note that the robot uses mecanum wheels (a type of omni-directional wheel) which are modeled here as regular wheels for simplicity. Figure \ref{fig:render_top} also indicates the front, left, back/rear, and right sides of the robot as referenced in the rest of the paper.
 
 \begin{table}[h]
 	\centering	\caption{Roborodentia 2018 Mechanical Requirements}
@@ -43,15 +43,17 @@ The robot meets the design specification shown in Table \ref{tab:roborodentia_re
 	\caption{Full Robot Render -- Right View}	\label{fig:render_right}
 \end{figure}
 
+The design emphasizes the use of 3D printed parts to take advantage of the benefits of the technology including rapid part production, high part complexity, low fabrication cost (excluding the cost of the printer, relative to other methods such as machining, casting, and injection molding), and Parts were printed on a MakerGear M2 3D printer equipped with a 0.35 mm diameter nozzle using MakerGeeks 1.75 mm ABS thermoplastic filament. Print speeds of 20 to 80 mm/s with 0.20 mm layer height, depending on part dimensions and minimum feature size, lead to part print times of 2-5 hours for smaller components up to 14 hours for the ball hopper. Due to the non-isotropic strength characteristic of 3D printed components (greater tensile strength in the X and Y axes but significantly weaker in Z), the designs must specifically take into account printing direction and orientation. Additionally, the print volume of 200 mm x 250 mm x 200 mm limits the maximum part dimensions thus requiring the ball hopper to printed as three separate pieces. 
+
 \section{Base Platform}
-The base platform of the robot, made from 1/4" medium density fiberboard (MDF), serves as the primary structural component and a mounting point for the motors, electronics, shooting mechanism, and hopper. The wood is laser cut with a 20 mm grid of 4.5 mm diameter holes to allow modular placement of components and the corner cutouts allow clearance for the wheels. Figures \ref{fig:base_platform} shows the assembled view of the subassembly.
+The 315 mm by 275 mm base platform of the robot, made from 1/4" medium density fiberboard (MDF), serves as the primary structural component and a mounting point for the motors, electronics, shooting mechanism, and hopper. The wood is laser cut with a 20 mm grid of 4 mm diameter holes to allow modular placement of components and the corner cutouts allow clearance for the wheels. Figures \ref{fig:base_platform} shows the assembled view of the subassembly. Parts are mounted using M3 nuts and hex bolts.
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/base_platform.png}
 	\caption{Base Platform}	\label{fig:base_platform}
 \end{figure}
 
-Four 12V Pololu 37D motors geared at a 70:1 ratio drive each of the 60 mm mecanum wheels. 3D printed couplings shown in Figure \ref{fig:wheel_coupler} connect the wheels to the D-shaped motor shafts. Each wheel contains eight angled rollers so unlike regular wheels which only produce a force vector perpendicular to the axis, mecanum wheels also produce a vector parallel to the axis. With the appropriate combination of speed and direction of each wheel, the robot can achieve simultaneous translation and rotation in any direction. 
+Four 12V Pololu 37D motors geared at a 70:1 ratio drive each of the 60 mm mecanum wheels. 3D printed couplings, shown in Figure \ref{fig:wheel_coupler}, connect the wheels to the 6 mm diameter, D-shaped motor shafts. Each wheel contains eight angled rollers so unlike regular wheels which only produce a force vector perpendicular to the axis, mecanum wheels also produce a vector parallel to the axis. With the appropriate combination of speed and direction of each wheel, the robot can achieve simultaneous translation and rotation in any direction. 
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/wheel_coupler.png}
