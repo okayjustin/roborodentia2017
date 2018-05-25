@@ -1,6 +1,6 @@
 \chapter{Electrical Design}
 \section{Introduction}
-The electronics of the robot use a combination of off-the-shelf parts and custom designed circuits. 
+The electronics of the robot use a combination of off-the-shelf parts and custom designed circuits. A microcontroller handles low-level hardware control and interfacing such as reading sensors and supplying motor driver control signals while a Raspberry Pi microcontroller processes the data within the artificial neural network and determines motor speeds and directions. The two processors communicate through a 921,600 baud UART link. During development, the robot used either a 2015 MacBook Pro or desktop computer instead of the Raspberry Pi to simplify programming and omit limitations imposed by the Pi's lower processing speed.
 
 \section{Power}
 A four cell, 1800 mAH lithium polymer (LiPo) battery powers the entire system. The battery is connected using polarized XT60 connectors to prevent reverse connection. The battery voltage varies between 16.8 V when fully charged and 14.8 V when depleted so two off-the-shelf DC-DC switching regulators, shown in Figure \ref{fig:smps}, buck battery voltage down to 12 V and 7 V supplies. The switching regulators accept a 7 -- 40 V supply and can output 1.2 -- 35 V at 8 A each. The 12 V bus powers the three motor drivers boards while the 7 V bus powers the STM32 Nucleo-64 development board and two AZ1085CD low-dropout linear regulators (LDO). One LDO produces a 5 V bus while the other provides 3.3 V, each at 3 A. 
@@ -76,6 +76,9 @@ Additionally, 100 measurements were taken at each distance and the variance comp
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/rangefinder_stddev.png}
 	\caption{VL53L0X Standard Deviation}\label{fig:rangefinder_stddev}
 \end{figure}
+
+\section{Motors}
+The robot uses four 12V Pololu 37D motors to drive the wheels. The motors draw 630 mA each at full speed steady state of 234 rpm (24.46 rad/s) and have a maximum acceleration of 4,100 rpm/s (430 rad/s\textsuperscript{2}).
 
 \section{Motor Drivers}
 The system uses three off-the-shelf L298N motor driver boards since they are easily obtainable for less than \$6 each and incorporate features such as heat-sinking, flyback voltage protection, supply filtering, and screw terminal connections. Implementing comparable motor drivers with a similar feature set would undoubtedly cost more. Each L298N is a dual H-bridge driver with 2 A maximum output per bridge using a 5 -- 35 V supply. Two motor drivers handle the four robot drive motors while the third powers the blower fan and shooting mechanism motors. 
@@ -180,7 +183,7 @@ The system utilizes two 400 kHz I\textsuperscript{2}C buses to improve communica
 	\label{tab:i2c_table}
 \end{table}
 
-The schematic capture and board layout were created in CadSoft EAGLE 7.4 due to its simplicity of use, popularity, and community support. The schematic can be found in Appendix \ref{appendix:schematic}. The board uses two  1 ounce copper layers for cost effectiveness. Two large headers underneath the board connect to the headers on the top of the microcontroller development board while the JST connectors are placed across the top of the PCB. 18-gauge wires soldered to large plated through-holes at the right edge of the board connect the external buck regulators. All components are placed on the top side of the board (except for the development board connectors) to make hand-soldering easier. The completed electronics assembly is shown in Figure \ref{fig:full_electronics}.
+The schematic capture and board layout were created in CadSoft EAGLE 7.4 due to its simplicity of use, popularity, and community support. The schematic can be found in Appendix \ref{appendix:schematic}, layout in Appendix \ref{appendix:layout}, and bill of materials in \ref{appendix:pcb_bom}. The board uses two  1 ounce copper layers for cost effectiveness. Two large headers underneath the board connect to the headers on the top of the microcontroller development board while the JST connectors are placed across the top of the PCB. 18-gauge wires soldered to large plated through-holes at the right edge of the board connect the external buck regulators. All components are placed on the top side of the board (except for the development board connectors) to make hand-soldering easier. The completed electronics assembly is shown in Figure \ref{fig:full_electronics}.
 
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/full_electronics.jpg}
