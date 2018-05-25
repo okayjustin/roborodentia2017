@@ -3,23 +3,18 @@
 The robot meets the design specification shown in Table \ref{tab:roborodentia_reqs}. It consists of four subassemblies: the base platform, shooting mechanism, ball hopper, and control unit. Each section was first modeled in SolidWorks, an industry-standard solid modeling CAD program. The designed parts were then fabricated using a laser cutter or 3D printer and assembled with metric hardware. Figure \ref{fig:robot_photo} displays a photograph of the robot while Figures \ref{fig:render_isometric} through \ref{fig:render_right} show standard view renders of the SolidWorks model. Note that the robot uses mecanum wheels (a type of omni-directional wheel) which are modeled as plain wheels for simplicity. Figure \ref{fig:render_top} also indicates the front, left, back/rear, and right sides of the robot as referenced in the rest of the paper.  The robot contains 53 unique parts, of which 24 are custom designed, and 394 parts in total. The bill of materials can be found in Appendix \ref{appendix:mech_bom}.
 
 \begin{table}[h]
-	\centering	\caption{Roborodentia 2018 Mechanical Requirements}
-	\begin{tabular}{cp{5in}}
-		\hline 
+	\caption{Roborodentia 2018 Mechanical Requirements}  \label{tab:roborodentia_reqs}
+	\begin{tabularx}{\textwidth}{@{} c Y @{}}
+		\toprule
 		& Requirement \\ 
-		\hline 
-		1 & \ssp Maximum footprint of 12" x 14" or smaller at start of match but may expand up to 14" x 17" during match. \\ 
-		\hline 
-		2 & \ssp Maximum height of 14" at start of match but no restriction during match. \\ 
-		\hline 
-		3 & Robot may not disassemble into multiple parts. \\ 
-		\hline 
-		4 & Robot may not be airborne. \\ 
-		\hline 
-		5 & Shooting mechanisms may not accelerate balls past 50 feet per second. \\ 
-		\hline 
-	\end{tabular} 
-	\label{tab:roborodentia_reqs}
+		\midrule
+		1. & Maximum footprint of 12" x 14" or smaller at start of match but may expand up to 14" x 17" during match. \\
+		2. & Maximum height of 14" at start of match but no restriction during match. \\ 
+		3. & Robot may not disassemble into multiple parts. \\ 
+		4. & Robot may not be airborne. \\ 
+		5. & Shooting mechanisms may not accelerate balls past 50 feet per second. \\ 
+		\bottomrule
+	\end{tabularx} 
 \end{table}
 
 \begin{figure}[H]   % [h] means here

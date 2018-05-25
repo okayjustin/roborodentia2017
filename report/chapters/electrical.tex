@@ -90,21 +90,17 @@ Figure \ref{fig:l298n} shows a wiring diagram for each motor driver. The board u
 \end{figure}
 
 \begin{table}[h]
-	\centering	\caption{Motor Control Truth Table}
+	\centering \caption{Motor Control Truth Table}	\label{tab:L298N_truth_table}
 	\begin{tabular}{ccc}
-		\hline 
+		\toprule 
 		IN1/IN3 Duty Cycle & IN2/IN4 State & Motor State \\ 
-		\hline 
+		\midrule 
 		0\% & 0 & Stopped \\ 
-		\hline 
 		\textgreater 0\% & 0 & Forward, speed increases with duty cycle \\ 
-		\hline 
 		\textless 100\% & 1 & Reverse, speed decreases with duty cycle \\ 
-		\hline 
 		100\% & 1 & Stopped \\ 
-		\hline 
+		\bottomrule
 	\end{tabular} 
-	\label{tab:L298N_truth_table}
 \end{table}
 
 \section{Servo}
@@ -118,17 +114,18 @@ A GWS S03N standard servo powered from the 5 V bus actuates the gating mechanism
 Due to cheap manufacturing and loose tolerances, the actual required pulse widths can vary from servo to servo, requiring calibration to obtain accurate positional control. The process for calibration is simple: apply various pulse widths and record the resulting servo positions. The calibrated pulse widths and servo angles are recorded in Table \ref{tab:servo_angles}. Clearly, the actual required timings for specific angles possess significant deviations from nominal. 
 
 \begin{table}[h]
-	\centering	\caption{Servo Required Pulse Widths}
+	\centering \caption{Servo Required Pulse Widths}	\label{tab:servo_angles}
 	\begin{tabular}{cc}
-		\hline 
-		Servo Position & Pulse Width (ms) \\ \hline 
-		\ang{0} & 0.674 \\ \hline 
-		\ang{45} & 1.082 \\ \hline 
-		\ang{90} & 1.490 \\ \hline 
-		\ang{135} & 1.898 \\ \hline 
-		\ang{180} & 2.306 \\ \hline 
+		\toprule 
+		Servo Position & Pulse Width (ms) \\ 
+		\midrule 
+		\ang{0} & 0.674 \\ 
+		\ang{45} & 1.082 \\
+		\ang{90} & 1.490 \\ 
+		\ang{135} & 1.898 \\ 
+		\ang{180} & 2.306 \\ 
+		\bottomrule 
 	\end{tabular} 
-	\label{tab:servo_angles}
 \end{table}
 
 \section{Microcontroller}
@@ -148,21 +145,22 @@ The interconnect PCB is a custom designed board with three goals: regulate volta
 \end{figure}
 
 \begin{table}[h]
-	\centering	\caption{Interconnect PCB -- Supported Features}
+	\centering	\caption{Interconnect PCB -- Supported Features}	\label{tab:interconnect_features}
 	\begin{tabular}{ccl}
-		\hline 
-		Qty Available & Qty Used & \multicolumn{1}{c}{Feature} \\ \hline 
-		6 & 4 & VL53L0X laser rangefinder \\ \hline 
-		1 & 1 & Adafruit 9-DOF IMU \\ \hline
-		3 & 3 & Dual H-bridge motor driver \\ \hline
-		2 & 1 & 5 V Standard servo \\ \hline
-		2 & 0 & Infrared proximity array \\ \hline
-		4 & 0 & Microswitch \\ \hline
-		4 & 2 & Debug LED \\ \hline
-		1 & 1 & Debug button \\ \hline
-		1 & 1 & Reset button \\ \hline
+		\toprule 
+		Qty Available & Qty Used & \multicolumn{1}{c}{Feature} \\ 
+		\midrule 
+		6 & 4 & VL53L0X laser rangefinder \\ 
+		1 & 1 & Adafruit 9-DOF IMU \\ 
+		3 & 3 & Dual H-bridge motor driver \\
+		2 & 1 & 5 V Standard servo \\ 
+		2 & 0 & Infrared proximity array \\
+		4 & 0 & Microswitch \\ 
+		4 & 2 & Debug LED \\ 
+		1 & 1 & Debug button \\
+		1 & 1 & Reset button \\ 
+		\bottomrule
 	\end{tabular} 
-	\label{tab:interconnect_features}
 \end{table}
 
 Due to limited MCU GPIO availability, the board incorporates three TCA9554ADWR I\textsuperscript{2}C 8-bit GPIO expanders to handle low-speed signals. However, either through an indeterminate design error, defective ICs, or poor soldering, neither IC would respond to I\textsuperscript{2}C traffic so they were not utilized in the final design. The GPIOs meant for the microswitches were repurposed to drive some signals instead.
@@ -170,24 +168,26 @@ Due to limited MCU GPIO availability, the board incorporates three TCA9554ADWR I
 The system utilizes two 400 kHz I\textsuperscript{2}C buses to improve communication bandwidth with the numerous I\textsuperscript{2}C devices. Table \ref{tab:i2c_table} lists I\textsuperscript{2}C device addresses and bus allocation. The two buses are named I2C2 and I2C3 to maintain parity with the microcontroller's naming convention.
 
 \begin{table}[h]
-	\centering	\caption{Interconnect PCB -- I\textsuperscript{2}C Devices}
-	\begin{tabular}{ccc}
-		\hline 
-		\multicolumn{1}{c}{I\textsuperscript{2}C Bus} & Device & Address (7-bit) \\ \hline 
-		I2C2 & Rangefinder 4 & 0x52 \\ \hline 
-		I2C2 & Rangefinder 5 & 0x53 \\ \hline 
-		I2C2 & Rangefinder 6 & 0x54 \\ \hline 
-		I2C2 & Adafruit 9-DOF IMU Gyroscope & 0x69 \\ \hline
-		I2C2 & Adafruit 9-DOF IMU Accelerometer & 0x19\\ \hline		
-		I2C2 & Adafruit 9-DOF IMU Magnetometer & 0x1E \\ \hline		
-		I2C2 & GPIO Expander 3 & 0x3A \\ \hline				
-		I2C3 & Rangefinder 4 & 0x52 \\ \hline 
-		I2C3 & Rangefinder 5 & 0x53 \\ \hline 
-		I2C3 & Rangefinder 6 & 0x54 \\ \hline 
-		I2C3 & GPIO Expander 1 & 0x38 \\ \hline				
-		I2C3 & GPIO Expander 2 & 0x39 \\ \hline				
+	\centering	\caption{Interconnect PCB -- I\textsuperscript{2}C Devices}  \label{tab:i2c_table}
+	\begin{tabular}{clc}
+		\toprule 
+		\multicolumn{1}{c}{I\textsuperscript{2}C Bus} & \multicolumn{1}{c}{Device} & Address (7-bit) \\ 
+		\midrule 
+		I2C2 & Rangefinder 4 & 0x52 \\  
+		I2C2 & Rangefinder 5 & 0x53 \\  
+		I2C2 & Rangefinder 6 & 0x54 \\  
+		I2C2 & Adafruit 9-DOF IMU Gyroscope & 0x69 \\ 
+		I2C2 & Adafruit 9-DOF IMU Accelerometer & 0x19\\ 		
+		I2C2 & Adafruit 9-DOF IMU Magnetometer & 0x1E \\ 		
+		I2C2 & GPIO Expander 3 & 0x3A \\ 				
+		\hline
+		I2C3 & Rangefinder 4 & 0x52 \\  
+		I2C3 & Rangefinder 5 & 0x53 \\  
+		I2C3 & Rangefinder 6 & 0x54 \\  
+		I2C3 & GPIO Expander 1 & 0x38 \\ 				
+		I2C3 & GPIO Expander 2 & 0x39 \\ 
+		\bottomrule				
 	\end{tabular} 
-	\label{tab:i2c_table}
 \end{table}
 
 The schematic capture and board layout were created in CadSoft EAGLE 7.4 due to its simplicity of use, popularity, and community support. The schematic can be found in Appendix \ref{appendix:schematic}, layout in Appendix \ref{appendix:layout}, and bill of materials in Appendix  \ref{appendix:pcb_bom}. The board uses two 1-ounce copper layers for cost effectiveness. Two large headers underneath the board connect to the headers on the top of the microcontroller development board while the JST connectors are placed across the top of the PCB. 18-gauge wires soldered to large plated through-holes at the right edge of the board connect the external buck regulators. All components are placed on the top side of the board (except for the development board connectors) to make hand-soldering easier. The bare PCBs, fabricated by PCBWay.com, cost \$23 for 10 copies. The completed electronics assembly is shown in Figure \ref{fig:full_electronics}.
@@ -196,4 +196,3 @@ The schematic capture and board layout were created in CadSoft EAGLE 7.4 due to 
 	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/full_electronics.jpg}
 	\caption{Fully Assembled Electronics}\label{fig:full_electronics}
 \end{figure}
-
