@@ -108,7 +108,7 @@ The MCU responds to UART commands from a computer. The command syntax generally 
 
 \subsubsection{UART Receiving}
 After receiving a character on the UART bus, the DMA places it into \cinline{rxBuffer} and fires an interrupt. The MCU enters the UART receive complete DMA callback, \cinline{HAL_UART_RxCpltCallback()} which collects the received characters into a command string stored in \cinline{stringBuffer}. If the UART receives a new line or line return character, the callback appends a null character to the string and calls \cinline{consoleCommand()} to parse and execute the command. The define \cinline{UART_RX_WRITEBACK} controls whether received characters and commands are echoed.
-\begin{clisting}
+\begin{clisting}[caption={UART Receive Callback},label={list:uart_receive}]
 #define RX_BUFFER_MAX_LENGTH 32 
 #define UART_RX_WRITEBACK 0
 
@@ -153,7 +153,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 \subsubsection{UART Transmitting}
 The \cinline{\_write()} function is overridden to redirect \cinline{printf()} output to UART using the code below.
-\begin{clisting}
+\begin{clisting}[caption={Redirect printf()},label={list:redirect_printf}]
 // Redirect printf to UART
 int _write (int fd, char *ptr, int len) 
 { 
@@ -163,7 +163,7 @@ int _write (int fd, char *ptr, int len)
 \end{clisting}
 
 To avoid spending CPU cycles waiting for UART transmission to complete, the DMA buffers the character array directly to the peripheral. A flag, \cinline{txInProg}, prevents subsequent transmission until the UART transmit DMA callback, \cinline{HAL_UART_TxCpltCallback()}, clears the flag when the current transmission completes.
-\begin{clisting}
+\begin{clisting}[caption={UART Transmit},label={list:uart_transmit}]
 #define TX_BUFFER_MAX_LENGTH 2000 
 
 uint8_t txBuffer[TX_BUFFER_MAX_LENGTH];
@@ -195,7 +195,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 The execution flow is as follows:
 \begin{enumerate}
 	\item Define and initialize a struct for motor pins and timer channels.
-	\begin{clisting}
+	\begin{clisting}[caption={Motor Struct},label={list:motor_struct}]
 struct motor_t {
     GPIO_TypeDef *GPIOx;
     uint16_t GPIO_Pin;
@@ -214,14 +214,14 @@ struct motor_t motorConfigs[4] = {
 struct motor_t* motorConfigsPtr = motorConfigs;
 	\end{clisting}
 	\item Instantiate some variables.
-	\begin{clisting}
-volatile uint8_t wd_reset = 0;
-unsigned char data_packet[21];
-volatile uint8_t sensor_update_req = 0;
-volatile uint8_t dbg_btn_latch = 0;
+	\begin{clisting}[caption={Communications Variables Initialization},label={list:comms_var_init}]
+unsigned char data_packet[21];				// Holds sensor data for UART transmission
+volatile uint8_t wd_reset = 0;				// Watchdog reset flag
+volatile uint8_t sensor_update_req = 0;		// Queue rangefinder read flag
+volatile uint8_t dbg_btn_latch = 0;			// Debug button latch
 	\end{clisting}
 	\item Enable all clocks since power saving not necessary.
-	\begin{clisting}
+	\begin{clisting}[caption={Enabling Clocks},label={list:enable_clocks}]
 RCC->AHB1ENR |= 0xFFFFFFFF;
 RCC->AHB2ENR |= 0xFFFFFFFF;
 RCC->AHB3ENR |= 0xFFFFFFFF;
@@ -229,12 +229,12 @@ RCC->APB1ENR |= 0xFFFFFFFF;
 RCC->APB2ENR |= 0xFFFFFFFF;
 	\end{clisting}
 	\item Reset peripherals, initialize SysTick, set up PLL and clocks.
-	\begin{clisting}
+	\begin{clisting}[caption={HAL and System Clock Initialization},label={list:hal_sysclk_init}]
 HAL_Init();
 SystemClock_Config();
 	\end{clisting}
 	\item Initialize configured peripherals.
-	\begin{clisting}
+	\begin{clisting}[caption={Peripheral Initialization},label={list:periph_init}]
 MX_GPIO_Init();
 MX_DMA_Init();
 MX_I2C2_Init();
@@ -246,7 +246,7 @@ MX_USART2_UART_Init();
 MX_TIM5_Init();
 	\end{clisting}
 	\item Reset system timer, enable UART receive DMA, initialize sensors.
-	\begin{clisting}
+	\begin{clisting}[caption={UART Service and Sensor Initialization},label={list:uart_sensor_init}]
 TimeStamp_Reset();
 serviceUART();
 printf("Enabling IMU...\r\n");
@@ -255,21 +255,21 @@ printf("Initializing rangefinders...\r\n");
 VL53L0X_begin();
 	\end{clisting}
 	\item Set servo to starting position.
-	\begin{clisting}
+	\begin{clisting}[caption={Servo Default Position},label={list:servo_default}]
 if (HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1) != HAL_OK){ Error_Handler(); }
 	\end{clisting}
 	\item Initialize variables and begin main loop.
-	\begin{clisting}
+	\begin{clisting}[caption={Loop Variables and Start},label={list:loop_start}]
 uint32_t wd_start = 0;		// Watchdog start time
 uint32_t cur_time = 0;		// Current time
-uint8_t wd_en = 0;			 // Watchdog enable
+uint8_t wd_en = 0;			// Watchdog enable
 data_packet[20] = '\n';		// 21 byte sensor data packet to send over UART
 
 while (1)
 {
 	\end{clisting}
 	\item Watchdog prevents motors from running when UART is inactive. Receiving any UART command sets \cinline{wd\_reset} to 1.
-	\begin{clisting}
+	\begin{clisting}[caption={Motor Watchdog},label={list:motor_watchdog}]
 	// Reset watchdog start time if flag is set
 	if (wd_reset == 1){
 		wd_start = TimeStamp_Get();  // Units of 0.1 ms based on Timer5
@@ -301,12 +301,12 @@ while (1)
 	}											
 	\end{clisting}
 	\item Read debug tactile button state and latch it until read by UART.
-	\begin{clisting}
+	\begin{clisting}[caption={Debug Button Latch},label={list:dbg_btn_latch}]
 	// Read debug button
 	dbg_btn_latch = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) && dbg_btn_latch;
 	\end{clisting}
 	\item If requested over UART, read all four rangefinders and store the data in the \cinline{data\_packet}.
-	\begin{clisting}
+	\begin{clisting}[caption={Rangefinder Read},label={list:range_read}]
 	if (sensor_update_req == 1){
 		int i;
 		for (i = 0; i < 4; i++){
@@ -319,7 +319,7 @@ while (1)
 	}	
 	\end{clisting}
 	\item Read the magnetometer and store the data in the data packet.
-	\begin{clisting}
+	\begin{clisting}[caption={Magnetometer Read},label={list:mag_read}]
 	magnetometer_read();
 	data_packet[ 8] = (magData.x >> 8) & 0xFF;
 	data_packet[ 9] =  magData.x       & 0xFF;
@@ -329,7 +329,7 @@ while (1)
 	data_packet[13] =  magData.z       & 0xFF;	
 	\end{clisting}
 	\item Read the accelerometer and store the data in the data packet.
-	\begin{clisting}
+	\begin{clisting}[caption={Accelerometer Read},label={list:acc_read}]
 	accelerometer_read();
 	data_packet[14] = (accelData.x >> 8) & 0xFF;
 	data_packet[15] =  accelData.x       & 0xFF;
@@ -344,7 +344,7 @@ while (1)
 
 \subsection{Error Handler}
 During errors or faults, the MCU enters the error handler, prints an error message, and flashes the debug LED at 5 Hz.
-\begin{clisting}
+\begin{clisting}[caption={Error Handler},label={list:error_handler}]
 void _Error_Handler(char * file, int line)
 {
 	printf("Entered error handler.\r\n");

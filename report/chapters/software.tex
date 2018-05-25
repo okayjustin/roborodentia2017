@@ -1,6 +1,8 @@
 \chapter{Software Design}
 All of the software running on the off-robot computer is written in Python in order to take advantage of the ease of development, library selection, and the availability of TensorFlow, an open source machine learning framework critical to the neural network implementation. The Python scripts can be divided into five sections: robot interfacing, robot simulation, artificial neural network (ANN), deep deterministic policy gradient (DDPG) implementation, and utility functions. Table \ref{tab:script_desc} summarizes the functionality of the scripts.
 
+During development, the robot used either a 2015 MacBook Pro or desktop computer instead of the Raspberry Pi to simplify programming and omit limitations imposed by the Pi's lower processing speed.
+
 \begin{table}
 \begin{tabularx}{\textwidth}{@{} Y c c c c @{}} % use 'Y' for first column
 \toprule
