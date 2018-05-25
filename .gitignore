@@ -18,6 +18,7 @@ arm/build/*
 arm/orig/*
 arm/src/*
 doxygen/
+report/main.pdf
 
 .DS_Store
 *.dSYM
