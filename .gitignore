@@ -19,6 +19,7 @@ arm/orig/*
 arm/src/*
 doxygen/
 report/main.pdf
+scripts/figures/
 
 .DS_Store
 *.dSYM

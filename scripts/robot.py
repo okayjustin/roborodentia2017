@@ -174,17 +174,17 @@ class Robot():
         self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
     # Forward step through ANNs to produce u array
-    def predict(self, state):
+    def predict(self, obs_sets):
         # Predict angle u
-        u_angle = self.angle_ann.predict(self.getObservation(state, 0))
+        u_angle = self.angle_ann.predict(obs_sets[0])
 #        print("Th: %+0.3f | Thdot: %+0.3f | %+0.3f" % \
 #                (np.degrees(self.state[4].curVal()), np.degrees(self.state[5].curVal()), u_angle))
 
         # Predict x translation u
-        u_transx = self.transx_ann.predict(self.getObservation(state, 1))
+        u_transx = self.transx_ann.predict(obs_sets[1])
 
         # Predict y translation u
-        u_transy = self.transy_ann.predict(self.getObservation(state, 2))
+        u_transy = self.transy_ann.predict(obs_sets[2])
 
         # Concatenate into u array and clip values
         u = np.array([u_angle, u_transx, u_transy])
@@ -306,7 +306,7 @@ class Robot():
         self.state[5].push(new_thdot)
 
     # Create observations for the various networks
-    def updateObservation(self):
+    def getObservation(self):
         x = self.state[0].curVal()
         xdot = self.state[1].winMean()
         y = self.state[2].curVal()

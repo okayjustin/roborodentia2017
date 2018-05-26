@@ -406,7 +406,7 @@ class SimRobot():
         self.state = new_state
 
     def updateObservation(self):
-        self.obs_sets = self.robot.updateObservation()
+        self.obs_sets = self.robot.getObservation()
         self.obs = self.obs_sets[self.net_index]
 
     def updateReward(self):
