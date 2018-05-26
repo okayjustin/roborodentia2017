@@ -25,11 +25,8 @@ class SimRangefinder():
         self.max_range = max_range
         self.timebank = 0
         self.meas_period = meas_period
-        self.meas = np.array([0.,0.])
-        self.meas_lag =  np.array([0., 0.])  
+        self.meas = 0.
         self.dim = [(0.,0.),(0.,0.)]
-        self.high = np.array([1230., 1600.])
-        self.low = np.array([0., -1600.])
 
     def update(self, state):
         """ Returns the measurement of the rangefinder in mm.
@@ -91,111 +88,50 @@ class SimRangefinder():
         #sigma = 2E-05 * pow(dist,2) - 0.0062 * dist + 2.435
         #dist += np.random.normal(0, sigma)
 
-        self.meas = self.meas_lag
+        # Set measurement and line points for rendering
+        self.meas = dist
+        self.dim = [(x1,y1),(x2,y2)]
 
-        # Only update if measurement is in range
-        if ((dist > 30) and (dist < 1200)):
-            self.dim = [(x1,y1),(x2,y2)]
-            dist_dot = (dist - self.meas[0]) / self.dt
-            self.meas_lag = np.array([dist, dist_dot])
-        else:
-            if (dist <= 30):
-                self.meas_lag = np.array([0.0, 0.0])
-            else:
-                self.meas_lag = np.array([1230.0, 0.0])
+#        # Only update if measurement is in range
+#        if ((dist > 30) and (dist < 1200)):
+#            self.dim = [(x1,y1),(x2,y2)]
+#            self.meas = dist
+#        else:
+#            if (dist <= 30):
+#                self.meas = 0.0
+#            else:
+#                self.meas = 1230.0
 
-        
+
 class SimIMU():
-    def __init__(self,dt,meas_period = 0.001, sigma = 0.0):
+    def __init__(self, dt, component, meas_period = 0.001, sigma = 0.0):
         self.type = 'IMU'
         self.dt = dt
         self.timebank = 0
-        self.prevth = 0
-        self.meas = np.array([0., 0., 0.])
-        self.meas_lag =  np.array([0., 0., 0.])             
+        self.meas = 0
         self.meas_period = meas_period
         self.sigma = sigma
-        self.high = np.array([1., 1., 8.])
-        self.low = np.array([-1., -1., -8.])
-
+        self.component = component
 
     def update(self, state):
         # Add some available time to the timebank
         self.timebank += self.dt
+
         # Only make a measurement if there's enough time in the bank
         if (self.timebank < self.meas_period):
             return
+
         # Use up some time from the timebank
         self.timebank -= self.meas_period
 
-        # Get angle measurement and estimate a velocity
-             #(robot.theta + np.random.normal(0, self.sigma)) % 360.0
+        # Get angle measurement
         th = state[4]
-        thdot = (th - self.prevth) / self.dt
-        self.prevth = th
 
-        # Get x/y components of theta
-        cos = np.cos(th)
-        sin = np.sin(th)
-
-        self.meas = self.meas_lag
-        self.meas_lag = np.array([cos, sin, thdot])
-
-class SimDesiredXY():
-    def __init__(self,direction, field_xmax, field_ymax, len_x, len_y):
-        self.dir = direction
-        self.type = 'DesiredXY'
-        self.field_xmax = field_xmax
-        self.field_ymax = field_ymax
-        self.len_x = len_x
-        self.len_y = len_y
-        self.meas = np.array([0.])
-        if direction == 'x':
-            self.high = np.array([self.field_xmax])
-            self.low = np.array([0])
-        elif direction == 'y':
-            self.high = np.array([self.field_ymax])
-            self.low = np.array([0])
+        # Sim acceleration as 0 so no need for magz component
+        if (self.component == 'magx'):
+            self.meas = np.cos(th)
+        elif (self.component == 'magy'):
+            self.meas = np.sin(th)
         else:
-            raise ValueError("Bad value for direction")
+            self.meas = 0
 
-    def update(self, state):
-        if (self.dir == 'x'):
-            self.meas = np.array([state[6]])
-        else:
-            self.meas = np.array([state[7]])
-
-class SimActualXY():
-    def __init__(self, direction, field_xmax, field_ymax, len_x, len_y):
-        self.dir = direction
-        self.type = 'ActualXY'
-        self.field_xmax = field_xmax
-        self.field_ymax = field_ymax
-        self.len_x = len_x
-        self.len_y = len_y
-        self.meas = np.array([0., 0.])
-        self.meas_lag = np.array([0., 0.])
-        self.x_offset = 0#69    # Corrects skew in network output
-        self.y_offset = 10    # Corrects skew in network output
-        if direction == 'x':
-            self.high = np.array([self.field_xmax, 1500.])
-            self.low = np.array([0., -1500.])
-        elif direction == 'y':
-            self.high = np.array([self.field_ymax, 1500.])
-            self.low = np.array([0., -1500.])
-        else:
-            raise ValueError("Bad value for direction")
-
-    def update(self, state):
-        self.meas = self.meas_lag
-        
-        if (self.dir == 'x'):
-            self.meas_lag = np.array([state[0] - state[6] + self.x_offset, state[1]]) 
-            #print(self.meas)
-        else:
-            self.meas_lag = np.array([state[2] - state[7] + self.y_offset, state[3]])
-
-
-class SimMicroSW():
-    def __init__(self):
-        return

@@ -1,39 +1,34 @@
 \chapter{Software Design}
-
-
+\section{Introduction}
 All of the software running on the off-robot computer is written in Python in order to take advantage of the ease of development, library selection, and the availability of TensorFlow, an open source machine learning framework critical to the neural network implementation. The Python scripts can be divided into five sections: robot interfacing, robot simulation, artificial neural network (ANN), deep deterministic policy gradient (DDPG) implementation, and utility functions. Table \ref{tab:script_desc} summarizes the functionality of the scripts.
 
 During development, the robot used either a 2015 MacBook Pro or desktop computer instead of the Raspberry Pi to simplify programming and omit limitations imposed by the Pi's lower processing speed.
 
-\begin{table}
-	\caption{Nonlinear Model Results}  \label{tab:script_desc}
-	\begin{tabularx}{\textwidth}{@{} Y c c c c @{}}
-	\toprule
-	Case & Entscheidungsbäume & Neuronale Netze & kNN & SVM \\
-	\midrule
-	Accuracy in general & ** & *** & ** & **** \\ \addlinespace
-	Speed of learning with respect to number of attributes and number of instances  & *** &* & **** & * \\ \addlinespace
-	3 & 31 & 25 & 415 \\
-	4 & 35 & 144 & 2356 \\
-	5 & 45 & 300 & 556 \\ 
-	\bottomrule
+
+\begin{table}[h]
+	\caption{Software Functional Breakdown} 	\label{tab:script_desc}
+	\begin{tabularx}{\textwidth}{@{} r Y @{}}
+		\toprule
+		Functional Area & \multicolumn{1}{c}{Functionality} \\ 
+		\midrule 
+		Robot Interfacing 	& Establish serial link with microcontroller.  \\  
+							& Transmit UART commands. \\
+							& Receive and parse UART received data. \\
+							& Apply calibration constants to sensor data. \\
+							& Calculate tilt-compensated compass from IMU data. \\
+							& Store and update robot state (position, velocity). \\
+							& 
+							& dfjd \\ \addlinespace
+		Robot Simulation  	&  \\  
+							& dfjd \\ \addlinespace
+		ANN 				&  \\  
+							& dfjd \\ \addlinespace
+		DDPG 				&  \\  
+							& dfjd \\ \addlinespace
+		Utility 			&  \\ 
+							& dfjd \\
+		\bottomrule 
 	\end{tabularx} 
 \end{table}
-
-%\begin{table}[h]
-%	\centering	\caption{Software Functional Breakdown}
-%	\begin{tabular}{cl}
-%		\hline 
-%		Functional Area & \multicolumn{1}{c}{Functionality} \\ \hline 
-%		Robot Interfacing &  \\ \hline 
-%		Robot Simulation &  \\ \hline 
-%		ANN &  \\ \hline 
-%		DDPG &  \\ \hline 
-%		Utility &  \\ \hline 
-%		 
-%
-%	\end{tabular} 
-%	\label{tab:script_desc}
-%\end{table}
 
 

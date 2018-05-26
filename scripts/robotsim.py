@@ -15,16 +15,24 @@ import pyglet
 from pyglet.gl import *
 from ann import ann
 import time
+from gym.envs.classic_control import rendering
 
-FIELD_XMAX = 2438.4 # Maximum x dimension in mm
-FIELD_YMAX = 1219.2  # Maximum y dimension in mm
-MOTOR_DELTA = 10 # Controls percentage of how much motors differ . Ex. 5% means parameter will vary up to 5%
-TIME_MAX = 10 #seconds
+DEBUG_PRINT = False
 
-# Robot dimensions
-LEN_X = 315.0      # length of the robot left to right
-LEN_Y = 275.0      # length of the robot front to back
+# Field and robot dimensional constants
+FIELD_XMAX = Robot.FIELD_XMAX
+FIELD_YMAX = Robot.FIELD_YMAX
+LEN_X = Robot.LEN_X
+LEN_Y = Robot.LEN_Y
 
+# Simulates motor variance. Controls percentage of how much motors differ.
+# Ex: 0.05 means motor friction and voltage sensitivity parameters will vary up to 5%
+MOTOR_DELTA = 0.10
+
+# Maximum simulation time in seconds
+TIME_MAX = 10
+
+# Stores observation parameters, min/max value and shape
 class Box():
      def __init__(self,low,high,shape):
         self.low = low
@@ -37,7 +45,7 @@ class SimRobot():
     directly towards right side of robot. Theta is the angle of a radial vector where -90 degrees is
     pointing directly towards the right side of the robot and 0 degrees is directly towards the front.
     train: 'angle', 'translation', or '' to choose which setup to train
-    state_start: starting state of robot with 8 elements
+    state_start: starting state of robot with 9 elements
         0: x position
         1: x velocity
         2: y position
@@ -46,27 +54,35 @@ class SimRobot():
         5: rotational velocity
         6: desired x position
         7: desired y position
+        8: desired th position
     """
+
+
     def __init__(self, train = None, online = False,
-            state_start = [FIELD_XMAX/2, 0, FIELD_YMAX/2, 0, 0, 0, FIELD_XMAX/2, FIELD_YMAX/2, 0, 0, 0, 0]):
+            state_start = [FIELD_XMAX/2, 0, FIELD_YMAX/2, 0, 0, 0, FIELD_XMAX/2, FIELD_YMAX/2, 0]):
         # For rendering
         self.viewer = None
         self.train = train
         self.online = online
+
+        # Used for online training. Causes reset behavior to switch directions on each run
+        # to prevent robot from running out of cable or twisting it excessively
         self.last_reset_dir = 1
 
+        # Tracks maximum cycle time to ensure not exceeding dt requirement
         self.max_cyc_time = 0
 
         # Length of control input u
-        self.u_len = 5
+        self.u_len = 3  # X, Y, theta
+
+        # Cycle time step
+        self.dt = Robot.dt
 
         # Instantiate real robot if online training
-        if (self.online):
-            self.robot = Robot(0, 0)
-            self.dt = self.robot.dt
-            self.reset_dir = 0
+        self.robot = Robot(0)
 
-            # Connect to robot
+        # Connect to robot
+        if (self.online):
             if self.robot.openSerial():
                 print("Failed to connect to robot. Quitting.")
                 quit()
@@ -74,54 +90,49 @@ class SimRobot():
             print("Initializing desired x, y, theta...")
             self.robot.initXYT()
         else:
+        # Simulated robot calculations
             # Structures/parameters for simulating robot
             self.state_start = np.array(state_start)
-            self.dt = 0.05
 
             # Magnitude and angle of a line between the center and top right corner
             self.diag_angle = np.arctan(LEN_Y / LEN_X)
             self.diag_len = np.hypot(LEN_X,LEN_Y) / 2
             self.en_wall_collision = False
 
-            # Mecanum equation converts wheel velocities to tranlational x,y, and rotational velocities
-            self.wheel_max_thetadotdot = 430 * 1.5                                # Max wheel rotational acceleration in rad/s^2
-            self.wheel_max_thetadot = 24.46 * 1.5                                 # Max wheel rotational velocity in rad/s
-            self.friction_constant = self.wheel_max_thetadotdot/self.wheel_max_thetadot # Friction constant in 1/s
-            self.wheel_thetadotdot =  np.zeros(4)                       # Wheel rotational acceleration in rad/s/2
-            self.wheel_thetadot = np.zeros(4)                           # Wheel rotational velocities in rad/s
-            r =  30.0   # Wheel radius in mm
-            L1 = 119.35 # Half the distance between the centers of front and back wheels in mm
-            L2 = 125.7  # Half the distance between the centers of left and right wheels in mm
+            # Track wheel velocities and accelerations
+            self.wheel_thetadotdot =  np.zeros(4) # Wheel rotational acceleration in rad/s/2
+            self.wheel_thetadot = np.zeros(4)     # Wheel rotational velocities in rad/s
+
+            # Mecanum transfer function converts wheel velocities to tranlational x,y, and rotational velocities
+            r = Robot.WHEEL_R
+            L1 = Robot.FRONT_BACK_WHEEL_DIST
+            L2 = Robot.LEFT_RIGHT_WHEEL_DIST
             self.mecanum_xfer = (r/4) * np.array([[1,1,1,1],[-1,1,-1,1],\
                     [1/(L1+L2),-1/(L1+L2),-1/(L1+L2),1/(L1+L2)]])
 
-        # Set up action space and observation space
+        # Set up action space and observation space. Should match robot.py self.sensors list
         self.sensors = []                                                      # Sensor index
-        self.sensors.append(SimIMU(self.dt))                                        # 0
-        self.sensors.append(SimRangefinder(60.0, LEN_Y/2.0, 90.0, self.dt, FIELD_XMAX, FIELD_YMAX))         # 1
-        self.sensors.append(SimRangefinder(-1 * LEN_X/2.0, -40.0, 180.0, self.dt, FIELD_XMAX, FIELD_YMAX))  # 2
-        self.sensors.append(SimRangefinder(0.0, -1 * LEN_Y/2.0, 270.0, self.dt, FIELD_XMAX, FIELD_YMAX))    # 3
-        self.sensors.append(SimRangefinder(LEN_X/2.0, -40.0, 0.0, self.dt, FIELD_XMAX, FIELD_YMAX))         # 4
-        self.sensors.append(SimDesiredXY('x', FIELD_XMAX, FIELD_YMAX, LEN_X, LEN_Y))                            # 5
-        self.sensors.append(SimDesiredXY('y', FIELD_XMAX, FIELD_YMAX, LEN_X, LEN_Y))                            # 6
-        self.sensors.append(SimActualXY('x', FIELD_XMAX, FIELD_YMAX, LEN_X, LEN_Y))                             # 7
-        self.sensors.append(SimActualXY('y', FIELD_XMAX, FIELD_YMAX, LEN_X, LEN_Y))                             # 8
+        self.sensors.append(SimRangefinder(60.0, LEN_Y/2.0, 90.0, self.dt, FIELD_XMAX, FIELD_YMAX))         # 0
+        self.sensors.append(SimRangefinder(-1 * LEN_X/2.0, -40.0, 180.0, self.dt, FIELD_XMAX, FIELD_YMAX))  # 1
+        self.sensors.append(SimRangefinder(0.0, -1 * LEN_Y/2.0, 270.0, self.dt, FIELD_XMAX, FIELD_YMAX))    # 2
+        self.sensors.append(SimRangefinder(LEN_X/2.0, -40.0, 0.0, self.dt, FIELD_XMAX, FIELD_YMAX))         # 3
+        self.sensors.append(SimIMU(self.dt, 'magx'))                                                        # 4
+        self.sensors.append(SimIMU(self.dt, 'magy'))                                                        # 5
+        self.sensors.append(SimIMU(self.dt, 'magz'))                                                        # 6
+        self.sensors.append(SimIMU(self.dt, 'accx'))                                                        # 7
+        self.sensors.append(SimIMU(self.dt, 'accy'))                                                        # 8
+        self.sensors.append(SimIMU(self.dt, 'accz'))                                                        # 9
 
-        # Sensor indices to include in observation for each network
-        self.obs_settings = [[0],         # Angle network
-                             [7],         # Trans X network
-                             [8],         # Trans Y network
-                             [],          # Pathfind network
-                             [1,2,3,4,0]] # General simulation
-
-        # Add sensors depending on what network is being trained
+        # Add sensors and number of action vars depending on what network is being trained
         if (train == 'angle'):
             act_dim = 1
             self.net_index = 0
+            obs_high = np.array([1., 1., 8.])
 
         elif (train == 'transx'):
             act_dim = 1
             self.net_index = 1
+            obs_high = np.array([2400., 1600.])
 
             # Load angle control ann
             print("Loading angle ANN")
@@ -136,6 +147,7 @@ class SimRobot():
         elif (train == 'transy'):
             act_dim = 1
             self.net_index = 2
+            obs_high = np.array([2400., 1600.])
 
             # Load angle control ann
             print("Loading angle ANN")
@@ -147,29 +159,18 @@ class SimRobot():
             transx_model_path = './results/models-transx/model.ckpt'
             self.transx_ann = ann(transx_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
-        elif (train == 'pathfind'):
-            self.net_index = 3
-
-        if (train == 'sim'):
+        elif (train == 'sim'):
             act_dim = 3
             self.net_index = 4
+            #obs_high = [2400., 1600.]
 
+        # Setup observation space
+        self.observation_space = gym.spaces.box.Box(low=-obs_high, high=obs_high)
 
-        # Calculate the number of elements in the observation array
-        obs_high = np.array([])
-        obs_low = np.array([])
-        state_dim = 0
-        for sensor_index in self.obs_settings[self.net_index]:
-            sensor = self.sensors[sensor_index]
-            obs_high = np.append(obs_high, sensor.high)
-            obs_low = np.append(obs_low, sensor.low)
-            state_dim += len(sensor.meas)
-        self.observation_space = gym.spaces.box.Box(low=obs_low, high=obs_high)
+        # Maximum action value and shape
+        self.action_space = gym.spaces.box.Box(low=-2.0, high=2.0, shape=(act_dim,))
 
-        act_high = 2.0
-        self.action_space = gym.spaces.box.Box(low=-act_high, high=act_high, shape=(act_dim,))
-
-        # Initialize sim vars
+        # Initialize sim vars by running a reset w/o randomization
         self.reset(False)
 
     def setWallCollision(self, mode):
@@ -187,43 +188,35 @@ class SimRobot():
         self.terminal = 0
         self.last_u = np.zeros(self.u_len)
 
-        if (self.online):
-            # Resets the robot into a random position
-            if (randomize):
-                if (self.train == 'angle'):
-                    u_angle = np.random.uniform(low=0.5, high=2)
-                    self.last_reset_dir = -self.last_reset_dir
-                    self.robot.u = [0, 0, u_angle * self.last_reset_dir]
-                    self.robot.execute()
-                    time.sleep(3)
-                    self.halt()
-                    time.sleep(0.2)
+        if (randomize):
+            # Set a new desired x, y, theta
+            xdes = np.random.uniform(low=40, high=1000)
+            ydes = np.random.uniform(low=40, high=1000)
+            thdes = np.random.uniform(low=-np.pi, high=np.pi)
 
-                x_des = np.random.uniform(low=40, high=1000)
-                y_des = np.random.uniform(low=40, high=1000)
-                self.robot.setDesired([x_des, y_des, 0])
-
-            # Update online state
-            self.updateStateOnline()
-
-        else:
-            if (randomize):
+            if (self.online):
+                self.robot.setDesired([xdes, ydes, thdes])
+            else:
                 high = np.array([(FIELD_XMAX - LEN_X)/2, 0, # X, xdot
                                  (FIELD_YMAX - LEN_Y)/2, 0, # Y, ydot
-                                 0.0, 0,                    # th, thdot
-                                 (FIELD_XMAX - LEN_X)/2, (FIELD_YMAX - LEN_Y)/2,
-                                 0, 0, 0, 0])
+                                 0.0, 0.0,                    # th, thdot
+                                 (FIELD_XMAX - LEN_X)/2, (FIELD_YMAX - LEN_Y)/2, 0.0])
                 self.state = self.state_start + np.random.uniform(low=-high, high=high)
 
                 # Randomize variable friction and voltage sensitivity per wheel
-                self.friction_var = np.array([self.friction_constant * (1+np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA) / 100) for i in range(4)])
-                self.v_sensitivity = np.array([1 + np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA)/100 for i in range(4)])
-            else:
-                self.state = self.state_start
-                self.friction_var = np.array([self.friction_constant for i in range(4)])
-                self.v_sensitivity = np.array([1 for i in range(4)])
+                self.friction_var = np.array([Robot.friction_constant * \
+                        (1+np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA)) for i in range(4)])
+                self.v_sensitivity = np.array([1 + np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA) \
+                        for i in range(4)])
+        else:
+            self.state = self.state_start
+            self.friction_var = np.array([Robot.friction_constant for i in range(4)])
+            self.v_sensitivity = np.array([1 for i in range(4)])
 
-        # Update sensors and observation array
+        # Update observations
+        sensor_vals = self.getSensorVals()
+        self.updateSensors(sensor_vals)
+        self.updateState()
         self.updateObservation()
 
         # Keep track of time for cycle timing
@@ -237,10 +230,6 @@ class SimRobot():
         return [seed]
 
     def step(self,u):
-        #print(self.obs_sets[0])
-        # Get state vars
-        x, xdot, y, ydot, th, thdot, x_des, y_des = self.state
-
         # Determine the control input array u depending on what's being trained
         # u[0]: Desired rotational speed, -1 to 1, +1 CW, -1 CCW
         # u[1]: Desired field x velocity
@@ -251,51 +240,41 @@ class SimRobot():
             u_transx = [u[0]]
             u_transy = [u[1]]
             u_angle = [u[2]]
-            u_desx = [0]
-            u_desy = [0]
 
         elif self.train == 'angle':
             u_transx = [0]
             u_transy = [0]
             u_angle = u
-            u_desx = [0]
-            u_desy = [0]
 
         elif self.train == 'transx':
-            u_transx = [0]#u
+            u_transx = u
             u_transy = [0] #self.transy_ann.predict(self.obs_sets[2])
             u_angle = self.angle_ann.predict(self.obs_sets[0])
-            u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
-            u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
 
         elif self.train == 'transy':
             u_transx = self.transx_ann.predict(self.obs_sets[1])
             u_transy = u
             u_angle = self.angle_ann.predict(self.obs_sets[0])
-            u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
-            u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
 
-        elif self.train == 'pathfind':
-            # Determine new desired location
-            u_transx = self.transx_ann.predict(self.obs_sets[1])
-            u_transy = self.transy_ann.predict(self.obs_sets[2])
-            u_angle = self.angle_ann.predict(self.obs_sets[0])
-            u_desx = [np.interp(x_des, [LEN_X/2, FIELD_XMAX - LEN_X/2], [-2,2])]
-            u_desy = [np.interp(y_des, [LEN_Y/2, FIELD_YMAX - LEN_Y/2], [-2,2])]
-
-        u = np.concatenate((u_transx, u_transy, u_angle, u_desx, u_desy))
+        u = np.concatenate((u_transx, u_transy, u_angle))
         u = np.clip(u, -2., 2.)
-        #print(u)
 
         dt = self.dt
         self.time += dt
 
-        if (self.online):
-            # Execute command on robot
-            reduce = 0.3
-            self.robot.u = u #reduce * u + (1 - reduce) * self.last_u
-            self.robot.execute()
+        # Execute command
+        self.execute(u)
 
+        # Get sensor vals
+        sensor_vals = self.getSensorVals()
+
+        # Update sensor vars
+        self.updateSensors(sensor_vals)
+
+        # Update state
+        self.updateState()
+
+        if (self.online):
             # Delay excess time in cycle to make all cycles equal time
             cur_time = self.robot.getTime()
             while ((cur_time - self.last_time) < dt):
@@ -307,17 +286,44 @@ class SimRobot():
             #print("Tcyc %0.6f" % cyc_time)
             self.last_time = cur_time
 
-            # Update online state
-            self.updateStateOnline()
+        # Update last u
+        self.last_u = u
 
+        # Update observations
+        self.updateObservation()
+
+        # Get reward from executing the action
+        if (self.train == 'sim'):
+            pass
         else:
-            # Simulate command on robot
+            self.updateReward()
+        #time.sleep(0.2)
+
+        if (DEBUG_PRINT):
+            self.robot.printSensorVals()
+
+        # End cycle if time hits max or robot moves to an extreme bound
+        if ((self.time > TIME_MAX)):# or (self.online and (abs(self.state[4]) > 1.2))):
+            self.halt()
+            self.terminal = 1
+
+        info = {}
+        return self.obs, self.reward, self.terminal, info
+
+    def execute(self, u):
+        if (self.online):
+            self.robot.execute(u)
+        else:
+            # Get state vars
+            x, xdot, y, ydot, th, thdot, xdes, ydes, thdes = self.state
+            dt = self.dt
 
             #  Trajectory control inputs
-            v_theta = u[0]
-            vd = np.hypot(u[1],u[2]) / 2.0
+            v_theta = u[2]
+            vd = np.hypot(u[0],u[1]) / 2.0
             #print("%f | %f" % (u[1],vd))
-            theta_d = np.arctan2(u[2],u[1]) - self.sensors[0].prevth # Adjust desired translation angle to field coordinates
+             # Adjust desired translation angle to field coordinates
+            theta_d = np.arctan2(u[1],u[0]) - self.robot.state[4].curVal()
 
             # Calculate voltage ratios for each motor to acheive desired trajectory
             v = np.zeros(4)
@@ -332,7 +338,8 @@ class SimRobot():
 
             # Convert voltage ratios to wheel rotational velocities in rad/sec
             # Model linear relationship between voltage and acceleration. Friction linear with velocity.
-            self.wheel_thetadotdot = np.multiply(self.v_sensitivity, v) * self.wheel_max_thetadotdot - np.multiply(self.wheel_thetadot, self.friction_var)
+            self.wheel_thetadotdot = np.multiply(self.v_sensitivity, v) * Robot.wheel_max_thetadotdot - \
+                    np.multiply(self.wheel_thetadot, self.friction_var)
             self.wheel_thetadot = self.wheel_thetadot + self.wheel_thetadotdot * dt
 
             # Calculate robot frontwards, rightwards, and rotational velocities
@@ -364,82 +371,43 @@ class SimRobot():
             # Assign new x,y location
             newx = np.clip(x + newxdot * dt, x_space - 0, FIELD_XMAX - x_space + 0)
             newy = np.clip(y + newydot * dt, y_space - 0, FIELD_YMAX - y_space + 0)
-            # else:
-            #newx = x + newxdot * dt
-            #newy = y + newydot * dt
 
             # Determine new desired location
-            newxdes = np.interp(u[3], [-2,2], [LEN_X/2, FIELD_XMAX - LEN_X/2])
-            newydes = np.interp(u[4], [-2,2], [LEN_Y/2, FIELD_YMAX - LEN_Y/2])
+            newxdes = xdes
+            newydes = ydes
+            newthdes = thdes
 
             # Determine new state
-            self.state = np.array([newx, newxdot, newy, newydot, newth, newthdot, newxdes, newydes])
-        
-        # Update last u
-        self.last_u = u
-        
-        # Update sensor measurements
-        self.updateObservation()
+            self.state = np.array([newx, newxdot, newy, newydot, newth, newthdot, newxdes, newydes, newthdes])
 
-        # Get reward from executing the action
-        if (self.train == 'sim'):
-            pass
+    # Get sensor values but don't store them into self.robot yet
+    def getSensorVals(self):
+        if (self.online):
+            sensor_vals = self.robot.getSensorVals()
         else:
-            self.updateReward()
-        #time.sleep(0.2)
+            sensor_vals = []
+            for sensor in self.sensors:
+                sensor.update(self.state)
+                sensor_vals.append(sensor.meas)
+        return sensor_vals
 
-        # End cycle if time hits max or robot moves to an extreme bound
-        if ((self.time > TIME_MAX)):# or (self.online and (abs(self.state[4]) > 1.2))):
-            self.halt()
-            self.terminal = 1
+    def updateSensors(self, sensor_vals):
+        self.robot.updateSensors(sensor_vals)
 
-        info = {}
-        return self.obs, self.reward, self.terminal, info
+    def updateState(self):
+        self.robot.updateState()
 
     def updateStateOnline(self):
         # Update sensor observation and state array
         self.robot.updateSensorValue()
         new_state = []
-        for i in range(0,8):
+        for i in range(0,9):
             new_state.append(self.robot.state[i].curVal())
         self.state = new_state
 
     def updateObservation(self):
-        # Holds observations for each network
-        obs_sets = []
-
-        # Update sensor measurements
-        if (self.online):
-            x = self.robot.state[0].curVal()
-            xdot = self.robot.state[1].curVal()
-            y = self.robot.state[2].curVal()
-            ydot = self.robot.state[3].curVal()
-            th = self.robot.state[4].curVal()
-            thdot = self.robot.state[5].curVal()
-            x_des = self.robot.state[6].curVal()
-            y_des = self.robot.state[7].curVal()
-            imu_meas = np.array([np.cos(th), np.sin(th), thdot])
-            actualX_meas = np.array([x - x_des, xdot])
-            actualY_meas = np.array([y - y_des, ydot])
-            sensorvals = [imu_meas, None, None, None, None, None, None, actualX_meas, actualY_meas]
-        else:
-            for sensor in self.sensors:
-                sensor.update(self.state)
-
-        # Calculate the various observation sets
-        for sensor_indices in self.obs_settings:
-            obs = np.array([])
-            for sensor_index in sensor_indices:
-                if (self.online):
-                    obs = np.append(obs, sensorvals[sensor_index])
-                else:
-                    sensor = self.sensors[sensor_index]
-                    obs = np.append(obs, sensor.meas)
-            obs_sets.append(obs)
-
-        self.obs_sets = obs_sets
-        self.obs = obs_sets[self.net_index]
-        #print(self.obs)
+        self.obs_sets = self.robot.updateObservation()
+        self.obs = self.obs_sets[self.net_index]
 
     def updateReward(self):
         if (self.train == 'angle'):
@@ -451,7 +419,6 @@ class SimRobot():
             self.reward_rvel = -0.1 * self.state[5]**2
             self.reward = self.reward_theta + self.reward_rvel
 
-
         elif (self.train == 'transx'):
             # Rewarded for staying near desired x coordinate
             self.reward_dist = -0.00001 * (self.state[0] - self.state[6])**2.
@@ -461,7 +428,6 @@ class SimRobot():
             #print("Rewards: %f, %f, %f" % (self.reward_dist, self.reward_vel, self.reward_effort))
             self.reward = self.reward_dist + self.reward_vel + self.reward_effort
 
-
         elif (self.train == 'transy'):
             # Rewarded for staying near desired y coordinate
             self.reward_dist = -0.00001 * pow(self.state[2] - self.state[7], 2)
@@ -469,12 +435,13 @@ class SimRobot():
             self.reward_vel = -0.0000005 * self.state[3]**2
             self.reward_effort = -0.001 * self.last_u[2]**2
             self.reward = self.reward_dist + self.reward_vel + self.reward_effort
-        print("Reward: %f" % self.reward)
+
+        if (DEBUG_PRINT):
+            print("Reward: %f" % self.reward)
         return self.reward
 
     def render(self, mode='human'):
         if self.viewer is None:
-            from gym.envs.classic_control import rendering
             self.viewer = rendering.Viewer(1300,650)
             self.viewer.set_bounds(0,FIELD_XMAX,0,FIELD_YMAX)
 
@@ -494,13 +461,12 @@ class SimRobot():
             self.img_rot_ind.add_attr(self.imgtrans_rot_ind)
             self.viewer.add_geom(self.img_rot_ind)
 
-
         # Robot
         self.imgtrans_robot.set_translation(self.state[0], self.state[2])
         self.imgtrans_robot.set_rotation(self.state[4])
 
         # Motion indicators
-        self.imgtrans_rot_ind.scale = (self.last_u[0]/2, np.abs(self.last_u[0])/2)
+        self.imgtrans_rot_ind.scale = (self.last_u[2]/2, np.abs(self.last_u[2])/2)
         self.imgtrans_rot_ind.set_translation(self.state[0], self.state[2])
         self.draw_radial_arrow(self.state[0], self.state[2], self.state[1], self.state[3])
 

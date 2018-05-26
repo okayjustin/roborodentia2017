@@ -135,7 +135,7 @@ def train(sess, env, args, actor, critic, actor_noise):
                 start = timer()
 
                 s2, r, terminal, info = env.step(action)
-                print(s2)
+                #print(s2)
                 #print("Reward: %f" % r)
                 #time.sleep(0.11)
 
@@ -215,7 +215,11 @@ def train(sess, env, args, actor, critic, actor_noise):
                 num_test_cases = 50
 
             test_seed = int(np.random.uniform(1, 99999999))
-            should_test = input("Do you want to test network (Y/N(default))?: ")
+
+            if (int(args['online'])):
+                should_test = input("Do you want to test network (Y/N(default))?: ")
+            else:
+                should_test = ''
 
             if ((ep_reward > ep_reward_threshold) or (should_test == 'y')):
                 print("Testing network in %d cases..." % (num_test_cases))
@@ -410,7 +414,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', help='saved model to restore', default='')
     parser.add_argument('--test', help='test model', default=0)
 
-    parser.set_defaults(render_env=False)
+    parser.set_defaults(render_env=True)
 
     args = vars(parser.parse_args())
 

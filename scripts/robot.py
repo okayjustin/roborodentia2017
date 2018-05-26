@@ -7,362 +7,82 @@ import struct
 import time
 from timeit import default_timer as timer
 
-# Thresholds for changing areas
-kAREA_THRESHOLD = 950
-kAREA_HYST = 50
-
-MAX_PWM_CYCLES = 2047
-BUTTON_PWM_CYCLES = 1700
-
-# CALIBRATION VALUES, offset and scale
-RANGE_S = 0.965025066
-RANGE_O = -3.853474266
-MAG_S_X = 1 / 545.1754644628942
-MAG_S_Y = 1 / 550.0729613545005
-MAG_S_Z = 1 / 421.44904386765774
-MAG_O_X = -32 * -MAG_S_X
-MAG_O_Y = 432 * -MAG_S_Y
-MAG_O_Z = 79 * -MAG_S_Z
-ACC_S_X = 1 / 1030.9868342172633
-ACC_S_Y = 1 / 1059.8985318881996
-ACC_S_Z = 1 / 1063.2448503229036
-ACC_O_X = 30 * -ACC_S_X
-ACC_O_Y = 0 * -ACC_S_Y
-ACC_O_Z = -76 * -ACC_S_Z
-
-# Corrects setpoint offset error in networks
-X_OFFSET = 10
-Y_OFFSET = 10
-
-# Robot dimensions
-LEN_X = 315.0      # length of the robot left to right
-LEN_Y = 275.0      # length of the robot front to back
-FIELD_XMAX = 2438.4 # Maximum x dimension in mm
-FIELD_YMAX = 1219.2  # Maximum y dimension in mm
-
 class Robot():
-    sense_cmd = 'A\n'.encode('utf-8')
-    data_cmd = 'B\n'.encode('utf-8')
-    check_btn_cmd = 'Z\n'.encode('utf-8')
-    fire_left_cmd = 'LL\n'.encode('utf-8')
-    fire_right_cmd = 'LR\n'.encode('utf-8')
+    '''
+    desc
+    '''
 
-    # Time delay lengths
-    TIME_LAUNCHER = 3
-    TIME_LOAD = 0.5
+    # Maximum allowed motor speed value for UART command
+    MAX_PWM_CYCLES = 2047
 
-    # Set point positions
-    POSX_LEFT_SIDE = 190
-    POSX_RAMP_LEFT = 560
-    POSX_RAMP_RIGHT = FIELD_XMAX - POSX_RAMP_LEFT
-    POSX_RIGHT_SIDE = FIELD_XMAX - POSX_LEFT_SIDE
-    POSX_START = 2150
+    # CALIBRATION VALUES, offset and scale
+    RANGE_S = 0.965025066
+    RANGE_O = -3.853474266
+    MAG_S_X = 1 / 545.1754644628942
+    MAG_S_Y = 1 / 550.0729613545005
+    MAG_S_Z = 1 / 421.44904386765774
+    MAG_O_X = -32 * -MAG_S_X
+    MAG_O_Y = 432 * -MAG_S_Y
+    MAG_O_Z = 79 * -MAG_S_Z
+    ACC_S_X = 1 / 1030.9868342172633
+    ACC_S_Y = 1 / 1059.8985318881996
+    ACC_S_Z = 1 / 1063.2448503229036
+    ACC_O_X = 30 * -ACC_S_X
+    ACC_O_Y = 0 * -ACC_S_Y
+    ACC_O_Z = -76 * -ACC_S_Z
 
-    POSY_FRONT = 860
-    POSY_CENTER = 620
-    POSY_PREBACK = 350
-    POSY_BACK = 280
+    # Corrects setpoint offset error in networks
+    X_OFFSET = 10
+    Y_OFFSET = 10
 
-    POS_BL_PRELOAD  = [POSX_LEFT_SIDE,  POSY_PREBACK, 0]
-    POS_BL_LOAD     = [POSX_LEFT_SIDE,  POSY_BACK,    0]
-    POS_FL_LOAD     = [POSX_LEFT_SIDE,  POSY_FRONT,   0]
+    # Robot dimensions
+    LEN_X = 315.0      # length of the robot left to right
+    LEN_Y = 275.0      # length of the robot front to back
+    FIELD_XMAX = 2438.4 # Maximum x dimension in mm
+    FIELD_YMAX = 1219.2  # Maximum y dimension in mm
+    WHEEL_R =  30.0   # Wheel radius in mm
+    FRONT_BACK_WHEEL_DIST = 238.7  # Distance between the centers of front and back wheels in mm
+    LEFT_RIGHT_WHEEL_DIST = 251.4  # Distance between the centers of left and right wheels in mm
 
-    POS_RAMP_LEFT   = [POSX_RAMP_LEFT,  POSY_CENTER,  0]
-    POS_RAMP_RIGHT  = [POSX_RAMP_RIGHT, POSY_CENTER,  0]
+    # Motor constants
+    wheel_max_thetadotdot = 430 * 1.5  # Max wheel rotational acceleration in rad/s^2
+    wheel_max_thetadot = 24.46 * 1.5   # Max wheel rotational velocity in rad/s
+    friction_constant = wheel_max_thetadotdot / wheel_max_thetadot # Friction constant in 1/s
 
-    POS_BR_PRELOAD  = [POSX_RIGHT_SIDE, POSY_PREBACK, 0]
-    POS_BR_LOAD     = [POSX_RIGHT_SIDE, POSY_BACK,    0]
-    POS_FR_LOAD     = [POSX_RIGHT_SIDE, POSY_FRONT,   0]
+    # UART Commands
+    sense_cmd = 'A\n'.encode('utf-8')           # Queue rangefinder read
+    data_cmd = 'B\n'.encode('utf-8')            # Request sensor data packet
+    check_btn_cmd = 'Z\n'.encode('utf-8')       # Request debug button latch state
+    fire_left_cmd = 'LL\n'.encode('utf-8')      # Fire balls from left hopper
+    fire_right_cmd = 'LR\n'.encode('utf-8')     # Fire balls from right hopper
 
-    POS_FIRE_A      = [POSX_RAMP_RIGHT, POSY_CENTER, -0.020]
-    POS_FIRE_B      = [POSX_RAMP_RIGHT, POSY_CENTER, +0.070]
-    POS_FIRE_C      = [POSX_RAMP_LEFT,  POSY_CENTER, -0.005]
-    POS_FIRE_D      = [POSX_RAMP_LEFT,  POSY_CENTER, +0.005]
+    # Time step per cycle
+    dt = 0.05
 
-    epsilon_x = 10
-    epsilon_xdot = 5.0
-    epsilon_y = 10
-    epsilon_ydot = 5.0
-    epsilon_th = np.radians(1)
-    epsilon_thdot = np.radians(1)
-
+    # Returns either real or simulated time
     def getTime(self):
         if (self.sim):
             return self.time
         else:
             return timer()
 
+    # Increment the simulated time
     def incTime(self):
         self.time += self.dt
 
-    # State machine
-    def stateMachineCycle(self):
-        self.sm_state_prev = self.sm_state
-
-        # Check if time exceeds 3 minutes
-        if False: #(time > 3 minutes):
-            self.sm_state = 0
-        elif ((self.button_pressed) and (self.sm_state != 0)):
-            # If debug button pressed, go to reset
-            self.sm_state = 0
-        else:
-            # Update the state to the next state
-            self.sm_states[self.sm_state](self, 0)
-
-        print("State: %d" % self.sm_state)
-
-        # Run the next state
-        self.sm_states[self.sm_state](self, 1)
-
-    # State functions
-    def state0(self, func):  # Reset state
-        if (func == 0):
-            if (self.button_pressed):
-                self.sm_state = 11
-                print("Going to state 1")
-                quit()
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            pass
-
-    def state1(self, func): # Fire the five balls that the robot starts with
-        time_len = self.TIME_LAUNCHER # second
-        if (func == 0):
-            if (self.getTime() - self.sm_time_start > time_len): # Time condition
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            if (self.sm_state_prev == 0):
-                self.console.ser.write(self.fire_left_cmd)
-
-    def state2(self, func): # Move diagonally to BL preload position
-        if (func == 0):
-            x_err = abs(self.pid_e[0])
-            x_dot = abs(self.state[1].curVal())
-            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot)): # e(x)=0, v(x)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_BL_PRELOAD)
-
-    def state3(self, func): # Move backwards to start loading BL
-        if (func == 0):
-            y_err = abs(self.pid_e[1])
-            y_dot = abs(self.state[3].curVal())
-            if ((y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_BL_LOAD)
-
-    def state4(self, func): # Wait to finish loading BL
-        time_len = self.TIME_LOAD # second
-        if (func == 0):
-            if (self.getTime() - self.sm_time_start > time_len): # Time condition
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            pass
-
-    def state5(self, func): # Move forward to load FL
-        if (func == 0):
-            y_err = abs(self.pid_e[1])
-            print(y_err)
-            print(self.state[2].curVal())
-            print(self.state[6].curVal())
-            y_dot = abs(self.state[3].curVal())
-            if ((y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_FL_LOAD)
-
-    def state6(self, func): # Wait to finish loading FL
-        time_len = self.TIME_LOAD # second
-        if (func == 0):
-            if (self.getTime() - self.sm_time_start > time_len): # Time condition
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            pass
-
-    def state7(self, func): # Move diagonally to left of left ramp
-        if (func == 0):
-            x_err = abs(self.pid_e[0])
-            x_dot = abs(self.state[1].curVal())
-            y_err = abs(self.pid_e[1])
-            y_dot = abs(self.state[3].curVal())
-            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot) and # e(x)=0, v(x)=0
-                (y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_RAMP_LEFT)
-
-    def state8(self, func): # Rotate to C/D target + fire balls
-        time_len = self.TIME_LAUNCHER # second
-        if (func == 0):
-            if (self.getTime() - self.sm_time_start > time_len): # Time condition
-                if (self.target_cycle == 0):
-                    self.target_cycle = 1
-                else:
-                    self.target_cycle = 0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            if (self.target_cycle == 0):
-                self.setDesired(self.POS_FIRE_D)
-            else:
-                self.setDesired(self.POS_FIRE_C)
-
-    def state9(self, func): # Rotate to 0 degrees
-        if (func == 0):
-            th_err = abs(self.pid_e[2])
-            th_dot = abs(self.state[4].curVal())
-            if ((th_err < self.epsilon_th) and (th_dot < self.epsilon_thdot)): # e(th)=0, v(th)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_RAMP_LEFT)
-
-    def state10(self, func): # Go to right of right ramp
-        if (func == 0):
-            x_err = abs(self.pid_e[0])
-            if (x_err < self.epsilon_x): # e(x)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_RAMP_RIGHT)
-
-    def state11(self, func): # Move diagonally to BR preload position
-        if (func == 0):
-            x_err = abs(self.pid_e[0])
-            x_dot = abs(self.state[1].curVal())
-            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot)): # e(x)=0, v(x)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_BR_PRELOAD)
-
-    def state12(self, func): # Move backwards to start loading BR
-        if (func == 0):
-            y_err = abs(self.pid_e[1])
-            y_dot = abs(self.state[3].curVal())
-            if ((y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_BR_LOAD)
-
-    def state13(self, func): # Wait to finished loading BR
-        time_len = self.TIME_LOAD # second
-        if (func == 0):
-            if (self.getTime() - self.sm_time_start > time_len): # Time condition
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            pass
-
-    def state14(self, func): # Move forward to load FR
-        if (func == 0):
-            y_err = abs(self.pid_e[1])
-            y_dot = abs(self.state[3].curVal())
-            if ((y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_FR_LOAD)
-
-    def state15(self, func): # Wait to finish loading FR
-        time_len = self.TIME_LOAD # second
-        if (func == 0):
-            if (self.getTime() - self.sm_time_start > time_len): # Time condition
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            pass
-
-    def state16(self, func): # Move diagonally to right of right ramp
-        if (func == 0):
-            x_err = abs(self.pid_e[0])
-            x_dot = abs(self.state[1].curVal())
-            y_err = abs(self.pid_e[1])
-            y_dot = abs(self.state[3].curVal())
-            if ((x_err < self.epsilon_x) and (x_dot < self.epsilon_xdot) and  # e(x)=0, v(x)=0
-                (y_err < self.epsilon_y) and (y_dot < self.epsilon_ydot)): # e(y)=0, v(y)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_RAMP_RIGHT)
-
-    def state17(self, func): # Rotate to A/B target and fire
-        time_len = self.TIME_LAUNCHER # second
-        if (func == 0):
-            if (self.getTime() - self.sm_time_start > time_len): # Time condition
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            if (self.target_cycle == 0):
-                self.setDesired(self.POS_FIRE_B)
-            else:
-                self.setDesired(self.POS_FIRE_A)
-
-    def state18(self, func): # Rotate to 0 degrees
-        if (func == 0):
-            th_err = abs(self.pid_e[2])
-            th_dot = abs(self.state[4].curVal())
-            if ((th_err < self.epsilon_th) and (th_dot < self.epsilon_thdot)): # e(th)=0, v(th)=0
-                self.sm_state += 1
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_RAMP_RIGHT)
-
-    def state19(self, func): # Go to left of left ramp
-        if (func == 0):
-            x_err = abs(self.pid_e[0])
-            if (x_err < self.epsilon_x): # e(x)=0
-                self.sm_state = 2   # Go back to state 2
-                self.sm_time_start = self.getTime()
-        elif (func == 1):
-            self.setDesired(self.POS_RAMP_LEFT)
-
-    # State mapping
-    sm_states = { 0 : state0,
-                  1 : state1,
-                  2 : state2,
-                  3 : state3,
-                  4 : state4,
-                  5 : state5,
-                  6 : state6,
-                  7 : state7,
-                  8 : state8,
-                  9 : state9,
-                 10 : state10,
-                 11 : state11,
-                 12 : state12,
-                 13 : state13,
-                 14 : state14,
-                 15 : state15,
-                 16 : state16,
-                 17 : state17,
-                 18 : state18,
-                 19 : state19
-    }
-
-    def __init__(self, simulate, field_area_init):
+    def __init__(self, simulate):
+        # If running simulation
         self.sim = simulate
         if (self.sim):
             import robotsim
             state_start = [self.POSX_START, 0, self.POSY_CENTER, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             self.env = robotsim.SimRobot(train = 'sim', state_start = state_start)
 
-        self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
-
-        # robot setup
+        # Robot setup
         self.max_hist_len = 100
-        self.dt = 0.05
         self.time = 0
 
+        # For tracking the robot angle
         self.full_th = 0
         self.th_part = 0
         self.th_start = 0
@@ -376,82 +96,54 @@ class Robot():
         [5]: th dot
         [6]: desired x
         [7]: desired y
-        [8]: desired theta
-        [9]: Hopper BL state
-        [10]: Hopper BR state
-        [11]: Hopper FR state:
-        [12]: field area (-1 for left, 0 for center platform, 1 for right)
-        '''
-        self.state = [RunningStat(5) for x in range(0,13)]
-        self.state[12].push(field_area_init)
+        [8]: desired theta '''
+        self.num_states = 9
+        self.state = [RunningStat(5) for x in range(0, self.num_states)]
 
         ''' Control array U. All values range from -2 to 2
         [0]: x translation
         [1]: y translation
         [2]: angle control
-        [3]: launch command (-1 for fire left, +1 for fire right, 0 for nothing)
-        '''
+        [3]: launch command (-1 for fire left, +1 for fire right, 0 for nothing) '''
         self.u = np.zeros(5)
 
-        # Initialize PID vars
-        self.pid_e = np.zeros(3)    # Error
-        self.pid_int = np.zeros(3)  # Integral
-        # PID gains          x,    y,    th
-        if (self.sim):
-            self.Kp = np.array([0.05, 0.05, 8.00])
-            self.Ki = np.array([0.00, 0.00, 0.00])
-            self.Kd = np.array([0.0001, 0.0001, 0.02])
-        else:
-            self.Kp = np.array([0.00, 3.66, 8.00])
-            self.Ki = np.array([0.00, 0.00, 0.60])
-            self.Kd = np.array([0.00, 0.08, 4.00])
+        # Desired motor speeds as a fraction of maximum speed. [FL, BL, BR, FR]
+        self.motorSpeeds = np.array([0, 0, 0, 0], dtype='f')     # speeds range from -1 to 1
 
-        # State machine vars
-        if (self.sim):
-            self.sm_state = 11
-        else:
-            self.sm_state = 0
-        self.sm_state_prev = 0
-        self.button_pressed = False
-        self.target_cycle = 0 # 0 for targets B/D, 1 for targets A/C
-        self.sm_time_start = self.getTime()
-
-        # Sensor array. Each contains a running history, offset factor, scaling factor
-        # Rangefinders: Units of mm
-        # Magnetometer: Units of  uTesla?. Arbitrary since converted to heading later
-        # Accelerometer: Units of g's (gravity)
-        # Gyro: Units of degrees per second
-        self.sensors = [[RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 0     0
-                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 1     1
-                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 2     2
-                        [RunningStat(self.max_hist_len), RANGE_S, RANGE_O], # RF 3     3
-                        [RunningStat(self.max_hist_len), MAG_S_X, MAG_O_X], # MAG X    4
-                        [RunningStat(self.max_hist_len), MAG_S_Y, MAG_O_Y], # MAG Y    5
-                        [RunningStat(self.max_hist_len), MAG_S_Z, MAG_O_Z], # MAG Z    6
-                        [RunningStat(self.max_hist_len), ACC_S_X, ACC_O_X], # ACCEL X  7
-                        [RunningStat(self.max_hist_len), ACC_S_Y, ACC_O_Y], # ACCEL Y  8
-                        [RunningStat(self.max_hist_len), ACC_S_Z, ACC_O_Z]] # ACCEL Z  9
+        ''' Sensor array. Each contains a running history, offset factor, scaling factor
+        Rangefinders: Units of mm
+        Magnetometer: Units of  uTesla?. Arbitrary since converted to heading later
+        Accelerometer: Units of g's (gravity)
+        Gyro: Units of degrees per second '''
+        self.sensors = [[RunningStat(self.max_hist_len), self.RANGE_S, self.RANGE_O], # RF 0     0
+                        [RunningStat(self.max_hist_len), self.RANGE_S, self.RANGE_O], # RF 1     1
+                        [RunningStat(self.max_hist_len), self.RANGE_S, self.RANGE_O], # RF 2     2
+                        [RunningStat(self.max_hist_len), self.RANGE_S, self.RANGE_O], # RF 3     3
+                        [RunningStat(self.max_hist_len), self.MAG_S_X, self.MAG_O_X], # MAG X    4
+                        [RunningStat(self.max_hist_len), self.MAG_S_Y, self.MAG_O_Y], # MAG Y    5
+                        [RunningStat(self.max_hist_len), self.MAG_S_Z, self.MAG_O_Z], # MAG Z    6
+                        [RunningStat(self.max_hist_len), self.ACC_S_X, self.ACC_O_X], # ACCEL X  7
+                        [RunningStat(self.max_hist_len), self.ACC_S_Y, self.ACC_O_Y], # ACCEL Y  8
+                        [RunningStat(self.max_hist_len), self.ACC_S_Z, self.ACC_O_Z]] # ACCEL Z  9
         self.num_sensors = len(self.sensors)
-#                        [RunningStat(self.max_hist_len), GYR_S_X, GYR_O_X, 0.], # GYRO X  10
-#                        [RunningStat(self.max_hist_len), GYR_S_Y, GYR_O_Y, 0.], # GYRO Y  11
-#                        [RunningStat(self.max_hist_len), GYR_S_Z, GYR_O_Z, 0.], # GYRO Z  12
 
+        # Track debug button state
+        self.button_pressed = False
+
+        # Class to handle serial link operations
         self.console = SerialConsole()
+
+        # Log data to file
         self.data_log_enable = False
 
-        # Kalman filter and states
-#        self.initKalman()
-#        self.kalman_x = RunningStat(self.max_hist_len)
-#        self.kalman_dx = RunningStat(self.max_hist_len)
-#        self.kalman_y = RunningStat(self.max_hist_len)
-#        self.kalman_dy = RunningStat(self.max_hist_len)
-
+    # Opens serial session with robot microcontroller
     def openSerial(self):
         if (self.sim):
             return 0
         else:
             return self.console.openSerial()
 
+    # Close serial session and tensorflow sessions
     def close(self):
         if (not self.sim):
             self.console.close()
@@ -462,6 +154,7 @@ class Robot():
         except:
             pass
 
+    # Start tensorflow sessions and load network models
     def initializeNets(self):
         import tensorflow as tf
         from ann import ann
@@ -480,127 +173,92 @@ class Robot():
         transy_model_path = './trained-models/models-transy/model.ckpt'
         self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
 
-    def predict(self):
-        angle_obs = np.array([np.cos(self.state[4].curVal()), \
-                np.sin(self.state[4].curVal()), self.state[5].curVal()])
-        u_angle = -1 * self.angle_ann.predict(angle_obs)**5 / 70.
-
+    # Forward step through ANNs to produce u array
+    def predict(self, state):
+        # Predict angle u
+        u_angle = self.angle_ann.predict(self.getObservation(state, 0))
 #        print("Th: %+0.3f | Thdot: %+0.3f | %+0.3f" % \
 #                (np.degrees(self.state[4].curVal()), np.degrees(self.state[5].curVal()), u_angle))
-        transx_obs = np.array([self.state[0].curVal() - self.state[6].curVal() + X_OFFSET, \
-                self.state[1].winMean()])
-        u_transx = self.transx_ann.predict(transx_obs)
-        u_transx = 0
 
-        transy_obs = np.array([self.state[1].curVal() - self.state[7].curVal() + Y_OFFSET, \
-                self.state[3].winMean()])
-        u_transy = self.transy_ann.predict(transy_obs)
-        u_transy = 0
+        # Predict x translation u
+        u_transx = self.transx_ann.predict(self.getObservation(state, 1))
 
+        # Predict y translation u
+        u_transy = self.transy_ann.predict(self.getObservation(state, 2))
+
+        # Concatenate into u array and clip values
         u = np.array([u_angle, u_transx, u_transy])
-        self.u = np.clip(u, -2., 2.)
+        u = np.clip(u, -2., 2.)
+        return u
 
-    # Calculates a control array (u) based on the current state using PID algorithm
-    def calcU(self):
-        # Get state
-        x      = self.state[0].curVal()
-        y      = self.state[2].curVal()
-        th     = self.state[4].curVal()
-        x_des  = self.state[6].curVal()
-        y_des  = self.state[7].curVal()
-        th_des = self.state[8].curVal()
-
-        setpoint = np.array([x_des, y_des, th_des])
-        measval = np.array([x, y, th])
-
-#        print("PID set point: ", end='')
-#        print(setpoint)
-#        print("PID meas point: ", end='')
-#        print(measval)
-
-        new_error = setpoint - measval
-        self.pid_int = self.pid_int + new_error*self.dt
-        der = (new_error - self.pid_e) / self.dt
-        self.u = np.multiply(self.Kp, new_error) + np.multiply(self.Ki, self.pid_int) + np.multiply(self.Kd, der)
-        self.pid_e = new_error
-
-        # Disable x and y movement when rotated
-        if (th_des != 0):
-            self.u[0] = 0
-            self.u[1] = 0
-#        print("PID Error: ", end='')
-#        print(self.pid_e)
-#        print("PID Ctrls: ", end='')
-#        print(self.u)
-
-    def execute(self):
+    # Execute u on robot
+    def execute(self, u):
         if (self.sim):
-            self.env.step([self.u[0], -self.u[1], -self.u[2]])
-            #self.env.step([-1, 0, -self.u[2]])
+            self.env.step([u[0], -u[1], -u[2]])
         else:
-            self.mechanumCommand(self.u[0], self.u[1], self.u[2])
+            self.mechanumCommand(u[0], u[1], u[2])
 
-    def halt(self):
-        self.mechanumCommand(0, 0, 0)
+    # Get sensor data, parse, apply calibration, update state array
+    def getSensorVals(self):
+        try:
+            # Check if button has been pressed
+            self.console.ser.reset_input_buffer()
+            self.console.ser.write(self.check_btn_cmd)
+            data = self.console.ser.readline()
+            if data == b'0\n':
+                self.button_pressed = True
+            else:
+                self.button_pressed = False
 
-    def render(self):
-        self.env.render()
-
-    def updateSensorValue(self):
-        if (self.sim):
-            self.env.updateObservation()
-            sim_obs = self.env.obs
-
-            # Simulate rangefinder readings
-            for i in range(0, 4):
-                self.sensors[i][0].push(sim_obs[i*2])
-
-            # Simulate heading, no need to simulated individual magnetometer and accel readings
-            sim_th = np.arctan2(sim_obs[9], sim_obs[8])
-
-        else:
-            try:
-                # Check if button has been pressed
+            # Request sensor data packet, keep trying until success
+            while True:
                 self.console.ser.reset_input_buffer()
-                self.console.ser.write(self.check_btn_cmd)
-                data = self.console.ser.readline()
-                if data == b'0\n':
-                    self.button_pressed = True
+                self.console.ser.write(self.data_cmd)
+                data = self.console.ser.read(self.num_sensors * 2 + 1)
+
+                # Check for correct data length
+                if (len(data) == self.num_sensors * 2 + 1):
+                    # If last character received is newline, break
+                    if (data[-1] == 10):
+                        break
                 else:
-                    self.button_pressed = False
-
-                # Request data
-                while True:
-                    self.console.ser.reset_input_buffer()
-                    self.console.ser.write(self.data_cmd)
-                    data = self.console.ser.read(self.num_sensors * 2 + 1)
-                    if (len(data) == self.num_sensors * 2 + 1):
-                        if (data[-1] == 10):
-                            break
-                    else:
 #                        print("Malformed UART data. Len: %d. Retrying..." % len(data))
-                        pass
-            except OSError:
-                print("Error")
+                    pass
+        except OSError:
+            print("OSError")
 
-            # Start next sensor collection
-            self.console.ser.write(self.sense_cmd)
+        # Queue next rangefinder measurement
+        self.console.ser.write(self.sense_cmd)
 
-            for i in range(0, self.num_sensors):
-                val = int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True)
-                # Push data * scaling factor + offset - DC_calibration
-                self.sensors[i][0].push(val * self.sensors[i][1] + self.sensors[i][2])
+        # Parse sensor data and apply calibration values
+        sensor_vals = np.array([])
+        for i in range(0, self.num_sensors):
+            val = int.from_bytes(data[i*2:i*2+2], byteorder='big', signed=True)
+            # Calibrated value = raw data * scaling factor + offset
+            sensor_vals.append(val * self.sensors[i][1] + self.sensors[i][2])
 
-        # Log data
-        if (self.data_log_enable):
-            self.data_log += '%0.1f, %0.1f, %d, %d, \n' \
-                    % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
+#        # Log data
+#        if (self.data_log_enable):
+#            self.data_log += '%0.1f, %0.1f, %d, %d, \n' \
+#                    % (dt, mag_val_raw, rangeX_val_raw, rangeY_val_raw)
 
-        # Update state array-----------------------------------------------------
-        y_front = self.sensors[0][0].curVal()
-        x_left  = self.sensors[1][0].curVal()
-        y_back  = self.sensors[2][0].curVal()
-        x_right = self.sensors[3][0].curVal()
+        return sensor_vals
+
+    def updateSensors(self, sensor_vals):
+        for i in range(0, self.num_sensors):
+            val = sensor_vals[i]
+            # Calibrated value = raw data * scaling factor + offset
+            self.sensors[i][0].push(val)
+
+    # Update state array
+    def updateState(self):
+        # Rangefinder distances
+        range_front = self.sensors[0][0].curVal()
+        range_left  = self.sensors[1][0].curVal()
+        range_rear  = self.sensors[2][0].curVal()
+        range_right = self.sensors[3][0].curVal()
+
+        # IMU measurements
         if (not self.sim):
             magx    = self.sensors[4][0].curVal()
             magy    = self.sensors[5][0].curVal()
@@ -609,56 +267,9 @@ class Robot():
             accely  = self.sensors[8][0].curVal()
             accelz  = self.sensors[9][0].curVal()
 
-        x       = self.state[0].curVal()
-        xdot    = self.state[1].curVal()
-        y       = self.state[2].curVal()
-        ydot    = self.state[3].curVal()
-        th      = self.state[4].curVal()
-        thdot   = self.state[5].curVal()
-        x_des   = self.state[6].curVal()
-        y_des   = self.state[7].curVal()
-        th_des  = self.state[8].curVal()
-        # hopbl   = self.state[9].curVal()
-        # hopbr   = self.state[10].curVal()
-        # hopfr   = self.state[11].curVal()
-        # field_area = self.state[12].curVal()
-
-        #-------------------------------------------------------------
-        # Update field area
-        # if (field_area == -1): # Left field
-        #     if (x_left > kAREA_THRESHOLD):
-        #         new_field_area = 0
-        #     else:
-        #         new_field_area = -1
-        # elif (field_area == 1): # Right field
-        #     if (x_right > kAREA_THRESHOLD):
-        #         new_field_area = 0
-        #     else:
-        #         new_field_area = 1
-        # else:                   # Center field
-        #     if (x_left < kAREA_THRESHOLD):
-        #         new_field_area = -1
-        #     elif (x_right < kAREA_THRESHOLD):
-        #         new_field_area = 1
-        #     else:
-        #         new_field_area = 0
-
-        # #-------------------------------------------------------------
-        # # Update x, and xdot states
-        # if (new_field_area == -1):      # Left
-        #     new_x = x_left + LEN_X / 2
-        # elif (new_field_area == 1):    # Right
-        #     new_x = FIELD_XMAX - x_right - LEN_X / 2
-        # else:                           # Center
-        #     new_x = (x_left + FIELD_XMAX - x_right) / 2.0
-        new_x = x_left
-
-#        print("Field area: %d" % field_area)
-#        print("newX: %0.3f, actual: %0.3f error: %0.3f x_left: %0.3f, x_right: %0.3f" % (new_x, self.env.state[0], new_x - self.env.state[0], x_left, x_right))
-        #-------------------------------------------------------------
-        # Update y and ydot states
-        #new_y = (y_back + FIELD_YMAX - y_front) / 2.0
-        new_y = y_front
+        # Assign new x and y states
+        new_x = range_left + self.LEN_X / 2
+        new_y = range_front + self.LEN_Y / 2
 
         #-------------------------------------------------------------
         # Update theta and thetadot states
@@ -672,36 +283,57 @@ class Robot():
         # current theta is past the 180 degree limit (which means between -90 and -180 degrees)
         if (self.prev_th_part > np.pi/2 and self.th_part < -np.pi/2):
             self.full_th += 1  # Increment full rotation count
+
         # If previous th is near the lower limit (between -90 and -180 degrees)
         elif (self.prev_th_part < -np.pi/2 and self.th_part > np.pi/2):
             self.full_th -= 1  # Increment full rotation count
 
+        # Calculate the new theta
         new_th = self.full_th*2*np.pi + self.th_part - self.th_start
-        #print("%f" % (np.degrees(new_th)))
 
         #-------------------------------------------------------------
-        # Update hopper states
-        # new_hopbl = 0
-        # new_hopbr = 0
-        # new_hopfr = 0
-
-        #-------------------------------------------------------------
-        # Push new states
+        # Push new x, y, theta states
         self.state[0].push(new_x)
         self.state[2].push(new_y)
         self.state[4].push(new_th)
-        # self.state[9].push(new_hopbl)
-        # self.state[10].push(new_hopbr)
-        # self.state[11].push(new_hopfr)
-        #self.state[12].push(new_field_area)
 
-        # Update velocities
+        # Update x, y, theta velocities
         new_xdot = self.getVel(0)
         new_ydot = self.getVel(2)
         new_thdot = self.getVel(4)
         self.state[1].push(new_xdot)
         self.state[3].push(new_ydot)
         self.state[5].push(new_thdot)
+
+    # Create observations for the various networks
+    def updateObservation(self):
+        x = self.state[0].curVal()
+        xdot = self.state[1].winMean()
+        y = self.state[2].curVal()
+        ydot = self.state[3].winMean()
+        th = self.state[4].curVal()
+        thdot = self.state[5].winMean()
+        xdes = self.state[6].curVal()
+        ydes = self.state[7].curVal()
+        thdes = self.state[8].curVal()
+
+        # The observations are the deltas between the current and desired states
+        obs_angle = np.array([np.cos(th - thdes), np.sin(th - thdes), thdot])
+        obs_transx = np.array([x - xdes, xdot])
+        obs_transy = np.array([y - ydes, ydot])
+
+        obs_sets = np.array([obs_angle, obs_transx, obs_transy])
+        return obs_sets
+
+# --------------------------------------------- Support ---------------
+
+    # Stop all robot drive motors
+    def halt(self):
+        self.mechanumCommand(0, 0, 0)
+
+    # Render robot
+    def render(self):
+        self.env.render()
 
     def calcTiltCompass(self, magx, magy, magz, accelx, accely, accelz):
         # Returns a heading from +pi to -pi
@@ -724,17 +356,17 @@ class Robot():
         self.state[7].push(coordinates[1]) # Y
         self.state[8].push(coordinates[2]) # th
 
-    # Calculates the average of forwards and backwards derivatives
+    # Calculates the average of forwards and backwards derivatives for a given state
     def getVel(self, stateIdx):
         deriv_len = 1
         future = self.state[stateIdx].vals[0]
         past = self.state[stateIdx].vals[deriv_len]
         return (future - past)/(deriv_len * self.dt)
 
-
-    # Recalculates the starting theta position to "zero out" theta
+    # "Zeros" theta by setting current theta as the reference
+    # Initialize x and y desired states to current x and y states
     def initXYT(self):
-        # Reset DC offset
+        # Clear the theta reference
         self.th_start = 0
 
         # Get the theta averaged over a number of samples
@@ -742,31 +374,29 @@ class Robot():
         for i in range(0, num_pts):
             self.updateSensorValue()
             time.sleep(0.01)
+
+        # Set the theta reference
         self.th_start = self.state[4].winMean()
 
+        # Set the x and y desired
         self.state[6].push(self.state[0].winMean())
         self.state[7].push(self.state[2].winMean())
 
+    # Print sensor values for debugging
     def printSensorVals(self):
-        # print("Sensor values:")
-        # for i in range(0,self.num_sensors):
-        #     print("%+03.3f" % (self.sensors[i][0].curVal()), end = '| ')
-        # print("")
-        # return
+        print("Sensor values:")
+        for i in range(0,self.num_sensors):
+            print("\t%d: %+0.3f, Var: %+0.3f" % (i, self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
+       #     print("%+03.3f" % (self.sensors[i][0].curVal()), end = '| ')
+       #print("%f" % (np.degrees(new_th)))
 
-        # for i in range(0,10):
-        #     print("%+0.3f, Var: %+0.3f" % (self.sensors[i][0].curVal(), self.sensors[i][0].winStdDev()))
-        print("State values:")
-        for i in range(0, 12):
-            print("%+0.3f" % self.state[i].curVal())
+        print("\nState values:")
+        for i in range(0, self.num_states):
+            print("\t%d: %+0.3f" % (i, self.state[i].curVal()))
 
-    def loopAngle(self, angle):
-        while ((angle >= 360.0) or (angle < 0.0)):
-            if (angle >= 360.0): angle -= 360.0
-            if (angle <    0.0): angle += 360.0
-        return angle
-
+    # Calculates required motor speeds to acheive desired x, y, theta movement and sends to MCU
     def mechanumCommand(self, x, y, th):
+        # Limit input range
         x = np.clip(x, -2, 2)
         y = np.clip(y, -2, 2)
         th = np.clip(th, -2, 2)
@@ -788,45 +418,29 @@ class Robot():
         v = v / maxval if (maxval > 1) else v
         self.motorSpeeds = v
 
-        # Send motor control commands
-        self.cmdMotor([int(x * MAX_PWM_CYCLES) for x in self.motorSpeeds])
+        # Scale motor speeds for UART cmd and send motor control commands
+        self.cmdMotor([int(x * self.MAX_PWM_CYCLES) for x in self.motorSpeeds])
 
-    # speed : 0 to 2047, duty cycle value out of 2047
+    # Send motor speed values to MCU
     def cmdMotor(self, motorCmd):
+        # Check that all speeds are within limits
         for cmd in motorCmd:
             if (checkValue(cmd, -MAX_PWM_CYCLES, MAX_PWM_CYCLES)):
                 raise ValueError("motorCmd is not within bounds")
+
+        # Form UART command string
         cmd = 'M ' + str(motorCmd[0]) + ' ' + str(motorCmd[1]) + ' ' \
             + str(motorCmd[2]) + ' ' + str(motorCmd[3]) + '\n'
+
+        # Write command to serial
         self.console.writeSerialSequence([cmd])
 
-    def initKalman(self):
-        sigmas = MerweScaledSigmaPoints(4, alpha=.1, beta=2., kappa=1.)
-        self.ukf = UKF(dim_x=4, dim_z=2, fx=self.f_cv, hx=self.h_cv, dt=KAL_DT, points=sigmas)
-        self.ukf.x = np.array([0., 0., 0., 0.])      # Initial states: x, dx, y, dy
-        self.ukf.P *= 1000                           # State covariance
-        self.ukf.R = np.diag([RANGE_VAR, RANGE_VAR]) # Measurement covariance
-        # Process covariance
-        self.ukf.Q[0:2, 0:2] = Q_discrete_white_noise(dim=2, dt=KAL_DT, var=Q_VAR)
-        self.ukf.Q[2:4, 2:4] = Q_discrete_white_noise(dim=2, dt=KAL_DT, var=Q_VAR)
-
-    def f_cv(self, x, dt):
-        """ state transition function for a
-        constant velocity aircraft"""
-
-        F = np.array([[1, dt, 0,  0],
-                      [0,  1, 0,  0],
-                      [0,  0, 1, dt],
-                      [0,  0, 0,  1]])
-        return np.dot(F, x)
-
-    def h_cv(self, x):
-        return np.array([x[0], x[2]])
-
+    # Initialize data log and enable logging
     def startLog(self):
         self.data_log = 'dt (ms), Magnetometer (degrees), Rangefinder X (mm), Rangefinder Y (mm)\n'
         self.data_log_enable = True
 
+    # Stop logging and write to file
     def stopLog(self):
         if (self.data_log_enable):
             self.data_log_enable = False

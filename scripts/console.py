@@ -5,7 +5,6 @@ import serial.tools.list_ports
 import time
 
 class SerialConsole():
-
     def openSerial(self):
         port, success = self.get_STLink_port()
         if (success == False):
