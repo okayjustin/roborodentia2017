@@ -39,7 +39,7 @@ from ann_plot import *
 
 from replay_buffer import ReplayBuffer
 
-kRENDER_EVERY = 20 # Render only every xth episode to speed up training
+kRENDER_EVERY = 1 # Render only every xth episode to speed up training
 kTEST_PERIOD_ONLINE = 20
 kTEST_PERIOD_OFFLINE = 20
 kNUM_TEST_CASES_ONLINE = 2
@@ -48,7 +48,7 @@ kNUM_TEST_CASES_OFFLINE = 40
 # Taken from https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py, which is
 # based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
 class OrnsteinUhlenbeckActionNoise:
-    def __init__(self, mu, sigma=0.3, theta=.15, dt=5e-2, x0=None):
+    def __init__(self, mu, sigma=0.3, theta=.15, dt=0.05, x0=None):
         self.theta = theta
         self.mu = mu
         self.sigma = sigma
@@ -96,9 +96,9 @@ def train(sess, env, args, actor, critic, actor_noise):
     if (args['env'] == 'angle'):
         ep_reward_threshold = -5
     elif (args['env'] == 'transx'):
-        ep_reward_threshold = -500
+        ep_reward_threshold = -5
     elif (args['env'] == 'transy'):
-        ep_reward_threshold = -350
+        ep_reward_threshold = -5
     else:
         ep_reward_threshold = -30
 

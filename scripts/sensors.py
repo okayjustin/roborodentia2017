@@ -28,6 +28,8 @@ class SimRangefinder():
         self.meas = 0.
         self.dim = [(0.,0.),(0.,0.)]
 
+        self.index = int(theta)
+
     def update(self, state):
         """ Returns the measurement of the rangefinder in mm.
         robot: robot object
@@ -91,6 +93,16 @@ class SimRangefinder():
         # Set measurement and line points for rendering
         self.meas = dist
         self.dim = [(x1,y1),(x2,y2)]
+
+        # For testing. Eliminate skew from sensor
+        if (self.index == 90):          # Front
+            self.meas = state[2]
+        elif (self.index == 180):       # Left
+            self.meas = state[0]
+        elif (self.index == 270):       # Rear
+            self.meas = state[2]
+        elif (self.index == 270):       # Right  
+            self.meas = state[0]
 
 #        # Only update if measurement is in range
 #        if ((dist > 30) and (dist < 1200)):

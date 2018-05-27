@@ -27,7 +27,7 @@ LEN_Y = Robot.LEN_Y
 
 # Simulates motor variance. Controls percentage of how much motors differ.
 # Ex: 0.05 means motor friction and voltage sensitivity parameters will vary up to 5%
-MOTOR_DELTA = 0.10
+MOTOR_DELTA = 0.0
 
 # Maximum simulation time in seconds
 TIME_MAX = 10
@@ -188,6 +188,23 @@ class SimRobot():
         self.terminal = 0
         self.last_u = np.zeros(self.u_len)
 
+        # Limit range of values for each state var
+        if (self.net_index == 0):
+            max_val = np.pi
+            min_val = -np.pi
+            state_index = 4
+        elif (self.net_index == 1):
+            max_val = FIELD_XMAX - LEN_X*2
+            min_val = 0 + LEN_X*2
+            state_index = 0
+        elif (self.net_index == 2):
+            max_val = FIELD_YMAX - LEN_Y*2
+            min_val = 0 + LEN_Y*2
+            state_index = 2 
+        
+        # Initialize to starting state
+        self.state = self.state_start
+        
         if (randomize):
             # Set a new desired x, y, theta
             xdes = np.random.uniform(low=40, high=1000)
@@ -197,39 +214,21 @@ class SimRobot():
             if (self.online):
                 self.robot.setDesired([xdes, ydes, thdes])
             else:
-                high = np.array([(FIELD_XMAX - LEN_X)/2.5, 0, # X, xdot
-                                 (FIELD_YMAX - LEN_Y)/2.5, 0, # Y, ydot
-                                 np.pi, 0.0,                    # th, thdot
-                                 (FIELD_XMAX - LEN_X)/2, (FIELD_YMAX - LEN_Y)/2, 0.0])
-                self.state = self.state_start + np.random.uniform(low=-high, high=high)
-
+                self.state[state_index] = np.random.uniform(low=min_val, high=max_val)
+                
                 # Randomize variable friction and voltage sensitivity per wheel
                 self.friction_var = np.array([Robot.friction_constant * \
                         (1+np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA)) for i in range(4)])
                 self.v_sensitivity = np.array([1 + np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA) \
                         for i in range(4)])
         elif (testNet):
-            self.state = self.state_start
-
-            if (self.net_index == 0):
-                max_val = np.pi
-                min_val = -np.pi
-                state_index = 4
-            elif (self.net_index == 1):
-                max_val = FIELD_XMAX - LEN_X*2
-                max_val = 0 + LEN_X*2
-                state_index = 0
-            elif (self.net_index == 2):
-                max_val = FIELD_YMAX - LEN_Y*2
-                max_val = 0 + LEN_Y*2
-                state_index = 2
-
             val = (max_val - min_val) * step / step_max + min_val
             self.state[state_index] = val
         else:
-            self.state = self.state_start
             self.friction_var = np.array([Robot.friction_constant for i in range(4)])
             self.v_sensitivity = np.array([1 for i in range(4)])
+
+        self.robot.setDesired(self.state[6:9])
 
         # Update observations
         for i in range(0,3):
@@ -268,12 +267,12 @@ class SimRobot():
         elif self.train == 'transx':
             u_transx = u
             u_transy = [0] #self.transy_ann.predict(self.obs_sets[2])
-            u_angle = self.angle_ann.predict(self.obs_sets[0])
+            u_angle = [0] #self.angle_ann.predict(np.reshape(self.obs_sets[0],(1,3)))[0]
 
         elif self.train == 'transy':
-            u_transx = self.transx_ann.predict(self.obs_sets[1])
+            u_transx = [0] # self.transx_ann.predict(np.reshape(self.obs_sets[1],(1,2)))[0]
             u_transy = u
-            u_angle = self.angle_ann.predict(self.obs_sets[0])
+            u_angle = [0] # self.angle_ann.predict(np.reshape(self.obs_sets[0],(1,3)))[0]
 
         u = np.concatenate((u_transx, u_transy, u_angle))
         u = np.clip(u, -2., 2.)

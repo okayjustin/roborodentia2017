@@ -45,8 +45,8 @@ class Robot():
     LEFT_RIGHT_WHEEL_DIST = 251.4  # Distance between the centers of left and right wheels in mm
 
     # Motor constants
-    wheel_max_thetadotdot = 430 * 1.5  # Max wheel rotational acceleration in rad/s^2
-    wheel_max_thetadot = 24.46 * 1.5   # Max wheel rotational velocity in rad/s
+    wheel_max_thetadotdot = 430  # Max wheel rotational acceleration in rad/s^2
+    wheel_max_thetadot = 24.46   # Max wheel rotational velocity in rad/s
     friction_constant = wheel_max_thetadotdot / wheel_max_thetadot # Friction constant in 1/s
 
     # UART Commands
@@ -268,8 +268,8 @@ class Robot():
             accelz  = self.sensors[9][0].curVal()
 
         # Assign new x and y states
-        new_x = range_left + self.LEN_X / 2
-        new_y = range_front + self.LEN_Y / 2
+        new_x = range_left #+ self.LEN_X / 2
+        new_y = range_front #+ self.LEN_Y / 2
 
         #-------------------------------------------------------------
         # Update theta and thetadot states

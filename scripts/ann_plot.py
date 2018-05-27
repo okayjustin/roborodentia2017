@@ -86,7 +86,7 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
 
         for i in range(0, NUM_PTS**2):
             # Get ANN prediction
-            u[i] = np.clip(ann_in.predict(np.reshape(obs_batch[i],(1,3))), -2, 2)[0]
+            u[i] = np.clip(ann_in.predict(np.reshape(obs_batch[i],(1, state_dim))), -2, 2)[0]
        
     else:
         # Expand observation batch by number of actions
