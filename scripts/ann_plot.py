@@ -11,8 +11,8 @@ from timeit import default_timer as timer
 import tensorflow as tf
 from ann import ann
 
-NUM_PTS = 10
-NUM_ACT_PTS = 10
+NUM_PTS = 200
+NUM_ACT_PTS = 20
 
 '''
 Creates and saves contour plot of ANN output
@@ -76,7 +76,18 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
     # Loop through every pair of sample points
     if (act_or_crit == 0):
         # Get ANN prediction
-        u = np.clip(ann_in.predict(obs_batch), -2, 2)
+        # u = np.clip(ann_in.predict(obs_batch), -2, 2)
+
+        # 3d points for plotting
+        # Z = np.zeros([NUM_PTS, NUM_PTS])
+
+        # Loop through every pair of sample points
+        u = np.zeros(NUM_PTS**2)
+
+        for i in range(0, NUM_PTS**2):
+            # Get ANN prediction
+            u[i] = np.clip(ann_in.predict(np.reshape(obs_batch[i],(1,3))), -2, 2)[0]
+       
     else:
         # Expand observation batch by number of actions
         obs_batch_critic = np.zeros([NUM_PTS**2 * NUM_ACT_PTS, state_dim])
@@ -109,6 +120,7 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
     plt.title(plot_title)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
+
     #plt.show()
 
     # Save figure
@@ -120,6 +132,9 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
     fig.savefig(filepath, bbox_inches='tight')
     end_time =  timer()
     print("Saved to %s. Time elapsed: %fs." % (filestub, end_time - start_time))
+
+    # Close figure
+    plt.close(fig)
 
 if __name__ == '__main__':
     net_index = 1
