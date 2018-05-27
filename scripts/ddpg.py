@@ -203,13 +203,8 @@ def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
 def compareNetworks(sess, saver, env, args, actor, num_test_cases = 10, render = False):
     print("Testing network in %d cases..." % (num_test_cases))
 
-    # Randomize test seed
-    test_seed = int(np.random.uniform(1, 99999999))
-    tf.set_random_seed(test_seed)
-    env.seed(test_seed)
-
     # Test the network and get the total reward
-    test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases)
+    test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases, render)
 
      # Save model temporarily
     save_path = saver.save(sess, "./results/models-temp/model.ckpt")
@@ -217,10 +212,7 @@ def compareNetworks(sess, saver, env, args, actor, num_test_cases = 10, render =
     # Restore the best model to test again
     try:
         saver.restore(sess, "./results/models/model.ckpt")
-        # Use the same test seed so both networks test against the same cases
-        tf.set_random_seed(test_seed)
-        env.seed(test_seed)
-        best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases)
+        best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases, render)
     except:
         best_total_reward = -99999999999.
 
@@ -238,8 +230,8 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
 
     # Test the network against random scenarios
     env.setWallCollision(True)
-    for m in range(num_test_cases):
-        s = env.reset()
+    for m in range(num_test_cases + 1):
+        s = env.reset(False, True, m, num_test_cases)
         ep_reward = 0.0
         for n in range(int(args['max_episode_len'])):
             if (args['render_env'] and render == True):

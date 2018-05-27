@@ -181,7 +181,7 @@ class SimRobot():
         else:
             raise ValueError("Bad value for mode in setWallCollision.")
 
-    def reset(self, randomize = True):
+    def reset(self, randomize=True, testNet=None, step=0, step_max=50):
         # Reset vars
         self.time = 0
         self.reward = 0
@@ -197,9 +197,9 @@ class SimRobot():
             if (self.online):
                 self.robot.setDesired([xdes, ydes, thdes])
             else:
-                high = np.array([(FIELD_XMAX - LEN_X)/2, 0, # X, xdot
-                                 (FIELD_YMAX - LEN_Y)/2, 0, # Y, ydot
-                                 0.0, 0.0,                    # th, thdot
+                high = np.array([(FIELD_XMAX - LEN_X)/2.5, 0, # X, xdot
+                                 (FIELD_YMAX - LEN_Y)/2.5, 0, # Y, ydot
+                                 np.pi, 0.0,                    # th, thdot
                                  (FIELD_XMAX - LEN_X)/2, (FIELD_YMAX - LEN_Y)/2, 0.0])
                 self.state = self.state_start + np.random.uniform(low=-high, high=high)
 
@@ -208,16 +208,35 @@ class SimRobot():
                         (1+np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA)) for i in range(4)])
                 self.v_sensitivity = np.array([1 + np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA) \
                         for i in range(4)])
+        elif (testNet):
+            self.state = self.state_start
+
+            if (self.net_index == 0):
+                max_val = np.pi
+                min_val = -np.pi
+                state_index = 4
+            elif (self.net_index == 1):
+                max_val = FIELD_XMAX - LEN_X*2
+                max_val = 0 + LEN_X*2
+                state_index = 0
+            elif (self.net_index == 2):
+                max_val = FIELD_YMAX - LEN_Y*2
+                max_val = 0 + LEN_Y*2
+                state_index = 2
+
+            val = (max_val - min_val) * step / step_max + min_val
+            self.state[state_index] = val
         else:
             self.state = self.state_start
             self.friction_var = np.array([Robot.friction_constant for i in range(4)])
             self.v_sensitivity = np.array([1 for i in range(4)])
 
         # Update observations
-        sensor_vals = self.getSensorVals()
-        self.updateSensors(sensor_vals)
-        self.updateState()
-        self.updateObservation()
+        for i in range(0,3):
+            sensor_vals = self.getSensorVals()
+            self.updateSensors(sensor_vals)
+            self.updateState()
+            self.updateObservation()
 
         # Keep track of time for cycle timing
         if (self.online):
