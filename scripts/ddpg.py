@@ -103,7 +103,7 @@ def train(sess, env, args, actor, critic, actor_noise):
         num_test_cases = 2
         test_period = 20
     else:
-        num_test_cases = 10
+        num_test_cases = 40
         test_period = 20
 
     # Start training
@@ -117,8 +117,8 @@ def train(sess, env, args, actor, critic, actor_noise):
             # Compare current network to the saved
             if ((ep_reward > ep_reward_threshold) or (i % test_period == 0)):
                 compareNetworks(sess, saver, env, args, actor, num_test_cases)
-                plotANN(env.net_index, actor, i, 0)
-                plotANN(env.net_index, critic, i, 1)
+                plotANN(env.net_index, actor, i+1, 0)
+                plotANN(env.net_index, critic, i+1, 1)
 
             print('Ep: %d | Reward: %d | Qmax: %0.4f' % \
                     (i, int(ep_reward), ep_ave_max_q / float(ep_len)))
@@ -128,8 +128,8 @@ def train(sess, env, args, actor, critic, actor_noise):
             should_test = input("Do you want to test network (y/n(default))?: ")
             if (should_test == 'y'):
                 compareNetworks(sess, saver, env, args, actor, num_test_cases)
-                plotANN(env.net_index, actor, i, 0)
-                plotANN(env.net_index, critic, i, 1)
+                plotANN(env.net_index, actor, i+1, 0)
+                plotANN(env.net_index, critic, i+1, 1)
 
 # Trains one episode of data
 def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
@@ -370,7 +370,7 @@ if __name__ == '__main__':
     parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) #0.99
     parser.add_argument('--tau', help='soft target update parameter', default=0.001) #0.001
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
-    parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
+    parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=1)
 
     # run parameters
     parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='angle')

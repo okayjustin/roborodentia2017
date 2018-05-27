@@ -26,8 +26,8 @@ class ann(object):
             print("Model restored.")
 
     def predict(self, s):
-        a = self.actor.predict(np.reshape(s, (1, self.actor.s_dim)))
-        return a[0]
+        a = self.actor.predict(s)
+        return a
 
     def close(self):
         self.sess.close()

@@ -11,7 +11,8 @@ from timeit import default_timer as timer
 import tensorflow as tf
 from ann import ann
 
-NUM_PTS = 100
+NUM_PTS = 10
+NUM_ACT_PTS = 10
 
 '''
 Creates and saves contour plot of ANN output
@@ -27,7 +28,7 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
     # Set parameters depending on which net
     if (net_index == 0):
         state_dim = 3
-        param1_max = np.pi * 2
+        param1_max = np.pi
         param2_max = 25
         net_name = 'Angle'
         x_label = 'Theta (rad)'
@@ -49,21 +50,20 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
 
     # Generate figure title
     ac_name = 'Actor' if (act_or_crit == 0) else 'Critic'
-    ep_name = "%d Episodes" % num_episodes if (num_episodes != 0) else ""
+    ep_name = "- %d Episodes" % num_episodes if (num_episodes != 0) else ""
     plot_title = "%s %s Output %s" % (net_name, ac_name, ep_name)
+
+    print("Generating %s plot... " % ac_name, end='')
 
     # Generate linearly spaced sample points
     param1_array = np.linspace(-param1_max, param1_max, NUM_PTS, endpoint=True)
     param2_array = np.linspace(-param2_max, param2_max, NUM_PTS, endpoint=True)
-    action_array = np.linspace(-2, 2, 10, endpoint=True)
 
     # Generate the X and Y grids
     X, Y = np.meshgrid(param1_array, param2_array)
 
-    # 3d points for plotting
-    Z = np.zeros([NUM_PTS, NUM_PTS])
-
-    # Loop through every pair of sample points
+    # Generate batch of observations
+    obs_batch = np.zeros([NUM_PTS**2,state_dim])
     for i in range(0, NUM_PTS):
         for j in range(0, NUM_PTS):
             # Generate observation
@@ -71,21 +71,33 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
                 obs = np.array([np.cos(X[i][j]), np.sin(X[i][j]), Y[i][j]])
             else:
                 obs = np.array([X[i][j], Y[i][j]])
-            obs = np.reshape(obs, (1, state_dim))
+            obs_batch[i * NUM_PTS + j] = np.array(obs)
 
-            # Get ANN prediction
-            if (act_or_crit == 0):
-                u = np.clip(ann_in.predict(obs), -2, 2)[0]
-            else:
-                # Get max Q from Q network
-                u = -99999
-                for action in action_array:
-                    u_test = ann_in.predict(obs, np.reshape(action, (1, 1)))[0][0]
-                    if (u_test > u):
-                        u = u_test
+    # Loop through every pair of sample points
+    if (act_or_crit == 0):
+        # Get ANN prediction
+        u = np.clip(ann_in.predict(obs_batch), -2, 2)
+    else:
+        # Expand observation batch by number of actions
+        obs_batch_critic = np.zeros([NUM_PTS**2 * NUM_ACT_PTS, state_dim])
+        for i in range(0, NUM_PTS**2):
+            for j in range(0, NUM_ACT_PTS):
+                obs_batch_critic[i * NUM_ACT_PTS + j] = obs_batch[i]
+       
+        action_array = np.linspace(-2, 2, NUM_ACT_PTS, endpoint=True)
+        action_array = np.tile(action_array, NUM_PTS**2)
+        action_array = np.reshape(action_array, (NUM_PTS**2 * NUM_ACT_PTS, 1))
+       
+        # Get ANN prediction
+        u_test = ann_in.predict(obs_batch_critic, action_array)
 
-            # Save output
-            Z[i][j] = u
+        # Get max Q from Q network for each X,Y sample point
+        u = np.zeros(NUM_PTS**2)
+        for i in range(0, NUM_PTS**2):
+            u[i] = np.amax(u_test[i * NUM_ACT_PTS: (i+1) * NUM_ACT_PTS])
+
+    # Save output
+    Z = np.reshape(u, (NUM_PTS, NUM_PTS))
 
     # Generate contour plot
     fig = plt.figure()
@@ -100,13 +112,14 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
     #plt.show()
 
     # Save figure
-    filepath = os.path.join(os.getcwd(), "figures/%s%d_%d.pdf" % (ac_name, net_index, num_episodes))
+    filestub =  "figures/%s%d_%d.pdf" % (ac_name, net_index, num_episodes)
+    filepath = os.path.join(os.getcwd(), filestub)
     directory = os.path.dirname(filepath)
     if not os.path.exists(directory):
         os.makedirs(directory)
     fig.savefig(filepath, bbox_inches='tight')
     end_time =  timer()
-    print("Figure saved to %s. Time elapsed: %fs." % (filepath, end_time - start_time))
+    print("Saved to %s. Time elapsed: %fs." % (filestub, end_time - start_time))
 
 if __name__ == '__main__':
     net_index = 1
@@ -127,3 +140,4 @@ if __name__ == '__main__':
     act_or_crit = 0
     num_episodes = 1
     plotANN(net_index, ann_in, num_episodes, act_or_crit)
+
