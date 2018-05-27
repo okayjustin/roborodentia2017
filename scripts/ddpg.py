@@ -35,6 +35,7 @@ from timeit import default_timer as timer
 import platform
 import time
 from ann import *
+from ann_plot import *
 
 from replay_buffer import ReplayBuffer
 
@@ -64,33 +65,12 @@ class OrnsteinUhlenbeckActionNoise:
         return 'OrnsteinUhlenbeckActionNoise(mu={}, sigma={})'.format(self.mu, self.sigma)
 
 # ===========================
-#   Tensorflow Summary Ops
-# ===========================
-
-
-def build_summaries():
-    episode_reward = tf.Variable(0.)
-    tf.summary.scalar("Reward", episode_reward)
-    episode_ave_max_q = tf.Variable(0.)
-    tf.summary.scalar("Qmax Value", episode_ave_max_q)
-
-    summary_vars = [episode_reward, episode_ave_max_q]
-    summary_ops = tf.summary.merge_all()
-
-    return summary_ops, summary_vars
-
-# ===========================
 #   Agent Training
 # ===========================
 
 def train(sess, env, args, actor, critic, actor_noise):
-
-    # Set up summary Ops
-    summary_ops, summary_vars = build_summaries()
     sess.run(tf.global_variables_initializer())
-
     saver = tf.train.Saver()
-    writer = tf.summary.FileWriter(args['summary_dir'], sess.graph)
 
     # Initialize target network weights
     actor.update_target_network()
@@ -108,156 +88,151 @@ def train(sess, env, args, actor, critic, actor_noise):
     # Initialize replay memory
     replay_buffer = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
 
+    # Test network performance in actual test cases if the episode reward is above threshold
+    if (args['env'] == 'angle'):
+        ep_reward_threshold = -5
+    elif (args['env'] == 'transx'):
+        ep_reward_threshold = -500
+    elif (args['env'] == 'transy'):
+        ep_reward_threshold = -350
+    else:
+        ep_reward_threshold = -30
+
+    # Set the number of test cases and how often to test
+    if (int(args['online'])):
+        num_test_cases = 2
+        test_period = 20
+    else:
+        num_test_cases = 10
+        test_period = 20
+
+    # Start training
+    for i in range(int(args['max_episodes'])):
+        try:
+            # Train an episode
+            render = args['render_env'] and (i % kRENDER_EVERY == 0)
+            ep_len, ep_reward, ep_ave_max_q = \
+                    trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render)
+
+            # Compare current network to the saved
+            if ((ep_reward > ep_reward_threshold) or (i % test_period == 0)):
+                compareNetworks(sess, saver, env, args, actor, num_test_cases)
+                plotANN(env.net_index, actor, i, 0)
+                plotANN(env.net_index, critic, i, 1)
+
+            print('Ep: %d | Reward: %d | Qmax: %0.4f' % \
+                    (i, int(ep_reward), ep_ave_max_q / float(ep_len)))
+        except KeyboardInterrupt:
+            if (int(args['online'])):
+                env.halt()
+            should_test = input("Do you want to test network (y/n(default))?: ")
+            if (should_test == 'y'):
+                compareNetworks(sess, saver, env, args, actor, num_test_cases)
+                plotANN(env.net_index, actor, i, 0)
+                plotANN(env.net_index, critic, i, 1)
+
+# Trains one episode of data
+def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
+    s = env.reset()
+
+    # Track the episode reward and average max q
+    ep_reward = 0
+    ep_ave_max_q = 0
+
+    terminal = False
+    for j in range(int(args['max_episode_len'])):
+
+        if (render):
+            env.render()
+
+        # Predict action and add exploration noise
+        a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
+        action = a[0]
+
+        # Execute action in environment to change state
+        s2, r, terminal, info = env.step(action)
+
+        replay_buffer.add(np.reshape(s, (actor.s_dim,)), \
+                np.reshape(action, (actor.a_dim,)), r, terminal, \
+                np.reshape(s2, (actor.s_dim,)))
+
+        # Keep adding experience to the memory until
+        # there are at least minibatch size samples
+        if replay_buffer.size() > int(args['minibatch_size']):
+            s_batch, a_batch, r_batch, t_batch, s2_batch = \
+                replay_buffer.sample_batch(int(args['minibatch_size']))
+
+            # Calculate targets
+            target_q = critic.predict_target(
+                s2_batch, actor.predict_target(s2_batch))
+
+            y_i = []
+            for k in range(int(args['minibatch_size'])):
+                if t_batch[k]:
+                    y_i.append(r_batch[k])
+                else:
+                    y_i.append(r_batch[k] + critic.gamma * target_q[k])
+
+            # Update the critic given the targets
+            predicted_q_value, _ = critic.train( s_batch, a_batch, \
+                    np.reshape(y_i, (int(args['minibatch_size']), 1)))
+
+            ep_ave_max_q += np.amax(predicted_q_value)
+
+            # Update the actor policy using the sampled gradient
+            a_outs = actor.predict(s_batch)
+            grads = critic.action_gradients(s_batch, a_outs)
+            actor.train(s_batch, grads[0])
+
+            # Update target networks
+            actor.update_target_network()
+            critic.update_target_network()
+
+        # Update state for next step
+        s = s2
+
+        # Increment episode reward
+        ep_reward += r
+
+        # End of episode
+        if terminal:
+            break
+
+    return (j, ep_reward, ep_ave_max_q)
+
+def compareNetworks(sess, saver, env, args, actor, num_test_cases = 10, render = False):
+    print("Testing network in %d cases..." % (num_test_cases))
+
+    # Randomize test seed
+    test_seed = int(np.random.uniform(1, 99999999))
+    tf.set_random_seed(test_seed)
+    env.seed(test_seed)
+
+    # Test the network and get the total reward
+    test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases)
+
+     # Save model temporarily
+    save_path = saver.save(sess, "./results/models-temp/model.ckpt")
+
+    # Restore the best model to test again
     try:
-        for i in range(int(args['max_episodes'])):
-            s = env.reset()
+        saver.restore(sess, "./results/models/model.ckpt")
+        # Use the same test seed so both networks test against the same cases
+        tf.set_random_seed(test_seed)
+        env.seed(test_seed)
+        best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases)
+    except:
+        best_total_reward = -99999999999.
 
-            ep_reward = 0
-            ep_ave_max_q = 0
+    # Restore the original model
+    saver.restore(sess, "./results/models-temp/model.ckpt")
 
-            robotsim_time = 0
-            train_time = 0
-            terminal = False
-            for j in range(int(args['max_episode_len'])):
+    # Save model if test reward increased
+    if (test_total_reward > best_total_reward):
+        save_path = saver.save(sess, "./results/models/model.ckpt")
+        print("Model saved in path: %s" % save_path)
 
-                if (args['render_env'] and i % kRENDER_EVERY == 0):
-                    env.render()
-
-
-                # Added exploration noise
-                start = timer()
-                a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
-                action = a[0]
-
-                end = timer()
-                train_time += end - start
-
-                start = timer()
-
-                s2, r, terminal, info = env.step(action)
-                #print(s2)
-                #print("Reward: %f" % r)
-                #time.sleep(0.11)
-
-                end = timer()
-                robotsim_time += end - start
-
-                start = timer()
-                replay_buffer.add(np.reshape(s, (actor.s_dim,)), np.reshape(action, (actor.a_dim,)), r,
-                                  terminal, np.reshape(s2, (actor.s_dim,)))
-
-                # Keep adding experience to the memory until
-                # there are at least minibatch size samples
-                if replay_buffer.size() > int(args['minibatch_size']):
-                    s_batch, a_batch, r_batch, t_batch, s2_batch = \
-                        replay_buffer.sample_batch(int(args['minibatch_size']))
-
-                    # Calculate targets
-                    target_q = critic.predict_target(
-                        s2_batch, actor.predict_target(s2_batch))
-
-                    y_i = []
-                    for k in range(int(args['minibatch_size'])):
-                        if t_batch[k]:
-                            y_i.append(r_batch[k])
-                        else:
-                            y_i.append(r_batch[k] + critic.gamma * target_q[k])
-
-                    # Update the critic given the targets
-                    predicted_q_value, _ = critic.train(
-                        s_batch, a_batch, np.reshape(y_i, (int(args['minibatch_size']), 1)))
-
-                    ep_ave_max_q += np.amax(predicted_q_value)
-
-                    # Update the actor policy using the sampled gradient
-                    a_outs = actor.predict(s_batch)
-                    grads = critic.action_gradients(s_batch, a_outs)
-                    actor.train(s_batch, grads[0])
-
-                    # Update target networks
-                    actor.update_target_network()
-                    critic.update_target_network()
-
-                s = s2
-                ep_reward += r
-                end = timer()
-                train_time += end - start
-
-                # End of episode
-                if terminal:
-                    break
-
-            # Print timeits
-            total_time = robotsim_time + train_time
-            # print("Robot: %fs (%d%%)   |      Train: %fs (%d%%)" %
-            #     (robotsim_time, 100*robotsim_time/total_time, train_time, 100*train_time/total_time))
-            summary_str = sess.run(summary_ops, feed_dict={
-                summary_vars[0]: ep_reward,
-                summary_vars[1]: ep_ave_max_q / float(j)
-            })
-
-            writer.add_summary(summary_str, i)
-            writer.flush()
-
-            # Determine network performance in actual test cases if the episode reward is low
-            if (args['env'] == 'angle'):
-                ep_reward_threshold = -5
-            elif (args['env'] == 'transx'):
-                ep_reward_threshold = -500
-            elif (args['env'] == 'transy'):
-                ep_reward_threshold = -350
-            else:
-                ep_reward_threshold = -30
-
-            if (int(args['online'])):
-                num_test_cases = 2
-            else:
-                num_test_cases = 50
-
-            test_seed = int(np.random.uniform(1, 99999999))
-
-            if (int(args['online'])):
-                should_test = input("Do you want to test network (Y/N(default))?: ")
-            else:
-                should_test = ''
-
-            if ((ep_reward > ep_reward_threshold) or (should_test == 'y')):
-                print("Testing network in %d cases..." % (num_test_cases))
-                tf.set_random_seed(test_seed)
-                env.seed(test_seed)
-                test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases)
-                 # Save model temporarily
-                save_path = saver.save(sess, "./results/models-temp/model.ckpt")
-
-                # Restore the best model to test again
-                try:
-                    saver.restore(sess, "./results/models/model.ckpt")
-                    tf.set_random_seed(test_seed)
-                    env.seed(test_seed)
-                    best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases)
-                except:
-                    best_total_reward = -99999999999.
-
-                # Restore the original model
-                saver.restore(sess, "./results/models-temp/model.ckpt")
-
-                # Save model if test reward increased
-                if (test_total_reward > best_total_reward):
-                    save_path = saver.save(sess, "./results/models/model.ckpt")
-                    print("Model saved in path: %s" % save_path)
-            else:
-                test_total_reward = -999
-
-            print('| Reward: {:d} | Test Reward: {:d} | Episode: {:d} | Qmax: {:.4f}'.format(int(ep_reward), \
-                    int(test_total_reward), i, (ep_ave_max_q / float(j))))
-
-    except KeyboardInterrupt:
-        if int(args['online']):
-            env.halt()
-        return
-
-
-# Tests the current network
+# Tests the actor network against a number of random cases
 def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False):
     test_total_reward = 0.0
 
@@ -285,7 +260,7 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
     return test_total_reward / (m+1)
 
 # Tests the performance of an input model
-def testModelPerformance(sess, env, args, actor, num_test_cases):
+def testModelPerformance(sess, env, args, actor, model, num_test_cases):
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
 
@@ -294,7 +269,7 @@ def testModelPerformance(sess, env, args, actor, num_test_cases):
 
     # Restore variables from disk.
     try:
-        saver.restore(sess, args['model'])
+        saver.restore(sess, model)
         print("Model restored.")
     except:
         print("Can't restore model.")
@@ -359,7 +334,8 @@ def main(args):
 
         state_dim = env.observation_space.shape[0]
         action_dim = env.action_space.shape[0]
-        action_bound = np.tile(np.transpose(env.action_space.high),[int(args['minibatch_size']),1])
+        action_bound = np.tile(np.transpose(env.action_space.high),
+                [int(args['minibatch_size']),1])
 
         # Ensure action bound is symmetric
         assert ((env.action_space.high == -env.action_space.low).all())
@@ -384,10 +360,13 @@ def main(args):
         actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim), dt=env.dt)
 
         if int(args['test']) == 1:
-            testModelPerformance(sess, env, args, actor, num_test_cases=20)
+            testModelPerformance(sess, env, args, actor, args['model'], num_test_cases=20)
         else:
             print("Beginning training...")
-            train(sess, env, args, actor, critic, actor_noise)
+            try:
+                train(sess, env, args, actor, critic, actor_noise)
+            except KeyboardInterrupt:
+                print("Quitting.")
 
 
 if __name__ == '__main__':
