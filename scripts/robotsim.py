@@ -199,28 +199,27 @@ class SimRobot():
             min_val = -np.pi
             state_index = 4
         elif (self.net_index == 1):
-            max_val = FIELD_XMAX - LEN_X*2
-            min_val = 0 + LEN_X*2
+            max_val = FIELD_XMAX - LEN_X / 2
+            min_val = LEN_X / 2
             state_index = 0
         elif (self.net_index == 2):
-            max_val = FIELD_YMAX - LEN_Y*2
-            min_val = 0 + LEN_Y*2
+            max_val = FIELD_YMAX - LEN_Y / 2
+            min_val = LEN_Y / 2
             state_index = 2 
         elif (self.net_index == 3):
-            max_val = np.array([FIELD_XMAX - LEN_X*2, FIELD_YMAX - LEN_Y*2, np.pi])
-            min_val = np.array([LEN_X*2, LEN_Y*2, -np.pi])
+            max_val = np.array([FIELD_XMAX - LEN_X / 2, FIELD_YMAX - LEN_Y / 2, np.pi])
+            min_val = np.array([LEN_X / 2, LEN_Y / 2, -np.pi])
             state_index = [0,2,4] 
         
         # Initialize to starting state
         self.state = self.state_start
         
         if (randomize):
-            # Set a new desired x, y, theta
-            xdes = np.random.uniform(low=40, high=1000)
-            ydes = np.random.uniform(low=40, high=1000)
-            thdes = np.random.uniform(low=-np.pi, high=np.pi)
-
             if (self.online):
+                # Set a new desired x, y, theta
+                xdes = np.random.uniform(low=40, high=1000)
+                ydes = np.random.uniform(low=40, high=1000)
+                thdes = np.random.uniform(low=-np.pi, high=np.pi)
                 self.robot.setDesired([xdes, ydes, thdes])
             else:
                 self.state[state_index] = np.random.uniform(low=min_val, high=max_val)
@@ -238,7 +237,7 @@ class SimRobot():
             self.v_sensitivity = np.array([1 for i in range(4)])
 
         # Update desired state
-        self.robot.setDesired(self.state[6:9])
+        # self.robot.setDesired(self.state[6:9])
 
         # Update observations
         for i in range(0,3):
@@ -387,22 +386,26 @@ class SimRobot():
             newxdot = rightdot * np.cos(newth) + frontdot * np.sin(newth)
             newydot = rightdot * np.sin(newth) + frontdot * np.cos(newth)
 
-            #if (self.en_wall_collision == True):
-            # Calculate cos and sin of the angle
-            angle = newth % np.pi
-            cosval = np.cos(angle)
+            if (self.en_wall_collision == True):
+                # Calculate cos and sin of the angle
+                angle = newth % np.pi
+                cosval = np.cos(angle)
 
-            # Calculate the x and y spacing for collision detection
-            if (cosval >= 0):
-                x_space = abs(self.diag_len * np.cos(np.pi - self.diag_angle + angle))
-                y_space = abs(self.diag_len * np.sin(self.diag_angle + angle))
+                # Calculate the x and y spacing for collision detection
+                if (cosval >= 0):
+                    x_space = abs(self.diag_len * np.cos(np.pi - self.diag_angle + angle))
+                    y_space = abs(self.diag_len * np.sin(self.diag_angle + angle))
+                else:
+                    x_space = abs(self.diag_len * np.cos(self.diag_angle + angle))
+                    y_space = abs(self.diag_len * np.sin(np.pi - self.diag_angle + angle))
+
+                # Assign new x,y location
+                newx = np.clip(x + newxdot * dt, x_space - 0, FIELD_XMAX - x_space + 0)
+                newy = np.clip(y + newydot * dt, y_space - 0, FIELD_YMAX - y_space + 0)
             else:
-                x_space = abs(self.diag_len * np.cos(self.diag_angle + angle))
-                y_space = abs(self.diag_len * np.sin(np.pi - self.diag_angle + angle))
-
-            # Assign new x,y location
-            newx = np.clip(x + newxdot * dt, x_space - 0, FIELD_XMAX - x_space + 0)
-            newy = np.clip(y + newydot * dt, y_space - 0, FIELD_YMAX - y_space + 0)
+                # Assign new x,y location
+                newx = x + newxdot * dt
+                newy = y + newydot * dt
 
             # Determine new desired location
             newxdes = xdes

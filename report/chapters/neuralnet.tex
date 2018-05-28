@@ -3,36 +3,17 @@
 The robot controls its motors using the artificial neural networks and the deep deterministic policy gradient (DDPG) algorithm, produced by Lillicrap et al. The system runs in Python 3, leaning heavily on the TensorFlow library.
 
 \section{Reinforcement Learning Concepts}
+Reinforcement learning is a subset of machine learning that aims to solve control problems rather than classification or data clustering. Typically, 
 
-\subsection{Definitions \cite{huang_2018}\cite{emami_2016}\cite{matiisen_2015}\cite{bibid}}
-Action: performed by the actor in the environment to move to the next state.
-Actor/Agent: chooses actions based on a policy.
-Bellman equation: 
-Credit assignment problem: the challenge in determining which action was responsible for the long term reward.
-Critic: evaluates the policy.
-Discount factor: a lower discount factor reduces the value of long-term rewards, favoring more immediate rewards.
-Environment: the various states and associated rewards through which the actor navigates.
-Experience replay: training technique in which transitions sampled randomly from past transitions are used to update the network in order to break up data correlation and stabilize convergence.
-Learning rate: a hyper-parameter determining how quickly network weights are adjusted.
-Model-based: algorithm learns a model of the environment and optimizes its policy based on the model.
-Model-free: algorithm optimizes its policy without requiring a model of the environment.
-Policy (\pi): the strategy by which the actor chooses its actions, e.g. random, exploratory, greedy.
-Off-policy: values are learned based on a policy independent from the one used by the actor.
-On-policy: values are learned based on the current policy used by the actor.
-Reinforcement learning: training examples are accompanied by time-delayed rewards, actor learns to maximize its long-term reward in an environment.
-Reward (R): a number denoting "goodness" emitted by the environment as a function of the state.
-Supervised learning: training examples are accompanied by the desired label or outcome, actor learns to produce the correct label, classification.
-State (S): a representation of the situation in the environment.
-Transition: a set of state, action, reward, and next state for a single time step.
-Unsupervised learning: training examples do not have associated labels, actor finds hidden patterns within data, clustering. 
-Q-value (Q): the expected long-term discounted reward of a state and action.
-Value (V): the expected long-term discounted reward of a state.
+\subsection{Definitions}
+
+\LTXtable{\textwidth}{tables/tab_rl_defs.tex}
 
 \section{Reinforcement Learning Algorithms}
-Various reinforcement learning algorithms exist including Q-Learning, State-Action-Reward-State-Action (SARSA), and Deep Deterministic Policy Gradient (DDPG), among others.
+Many reinforcement learning algorithms have been applied to control including Q-Learning, State-Action-Reward-State-Action (SARSA), and Deep Deterministic Policy Gradient (DDPG), among others.
 
 \subsection{Q-Learning}
-Q-Learning is an off-model, 
+Q-Learning is an off-model, off-policy 
 
 \subsection{State-Action-Reward-State-Action (SARSA)}
 SARSA is an on-policy algorithm similar which shares many characteristics with Q-Learning.

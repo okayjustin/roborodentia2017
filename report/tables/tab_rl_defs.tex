@@ -1,0 +1,35 @@
+	\begin{longtable}{@{}rY@{}}
+		\caption{Software Functional Breakdown \cite{huang_2018}\cite{emami_2016}\cite{matiisen_2015}} 		\label{tab:script_desc}\\
+		\toprule
+		Term & \multicolumn{1}{c}{Definition} \\
+		\midrule 
+		\endfirsthead
+		\toprule
+		Term & \multicolumn{1}{c}{Definition} \\
+		\midrule 
+		\endhead
+		
+		Action & performed by the actor in the environment to move to the next state. \\
+		Actor/Agent & chooses actions based on a policy. \\
+		Credit assignment problem & the challenge in determining which action was responsible for the long term reward.
+		Critic: evaluates the policy. \\
+		Discount factor & a lower discount factor reduces the value of long-term rewards, favoring more immediate rewards. \\
+		Environment & the various states and associated rewards through which the actor navigates. \\
+		Experience replay & training technique in which transitions sampled randomly from past transitions are used to update the network in order to break up data correlation and stabilize convergence. \\
+		Greedy & a policy which chooses actions to maximize the immediate next reward. \\
+		Learning rate & a hyper-parameter determining how quickly network weights are adjusted. \\
+		Model-based & algorithm learns a model of the environment and optimizes its policy based on the model. \\
+		Model-free & algorithm optimizes its policy without requiring a model of the environment. \\
+		Policy ($\pi$) & the strategy by which the actor chooses its actions, e.g. random, exploratory, greedy. \\
+		Off-policy & values are learned based on a policy independent from the one used by the actor. \\
+		On-policy & values are learned based on the current policy used by the actor. \\
+		Reinforcement learning & training examples are accompanied by time-delayed rewards, actor learns to maximize its long-term reward in an environment. \\
+		Reward (r) & a number emitted by the environment denoting "goodness" of the state. \\
+		Supervised learning & training examples are accompanied by the desired label or outcome, actor learns to produce the correct label, classification. \\
+		State (s) & a representation of the situation in the environment. \\
+		Transition & a set of state, action, reward, and next state for a single time step. \\
+		Unsupervised learning & training examples do not have associated labels, actor finds hidden patterns within data, clustering.  \\
+		Q-value (Q) & the expected long-term discounted reward of a state and action. \\
+		Value (V) & the expected long-term discounted reward of a state. \\
+		\bottomrule 
+	\end{longtable} 
