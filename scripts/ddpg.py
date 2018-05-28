@@ -39,7 +39,7 @@ from ann_plot import *
 
 from replay_buffer import ReplayBuffer
 
-kRENDER_EVERY = 1 # Render only every xth episode to speed up training
+kRENDER_EVERY = 20 # Render only every xth episode to speed up training
 kTEST_PERIOD_ONLINE = 20
 kTEST_PERIOD_OFFLINE = 20
 kNUM_TEST_CASES_ONLINE = 2
