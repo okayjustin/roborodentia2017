@@ -127,7 +127,7 @@ class SimRobot():
         if (train == 'angle'):
             act_dim = 1
             self.net_index = 0
-            obs_high = np.array([1., 1., 8.])
+            obs_high = np.array([1., 1., 25.])
 
         elif (train == 'transx'):
             act_dim = 1
@@ -158,6 +158,11 @@ class SimRobot():
             print("Loading transx ANN")
             transx_model_path = './results/models-transx/model.ckpt'
             self.transx_ann = ann(transx_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
+        
+        elif (train == 'all'):
+            act_dim = 3
+            self.net_index = 3
+            obs_high = np.array([2400., 1600., 2400., 1600., 1., 1., 25.])
 
         elif (train == 'sim'):
             act_dim = 3
@@ -201,6 +206,10 @@ class SimRobot():
             max_val = FIELD_YMAX - LEN_Y*2
             min_val = 0 + LEN_Y*2
             state_index = 2 
+        elif (self.net_index == 3):
+            max_val = np.array([FIELD_XMAX - LEN_X*2, FIELD_YMAX - LEN_Y*2, np.pi])
+            min_val = np.array([LEN_X*2, LEN_Y*2, -np.pi])
+            state_index = [0,2,4] 
         
         # Initialize to starting state
         self.state = self.state_start
@@ -228,6 +237,7 @@ class SimRobot():
             self.friction_var = np.array([Robot.friction_constant for i in range(4)])
             self.v_sensitivity = np.array([1 for i in range(4)])
 
+        # Update desired state
         self.robot.setDesired(self.state[6:9])
 
         # Update observations
@@ -249,11 +259,10 @@ class SimRobot():
 
     def step(self,u):
         # Determine the control input array u depending on what's being trained
-        # u[0]: Desired rotational speed, -1 to 1, +1 CW, -1 CCW
-        # u[1]: Desired field x velocity
-        # u[2]: Desired field y velocity
-        # u[3]: Desired field x position
-        # u[4]: Desired field y position
+        # u[0]: Field x velocity
+        # u[1]: Field y velocity
+        # u[2]: Rotational speed, -1 to 1, +1 CW, -1 CCW
+
         if self.train == 'sim':
             u_transx = [u[0]]
             u_transy = [u[1]]
@@ -273,6 +282,11 @@ class SimRobot():
             u_transx = [0] # self.transx_ann.predict(np.reshape(self.obs_sets[1],(1,2)))[0]
             u_transy = u
             u_angle = [0] # self.angle_ann.predict(np.reshape(self.obs_sets[0],(1,3)))[0]
+        
+        elif self.train == 'all':
+            u_transx = [u[0]]
+            u_transy = [u[1]]
+            u_angle = [u[2]]
 
         u = np.concatenate((u_transx, u_transy, u_angle))
         u = np.clip(u, -2., 2.)
@@ -430,19 +444,19 @@ class SimRobot():
     def updateReward(self):
         if (self.train == 'angle'):
             # Keep angle at 0
-            self.reward_theta = -1.0 * self.angle_normalize(self.state[4])**2.
+            self.reward_theta = -1.0 * (self.angle_normalize(self.state[4]) - self.angle_normalize(self.state[8]))**2.
             # Minimize effort
-            self.reward_effort = -0.005 * self.last_u[0]**2
+            self.reward_effort = -0.001 * self.last_u[2]**2
             # Minimize velocities
             self.reward_rvel = -0.1 * self.state[5]**2
-            self.reward = self.reward_theta + self.reward_rvel
+            self.reward = self.reward_theta + self.reward_rvel + self.reward_effort 
 
         elif (self.train == 'transx'):
             # Rewarded for staying near desired x coordinate
             self.reward_dist = -0.00001 * (self.state[0] - self.state[6])**2.
             # Minimize velocities
             self.reward_vel = -0.0000005 * self.state[1]**2
-            self.reward_effort = -0.001 * self.last_u[1]**2
+            self.reward_effort = -0.001 * self.last_u[0]**2
             #print("Rewards: %f, %f, %f" % (self.reward_dist, self.reward_vel, self.reward_effort))
             self.reward = self.reward_dist + self.reward_vel + self.reward_effort
 
@@ -451,8 +465,33 @@ class SimRobot():
             self.reward_dist = -0.00001 * pow(self.state[2] - self.state[7], 2)
             # Minimize velocities
             self.reward_vel = -0.0000005 * self.state[3]**2
-            self.reward_effort = -0.001 * self.last_u[2]**2
+            self.reward_effort = -0.001 * self.last_u[1]**2
             self.reward = self.reward_dist + self.reward_vel + self.reward_effort
+
+        elif (self.train == 'all'):
+            # Keep angle at 0
+            self.reward_theta = -1.0 * (self.angle_normalize(self.state[4]) - self.angle_normalize(self.state[8]))**2.
+            # Minimize effort
+            self.reward_efforta = -0.005 * self.last_u[2]**2
+            # Minimize velocities
+            self.reward_rvel = -0.1 * self.state[5]**2
+
+            # Rewarded for staying near desired x coordinate
+            self.reward_distx = -0.00001 * (self.state[0] - self.state[6])**2.
+            # Minimize velocities
+            self.reward_velx = -0.0000005 * self.state[1]**2
+            self.reward_effortx = -0.001 * self.last_u[0]**2
+            #print("Rewards: %f, %f, %f" % (self.reward_dist, self.reward_vel, self.reward_effort))
+
+            # Rewarded for staying near desired y coordinate
+            self.reward_disty = -0.00001 * pow(self.state[2] - self.state[7], 2)
+            # Minimize velocities
+            self.reward_vely = -0.0000005 * self.state[3]**2
+            self.reward_efforty = -0.001 * self.last_u[1]**2
+
+            self.reward = self.reward_theta + self.reward_rvel + self.reward_efforta + \
+                self.reward_distx + self.reward_velx + self.reward_effortx + \
+                self.reward_disty + self.reward_vely + self.reward_efforty
 
         if (DEBUG_PRINT):
             print("Reward: %f" % self.reward)

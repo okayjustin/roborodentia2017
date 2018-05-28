@@ -3,21 +3,31 @@
 The robot controls its motors using the artificial neural networks and the deep deterministic policy gradient (DDPG), one of various reinforcement learning algorithm. The system runs in Python 3, leaning heavily on the TensorFlow library.
 
 \section{Reinforcement Learning Concepts}
+
+\subsection{Definitions \cite{huang_2018}\cite{emami_2016}\cite{matiisen_2015}\cite{bibid}}
+Action: performed by the actor in the environment to move to the next state.
+Actor: chooses actions based on a policy.
 Bellman equation
-reward
-Value
-Q-value
-on/offpolicy
-critic
-actor
-action
-environment
-learning rate
-discount factor
-state
-policy
+Credit assignment problem: the challenge in determining which action was responsible for the long term reward.
+Critic: evaluates the policy.
+Discount factor
+Environment: the various states and associated rewards through which the actor navigates.
+Experience replay:
+Learning rate
+Model: 
+Policy (\pi): the strategy by which the actor chooses its actions, e.g. random, exploratory, greedy.
+Reinforcement learning: training examples 
+Reward (R): a number denoting "goodness" emitted by the environment as a function of the state.
+Supervised learning: training examples are accompanied by the desired label or outcome.
+State (S): a representation of the situation in the environment.
+Unsupervised learning: training examples do not have associated labels. 
+Q-value (Q): the expected long-term discounted reward of a state and action.
+Value (V): the expected long-term discounted reward of a state.
+
+
+On/offpolicy
 model-free vs model-based
-experience replay
+
 
 \section{Reinforcement Learning Algorithms}
 Various reinforcement learning algorithms exist including Q-Learning, State-Action-Reward-State-Action (SARSA), and Deep Deterministic Policy Gradient (DDPG), among others.

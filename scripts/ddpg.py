@@ -92,16 +92,6 @@ def train(sess, env, args, actor, critic, actor_noise):
     # Initialize replay memory
     replay_buffer = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
 
-    # Test network performance in actual test cases if the episode reward is above threshold
-    if (args['env'] == 'angle'):
-        ep_reward_threshold = -5
-    elif (args['env'] == 'transx'):
-        ep_reward_threshold = -5
-    elif (args['env'] == 'transy'):
-        ep_reward_threshold = -5
-    else:
-        ep_reward_threshold = -30
-
     # Set the number of test cases and how often to test
     if (int(args['online'])):
         num_test_cases = kNUM_TEST_CASES_ONLINE
@@ -110,6 +100,10 @@ def train(sess, env, args, actor, critic, actor_noise):
         num_test_cases = kNUM_TEST_CASES_OFFLINE
         test_period = kTEST_PERIOD_OFFLINE
 
+    # Directory to keep training results in
+    sess_dir = time.strftime("%Y-%m-%d %H.%M.%S", time.gmtime())
+    os.makedirs('./results/%s/' % (sess_dir) )
+
     # Start training
     for i in range(int(args['max_episodes'])):
         try:
@@ -117,23 +111,38 @@ def train(sess, env, args, actor, critic, actor_noise):
             render = args['render_env'] and (i % kRENDER_EVERY == 0)
             ep_len, ep_reward, ep_ave_max_q = \
                     trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render)
-
-            # Compare current network to the saved
-            if ((ep_reward > ep_reward_threshold) or (i % test_period == 0)):
-                compareNetworks(sess, saver, env, args, actor, num_test_cases)
-                plotANN(env.net_index, actor, i+1, 0)
-                plotANN(env.net_index, critic, i+1, 1)
-
+            
             print('Ep: %d | Reward: %d | Qmax: %0.4f' % \
                     (i, int(ep_reward), ep_ave_max_q / float(ep_len)))
+
+            # Test the network's performance
+            if (i % test_period == 0):
+                # Test the network and get the total reward
+                print("Testing network in %d cases..." % (num_test_cases))
+                test_reward = testNetworkPerformance(env, args, actor, num_test_cases)
+
+                # Save network session
+                filepath = "./results/%s/%s_%d_%d/model.ckpt" % (sess_dir, args['env'], i+1,int(test_reward))
+                save_path = saver.save(sess, filepath)
+
+                # Contour plots of ANN output
+                if (args['env'] != 'all'):
+                    plotANN(env.net_index, actor, i+1, 0)
+                    plotANN(env.net_index, critic, i+1, 1)
+            else:
+                test_reward = None
+
+            writeLog(sess_dir, args, i + 1, ep_reward, ep_ave_max_q, test_reward)
         except KeyboardInterrupt:
             if (int(args['online'])):
                 env.halt()
             should_test = input("Do you want to test network (y/n(default))?: ")
             if (should_test == 'y'):
-                compareNetworks(sess, saver, env, args, actor, num_test_cases)
-                plotANN(env.net_index, actor, i+1, 0)
-                plotANN(env.net_index, critic, i+1, 1)
+
+                compareNetworks(sess, saver, env, args, actor, i, num_test_cases)
+                if (args['env'] != 'all'):
+                    plotANN(env.net_index, actor, i+1, 0)
+                    plotANN(env.net_index, critic, i+1, 1)
 
 # Trains one episode of data
 def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
@@ -204,30 +213,6 @@ def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
 
     return (j, ep_reward, ep_ave_max_q)
 
-def compareNetworks(sess, saver, env, args, actor, num_test_cases = 10, render = False):
-    print("Testing network in %d cases..." % (num_test_cases))
-
-    # Test the network and get the total reward
-    test_total_reward = testNetworkPerformance(env, args, actor, num_test_cases, render)
-
-     # Save model temporarily
-    save_path = saver.save(sess, "./results/models-temp/model.ckpt")
-
-    # Restore the best model to test again
-    try:
-        saver.restore(sess, "./results/models/model.ckpt")
-        best_total_reward = testNetworkPerformance(env, args, actor, num_test_cases, render)
-    except:
-        best_total_reward = -99999999999.
-
-    # Restore the original model
-    saver.restore(sess, "./results/models-temp/model.ckpt")
-
-    # Save model if test reward increased
-    if (test_total_reward > best_total_reward):
-        save_path = saver.save(sess, "./results/models/model.ckpt")
-        print("Model saved in path: %s" % save_path)
-
 # Tests the actor network against a number of random cases
 def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False):
     test_total_reward = 0.0
@@ -277,44 +262,25 @@ def testModelPerformance(sess, env, args, actor, model, num_test_cases):
     print('| Average reward: {:d}'.format(int(avg_test_reward)))
     return avg_test_reward
 
-def writeActionLog(ep, action_log, ep_reward, ep_q, robot_init_state):
-    filepath = os.path.join(os.getcwd(), "results/action_logs/%d_%d_%f.csv" % (ep, ep_reward, ep_q))
+def writeLog(sess_dir, args, ep, ep_reward, ep_q, test_reward=None):
+    filepath = os.path.join(os.getcwd(), "results/%s/%s.csv" % (sess_dir, args['env']))
     directory = os.path.dirname(filepath)
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    with open(filepath, 'w') as file:
-        # Write init state
-        first = True
-        for state_var in robot_init_state:
-            if (first):
-                file.write("%f" % (state_var))
-                first = False
-            else:
-                file.write(",%f" % (state_var))
-        file.write("\n")
-
-        # Write actions
-        for action_set in action_log:
-            first = True
-            for action in action_set:
-                if (first):
-                    file.write("%f" % (action))
-                    first = False
-                else:
-                    file.write(",%f" % (action))
-            file.write("\n")
-
+    with open(filepath, 'a') as file:
+        if (test_reward == None):
+            file.write("%d,%f,%f,\n" % (ep, ep_reward, ep_q))
+        else:
+            file.write("%d,%f,%f,%f\n" % (ep, ep_reward, ep_q, test_reward))
+       
     return filepath
 
 def main(args):
 
-    if (args['env'] == 'angle'):
-        env = robotsim.SimRobot(train = 'angle', online = int(args['online']))
-    elif (args['env'] == 'transx'):
-        env = robotsim.SimRobot(train = 'transx', online = int(args['online']))
-    elif (args['env'] == 'transy'):
-        env = robotsim.SimRobot(train = 'transy', online = int(args['online']))
+    if ((args['env'] == 'angle') or (args['env'] == 'transx') or \
+        (args['env'] == 'transy') or (args['env'] == 'all')):
+        env = robotsim.SimRobot(train = args['env'], online = int(args['online']))
     else:
         env = gym.make(args['env'])
 

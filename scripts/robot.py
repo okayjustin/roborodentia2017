@@ -321,8 +321,9 @@ class Robot():
         obs_angle = np.array([np.cos(th - thdes), np.sin(th - thdes), thdot])
         obs_transx = np.array([x - xdes, xdot])
         obs_transy = np.array([y - ydes, ydot])
+        obs_all = np.concatenate((obs_transx, obs_transy, obs_angle))
 
-        obs_sets = np.array([obs_angle, obs_transx, obs_transy])
+        obs_sets = np.array([obs_angle, obs_transx, obs_transy, obs_all])
         return obs_sets
 
 # --------------------------------------------- Support ---------------
