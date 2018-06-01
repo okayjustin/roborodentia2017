@@ -89,13 +89,50 @@ Unlike Q-learning, SARSA updates Q-values from the next state and next action $Q
 \subsection{Deep Q Network (DQN)}
 Deep Q Networks aim to solve the problem with Q-learning in two ways: the inability to handle situations with large state and action spaces and the inability to generalize learnings to new situations. As mentioned previously, maintaining Q-values for the entire state and action space of a complex problem requires enormous memory. The second problem has to do with how the Q-value table updates. In both Q-learning and SARSA, the algorithms iteratively update Q-values for visited (state, action) pairs. However, to fully update the Q-value table means exploring every possible state and action combination multiple times, a non-trivial task. In other words, the algorithms cannot provide reasonable Q-value estimates for unvisited situations.
 
-To overcome these limitations, DQN replaces the tabular Q concept with a neural network where the inputs are the state and action and the output is the Q-value. The loss function is the squared error between the network output and the target Q-function from Q-learning \cite{Mnih_2015}.
+To overcome these limitations, DQN replaces the tabular Q concept with an artificial neural network (ANN) where the inputs are the state and action and the output is the Q-value. The Q-network is denoted as $Q(s,a;\theta_i)$ where $\theta_i$ represents the network weights. The loss function (\ref{eq:dqn_loss_func}) is the squared error between the Q-network output and the "target Q-value" as defined by the Bellman equation, $y_j = r + \gamma \text{max}_{a'}Q(s', a';\theta^-_i)$  \cite{Mnih_2015}. For complete clarity, $Q(s,a;\theta^-_i)$ represents an identical but separate copy of Q-network $Q(s,a;\theta_i)$ except with weights $\theta^-_i$ from a previous iteration, explained later.
+\begin{equation}
+	\label{eq:dqn_loss_func}
+L_i(\theta_i) = (r + \gamma \text{max}_{a'}Q(s', a';\theta^-_i)-Q(s,a;\theta_i))^2
+\end{equation}
+To assist DQN training, Mnih et. al. used a technique called experience replay. As the actor explores within environment, the algorithm records the state, action taken, reward, and next state at each time step into a so-called experience replay buffer. After collecting a minimum number of experiences, the artificial neural network trains from data sampled randomly from the buffer, hence the name "experience replay". The technique removes time correlations in the training data, improving convergence, and also allows experience reuse, advantageous when obtaining data is difficult or costly.
 
-To assist DQN training, Mnih et. al. used a technique called experience replay. As the actor performs its 
+The second technique Mnih et. al. used to counter training instability involves generating target Q-values, $y_j$, from an identical but separate ANN, called the target Q-network $\hat{Q}$ with weights $\theta^-_i$. In effect, this creates a time delay between when the weights of $Q$ are updated and when those updates affect the policy and target Q-network, reducing the likelihood of policy instability. 
+
+For example, using a 64 transition mini-batch, the network samples 64 transitions from the experience replay buffer and trains the network $Q$ with 64 iterations as in \ref{eq:dqn_loss_func}. After, the target network $\hat{Q}$ clones the weights $\theta_i$ from $Q$ and the process repeats.
+
+DQN replaced the tabular Q with an artificial neural network to solve RL problems with large Q spaces. However, the policy still uses a discrete action space, posing an issue for situations requiring continuous actions. For example, a system with five actions discretized into only four bits each already produces 32,768 different actions. Policy gradient methods can overcome this limitation.
+
+\subsection{Stochastic Policy Gradient Method}
+Q-Learning, SARSA, and DQN are value-based methods as they rely on finding the environment's underlying Q-function and produce a policy to maximize Q. Policy gradient methods find the optimal policy directly which makes them policy-based strategies \cite{sutton_policygrad}. In fact, DeepMind's AlphaGo famously defeated grandmaster Go player Fan Hui in 2015 and Lee Sedol in 2016 using an algorithm incorporating a policy gradient method, definitively proving its viability \cite{silver_2017}.
+
+The underlying premise of stochastic policy gradients is simple: get a state, take a particular action with probability $P(a)$, and record the reward. If the reward is "good", increase the probability of taking that action or decrease it if the reward is "bad". Note that the terms "good" and "bad" are intentionally vague as to not constrain them to one particular interpretation. After many iterations, the actor will most likely take actions that produce good rewards. But of course, not all is so simple. Much like the so-called "butterfly effect" \cite{Lorenz_1963}, a single action can cascade into a multitude of unknown futures meaning the worth of a particular action cannot be determined by the immediate reward produced. 
+
+Instead, the rewards are accumulated for a long period in episodes, at the end of which actions are judged based on the total reward. Now, a different issue arises: the credit assignment problem \cite{fu_2008}. If an episode contains 1,000 actions, which ones ultimately produced the good reward and which were inconsequential or detrimental? Rather than determining the individual actions responsible, the algorithm deems all actions in an episode culpable so if the episode outcome is good, all actions taken become more likely and if not, the inverse occurs \cite{karpathy_2016}. Like AlphaGo, many policy gradient implementations use an artificial neural network where the inputs are states and outputs are action probabilities \cite{silver_2017}. Therefore, the act of making actions more or less probable is carried out with the standard back-propagation algorithm where the gradient is adjusted by normalized episodic reward \cite{karpathy_2016}.
+%A more concrete implementation is shown below in pseudocode where $P(s,a,\theta)$ represents the parametrized probability of action $a$ in state $s$ for all possible states and actions, $\theta$ represents the parameters controlling the probability distribution:
+%\begin{center} \begin{tabular}{|p{0.9\linewidth}|}\hline % or any other width
+%Initialize $P(s,a,\theta)$ arbitrarily. \\
+%Repeat until satisfactory performance: \\
+%\quad Policy rollout n times (typ. 20 to 100): \\
+%\quad \quad Initialize $s$\\
+%\quad \quad Repeat (for each step of episode):\\
+%\quad \quad \quad Stochastically choose $a$ from $s$ using policy derived from $P(s,a,\theta)$\\
+%\quad \quad \quad Take action $a$, observe $s'$, accumulate $r$\\
+%\quad \quad \quad $s \gets s'$;\\
+%\quad \quad until $s$ is terminal \\
+%\quad Normalize the $r$ from n policy rollouts. \\
+%\quad 
+%\hline
+%\end{tabular} \end{center}
+
+\subsection{Deterministic Policy Gradient Method (DPG)}
+The deterministic policy gradient method (DPG), developed by Silver et. al., shares the same foundation as stochastic policy gradients, but instead of representing the policy as a probability distribution, the policy deterministically chooses actions from the given states \cite{silver_lever_heess_degris_wierstra_riedmiller}. Silver et. al. have shown that the DPG is actually a limiting case of stochastic policy gradients where the policy distribution variance is 0. Another key difference is that while the stochastic policy gradient integrates over the state and action spaces, the DPG only integrates over the state space. Consequently, the stochastic case requires more samples to compute. Finally, the stochastic policy inherently chooses exploratory actions due to its probabilistic nature so Silver developed an off-policy learning algorithm using a stochastic policy to ensure sufficient exploration despite producing a deterministic policy.
 
 \subsection{Deep Deterministic Policy Gradient (DDPG)}
+The deep deterministic policy gradient algorithm, developed by Lillicrap et. al., is a model-free, off-policy actor-critic strategy based on the Silver et. al.'s DPG algorithm combined with learnings from Mnih et. al.'s work on the DQN algorithm \cite{silver_lever_heess_degris_wierstra_riedmiller}\cite{lillicrap_2016}\cite{Mnih_2015}. DDPG improves on DPG by representing the actor policy with an ANN and applying the experience replay and target network techniques from DQN. 
 
+Additionally, Lillicrap et. al. adapted batch normalization from Ioffe's work to allow ANN hyper-parameter generalization for environments with features of varying magnitude \cite{2015arXiv150203167I}; each feature in a minibatch is normalized to unit mean and variance. In their implementation, batch normalization was applied to network inputs, all layers of the policy network, and all layers of the Q network before the action input (detailed later).
 
+To ensure adequate exploration, Lillicrap et. al. added Ornstein-Uhlenbeck process noise to the policy output as shown in Equation \cite{lillicrap_2016}.
 
 
 
