@@ -1,4 +1,4 @@
-\chapter{Neural Network Design}
+\chapter{Reinforcement Learning}
 \section{Introduction}
 The robot controls its motors using the artificial neural networks and the deep deterministic policy gradient (DDPG) algorithm, produced by Lillicrap et al. The system runs in Python 3, leaning heavily on the TensorFlow library.
 
@@ -132,15 +132,49 @@ The deep deterministic policy gradient algorithm, developed by Lillicrap et. al.
 
 Additionally, Lillicrap et. al. adapted batch normalization from Ioffe's work to allow ANN hyper-parameter generalization for environments with features of varying magnitude \cite{2015arXiv150203167I}; each feature in a minibatch is normalized to unit mean and variance. In their implementation, batch normalization was applied to network inputs, all layers of the policy network, and all layers of the Q network before the action input (detailed later).
 
-To ensure adequate exploration, Lillicrap et. al. added Ornstein-Uhlenbeck process noise to the policy output as shown in Equation \cite{lillicrap_2016}.
+To ensure adequate exploration, Lillicrap et. al. added Ornstein-Uhlenbeck process noise to the policy output $\mu(s_t | \theta^\mu_t)$ to create the exploration policy $\mu'(s_t)$ as shown in Equation \ref{eq:exploration_policy} \cite{lillicrap_2016}. The Ornstein-Uhlenbeck process satisfies the condition shown in Equation \ref{eq:ornstein-uhlenbeck} where $x_t$ is the process position at time $t$, $\theta$ and $\sigma$ are parameters, and $W_t$ is the Weiner process \cite{uhlenbeck_ornstein}. The process produces random, time-correlated values that drift toward a long-term mean, in this case 0.
+\begin{equation}
+\label{eq:exploration_policy}
+\mu'(s_t) = \mu(s_t | \theta^\mu_t) + \mathcal{N}
+\end{equation}
+\begin{equation}
+\label{eq:ornstein-uhlenbeck}
+dx_t = \theta(\mu-x_t) dt + \sigma dW_t, \theta>0, \sigma>0
+\end{equation}
+
+Lillicrap et. al. used DDPQ to solve over 20 different simulated physics environments such as cartpole swing-up and driving using the same network architecture and hyper-parameters, demonstrating the generalizability of the technique. Although the approach required about 2.5 million steps of experience to solve most problems, it needed 20 times less than DQN.
+
+\section{DDPG Implementation}
+All code is implemented in Python 3.6 and uses libraries from TensorFlow \cite{tensorflow} and OpenAI Gym \cite{openaigym}. An implementation of the DDPG algorithm from Patrick Emami's wonderful reinforcement learning primer formed the springboard from which 
 
 
+\subsection{title}
 
-\section{Artifical Neural Network Implementation}
 
 \section{Training}
 
 \section{Testing}
 
 \section{Results}
+
+\begin{figure}
+	\begin{tabular}{ccc}
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_21.pdf} &  
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_41.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_81.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_161.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_321.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_641.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_1281.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_2141.pdf} \\
+	\end{tabular}
+	\caption{caption}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_r.pdf}
+	\caption{Training and Test Reward} \label{fig:all_r}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_q.pdf}
+	\caption{Average Max Q} \label{fig:all_q}
+\end{figure}
 

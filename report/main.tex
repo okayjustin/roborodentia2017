@@ -64,6 +64,7 @@
 \definecolor{deepblue}{rgb}{0,0,0.5}
 \definecolor{deepred}{rgb}{0.6,0,0}
 \definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{gray}{rgb}{0.2,0.2,0.2}
 
 \usepackage{linegoal,listings}
 
@@ -84,7 +85,7 @@
 % C style
 \newcommand\cstyle{\lstset{
 	language=C,
-	basicstyle=\ssp\ttfamily\tiny,
+	basicstyle=\ssp\ttfamily\small,
 	frame=tb, % draw a frame at the top and bottom of the code block
  	tabsize=3, % tab space width
 	showstringspaces=false, % don't mark spaces in strings
@@ -123,14 +124,16 @@
 % Python style for highlighting
 \newcommand\pythonstyle{\lstset{
 		language=Python,
-		basicstyle=\ttm,
+		basicstyle=\ssp\ttfamily\small,
 		otherkeywords={self},             % Add keywords here
 		keywordstyle=\ttb\color{deepblue},
 		emph={MyClass,__init__},          % Custom highlighting
 		emphstyle=\ttb\color{deepred},    % Custom highlighting style
 		stringstyle=\color{deepgreen},
+		commentstyle=\color{gray}, % comment color
 		frame=tb,                         % Any extra options here
 		showstringspaces=false,            % 
+		tabsize=3, % tab space width
 		breaklines=true
 }}
 

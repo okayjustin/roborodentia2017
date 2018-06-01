@@ -2,29 +2,46 @@
 """
 Implementation of DDPG - Deep Deterministic Policy Gradient
 
-Algorithm and hyperparameter details can be found here:
-    http://arxiv.org/pdf/1509.02971v2.pdf
+Portions of the code have been copied from Patrick Emami's 
+deep-rl Github repository (https://github.com/pemami4911/
+deep-rl/blob/master/ddpg/ddpg.py) and is copyrighted under 
+the terms of the MIT License.
 
-The algorithm is tested on the Pendulum-v0 OpenAI gym task
-and developed with tflearn + Tensorflow
+The MIT License (MIT)
 
-Author: Patrick Emami
+Copyright (c) 2018 Justin Ng
+Copyright (c) 2016 Patrick E.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 Usage:
     python3 ddpg.py
 
     Options:
-    --env [angle | transx | transy]
+    --env [angle | transx | transy | all]
     --online [0 | 1]
     --model './results/models/model.cpkt'
     --test [0 | 1]
 """
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
-import subprocess
-
 import tensorflow as tf
-from tensorflow.python.tools import inspect_checkpoint as chkp
 import numpy as np
 import gym
 from gym import wrappers
@@ -32,11 +49,9 @@ import argparse
 import pprint as pp
 import robotsim
 from timeit import default_timer as timer
-import platform
 import time
 from ann import *
 from ann_plot import *
-
 from replay_buffer import ReplayBuffer
 
 kRENDER_EVERY = 1 # Render only every xth episode to speed up training
@@ -119,7 +134,8 @@ def train(sess, env, args, actor, critic, actor_noise):
             if (i % test_period == 0):
                 # Test the network and get the total reward
                 print("Testing network in %d cases..." % (num_test_cases))
-                test_reward = testNetworkPerformance(env, args, actor, num_test_cases)
+                test_reward, transitions = testNetworkPerformance(env, args, actor, num_test_cases)
+                plotTransitions(env.net_index, transitions, i+1)
 
                 # Save network session
                 filepath = "./results/%s/%s_%d_%d/model.ckpt" % (sess_dir, args['env'], i+1,int(test_reward))
@@ -217,10 +233,12 @@ def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
 # Tests the actor network against a number of random cases
 def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False):
     test_total_reward = 0.0
+    ep_transitions = []
 
     # Test the network against random scenarios
     env.setWallCollision(True)
     for m in range(num_test_cases + 1):
+        transitions = []
         s = env.reset(False, True, m, num_test_cases)
         ep_reward = 0.0
         for n in range(int(args['max_episode_len'])):
@@ -230,16 +248,22 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
             # Choose action based on inputs
             a = actor.predict(np.reshape(s, (1, actor.s_dim)))
             action = a[0]
+
             # Execute action and get new state, reward
             s, r, terminal, info = env.step(action)
             ep_reward += r
+
+            transition = (action, s, r)
+            transitions.append(transition)
             if terminal:
                 break
+        ep_transitions.append(transitions)
         test_total_reward += ep_reward
 
     env.setWallCollision(False)
+
     # Return the average test reward
-    return test_total_reward / (m+1)
+    return (test_total_reward / (m+1), ep_transitions)
 
 # Tests the performance of an input model
 def testModelPerformance(sess, env, args, actor, model, num_test_cases):
@@ -337,7 +361,7 @@ if __name__ == '__main__':
 
     # agent parameters
     parser.add_argument('--actor-lr', help='actor network learning rate', default=0.0001) #0.0001
-    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.001) #=0.001
+    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.0001) #=0.001
     parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) #0.99
     parser.add_argument('--tau', help='soft target update parameter', default=0.001) #0.001
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
@@ -346,7 +370,7 @@ if __name__ == '__main__':
     # run parameters
     parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='angle')
     parser.add_argument('--online', help='choose the gym env- tested on {Robot}', default='0')
-    parser.add_argument('--random-seed', help='random seed for repeatability', default=1337)
+    parser.add_argument('--random-seed', help='random seed for repeatability', default=2345)
     parser.add_argument('--max-episodes', help='max num of episodes to do while training', default=50000)
     parser.add_argument('--max-episode-len', help='max length of 1 episode', default=1000)
     parser.add_argument('--render-env', help='render the gym env', action='store_true')

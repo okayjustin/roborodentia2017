@@ -1,8 +1,30 @@
 #!/usr/local/bin/python3
-'''
-This program plots the network output as a function of its two inputs in 3D scatter
-Requires ANN to be 2 input, 1 output.
-'''
+"""
+This program plots the network output as a function of its two inputs in 
+a contour plot. Requires ANN to be 2 input, 1 output.
+
+The MIT License (MIT)
+
+Copyright (c) 2018 Justin Ng
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -135,6 +157,9 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
 
     # Close figure
     plt.close(fig)
+
+
+def plotTransitions(net_index, num_episodes = 0):
 
 if __name__ == '__main__':
     net_index = 1
