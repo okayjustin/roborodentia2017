@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 """
-This program plots the network output as a function of its two inputs in 
+This program plots the network output as a function of its two inputs in
 a contour plot. Requires ANN to be 2 input, 1 output.
 
 The MIT License (MIT)
@@ -8,7 +8,7 @@ The MIT License (MIT)
 Copyright (c) 2018 Justin Ng
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
+
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
@@ -109,18 +109,18 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
         for i in range(0, NUM_PTS**2):
             # Get ANN prediction
             u[i] = np.clip(ann_in.predict(np.reshape(obs_batch[i],(1, state_dim))), -2, 2)[0]
-       
+
     else:
         # Expand observation batch by number of actions
         obs_batch_critic = np.zeros([NUM_PTS**2 * NUM_ACT_PTS, state_dim])
         for i in range(0, NUM_PTS**2):
             for j in range(0, NUM_ACT_PTS):
                 obs_batch_critic[i * NUM_ACT_PTS + j] = obs_batch[i]
-       
+
         action_array = np.linspace(-2, 2, NUM_ACT_PTS, endpoint=True)
         action_array = np.tile(action_array, NUM_PTS**2)
         action_array = np.reshape(action_array, (NUM_PTS**2 * NUM_ACT_PTS, 1))
-       
+
         # Get ANN prediction
         u_test = ann_in.predict(obs_batch_critic, action_array)
 
@@ -159,7 +159,84 @@ def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
     plt.close(fig)
 
 
-def plotTransitions(net_index, num_episodes = 0):
+''' Plots state, action, reward trajectories over time
+net_index:
+    0: angle network
+    1: transx network
+    2: transy network
+    3: all network
+episodes: list of lists of tuples
+    List of all the episodes
+        -> List of all the transition tuples in one episode
+            -> Tuples containing (action, state, reward)
+num_episodes: # of episodes network has trained. NOT the # eps in episodes
+'''
+def plotEpisodes(net_index, episodes, dt, num_episodes = 0):
+    # Time the function
+    start_time =  timer()
+
+    # Set parameters depending on which net
+    if (net_index == 0):
+        state_dim = 3
+        net_name = 'Angle'
+        y_label = 'Theta Error (rad)'
+    elif (net_index == 1):
+        state_dim = 2
+        net_name = 'X Translation'
+        y_label = 'X Error (mm)'
+    elif (net_index == 2):
+        state_dim = 2
+        net_name = 'Y Translation'
+        y_label = 'Y Error (mm)'
+
+    # Generate figure title
+    ep_name = "- %d Episodes" % num_episodes if (num_episodes != 0) else ""
+    plot_title = "%s Network Performance %s" % (net_name, ep_name)
+
+    print("Generating transition plot... ")
+
+    # Generate time vector
+    tmax = dt * len(episodes[0])
+    t = np.arange(0, tmax, dt)
+
+    # Generate plot
+    fig, axarr = plt.subplots(3, sharex=True)
+
+    # Plot labels
+    fig.suptitle(plot_title)
+    axarr[0].set_ylabel('Action')
+    axarr[1].set_ylabel(y_label)
+    axarr[2].set_ylabel('Reward')
+    axarr[2].set_xlabel('Time (s)')
+
+    # Add plots
+    for i in range(0, len(episodes) - 1, 5):
+        ep = episodes[i+1]
+        a = [transition[0] for transition in ep]
+        if (net_index == 0):
+            s = [np.arctan2(transition[1][1], transition[1][0]) for transition in ep]
+        else:
+            s = [transition[1][0] for transition in ep]
+        r = [transition[2] for transition in ep]
+
+        axarr[0].plot(t, a, linewidth=0.2)
+        axarr[1].plot(t, s, linewidth=0.2)
+        axarr[2].plot(t, r, linewidth=0.2)
+
+    # Save figure
+    filestub =  "figures/transitions/%d_%d.pdf" % (net_index, num_episodes)
+    filepath = os.path.join(os.getcwd(), filestub)
+    directory = os.path.dirname(filepath)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    fig.savefig(filepath, bbox_inches='tight')
+
+    end_time =  timer()
+    print("Saved to %s. Time elapsed: %fs." % (filestub, end_time - start_time))
+
+    # Close figure
+    plt.close(fig)
+
 
 if __name__ == '__main__':
     net_index = 1

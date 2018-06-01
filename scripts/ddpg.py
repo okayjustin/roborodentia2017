@@ -2,9 +2,9 @@
 """
 Implementation of DDPG - Deep Deterministic Policy Gradient
 
-Portions of the code have been copied from Patrick Emami's 
+Portions of the code have been copied from Patrick Emami's
 deep-rl Github repository (https://github.com/pemami4911/
-deep-rl/blob/master/ddpg/ddpg.py) and is copyrighted under 
+deep-rl/blob/master/ddpg/ddpg.py) and is copyrighted under
 the terms of the MIT License.
 
 The MIT License (MIT)
@@ -38,6 +38,7 @@ Usage:
     --online [0 | 1]
     --model './results/models/model.cpkt'
     --test [0 | 1]
+    --render-env
 """
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
@@ -126,7 +127,7 @@ def train(sess, env, args, actor, critic, actor_noise):
             render = args['render_env'] and (i % kRENDER_EVERY == 0)
             ep_len, ep_reward, ep_ave_max_q = \
                     trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render)
-            
+
             print('Ep: %d | Reward: %d | Qmax: %0.4f' % \
                     (i, int(ep_reward), ep_ave_max_q / float(ep_len)))
 
@@ -134,8 +135,8 @@ def train(sess, env, args, actor, critic, actor_noise):
             if (i % test_period == 0):
                 # Test the network and get the total reward
                 print("Testing network in %d cases..." % (num_test_cases))
-                test_reward, transitions = testNetworkPerformance(env, args, actor, num_test_cases)
-                plotTransitions(env.net_index, transitions, i+1)
+                test_reward, episodes = testNetworkPerformance(env, args, actor, num_test_cases)
+                plotEpisodes(env.net_index, episodes, env.dt, i+1)
 
                 # Save network session
                 filepath = "./results/%s/%s_%d_%d/model.ckpt" % (sess_dir, args['env'], i+1,int(test_reward))
@@ -233,7 +234,7 @@ def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
 # Tests the actor network against a number of random cases
 def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False):
     test_total_reward = 0.0
-    ep_transitions = []
+    episodes = []
 
     # Test the network against random scenarios
     env.setWallCollision(True)
@@ -257,13 +258,13 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
             transitions.append(transition)
             if terminal:
                 break
-        ep_transitions.append(transitions)
+        episodes.append(transitions)
         test_total_reward += ep_reward
 
     env.setWallCollision(False)
 
     # Return the average test reward
-    return (test_total_reward / (m+1), ep_transitions)
+    return (test_total_reward / (m+1), episodes)
 
 # Tests the performance of an input model
 def testModelPerformance(sess, env, args, actor, model, num_test_cases):
@@ -281,11 +282,24 @@ def testModelPerformance(sess, env, args, actor, model, num_test_cases):
         print("Can't restore model.")
         return
 
-    # Test the network against random scenarios
-    avg_test_reward = testNetworkPerformance(env, args, actor, num_test_cases, render=True)
+    # Determine how many episodes the model has been trained from the folder name
+    try:
+        split_model_str = model.split('_')
+        episodes_trained = int(split_model_str[-2])
+    except:
+        episodes_trained = 0
 
-    print('| Average reward: {:d}'.format(int(avg_test_reward)))
-    return avg_test_reward
+    # Test the network and get the total reward
+    print("Testing network in %d cases..." % (num_test_cases))
+    test_reward, episodes = testNetworkPerformance(env, args, actor, num_test_cases, args['render_env'])
+    plotEpisodes(env.net_index, episodes, env.dt, episodes_trained)
+
+    # Contour plots of ANN output
+    if (args['env'] != 'all'):
+        plotANN(env.net_index, actor, episodes_trained, 0)
+
+    print('| Average reward: {:d}'.format(int(test_reward)))
+    return test_reward
 
 def writeLog(sess_dir, args, ep, ep_reward, ep_q, test_reward=None):
     filepath = os.path.join(os.getcwd(), "results/%s/%s.csv" % (sess_dir, args['env']))
@@ -298,7 +312,7 @@ def writeLog(sess_dir, args, ep, ep_reward, ep_q, test_reward=None):
             file.write("%d,%f,%f,\n" % (ep, ep_reward, ep_q))
         else:
             file.write("%d,%f,%f,%f\n" % (ep, ep_reward, ep_q, test_reward))
-       
+
     return filepath
 
 def main(args):
@@ -347,7 +361,7 @@ def main(args):
         actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim), dt=env.dt)
 
         if int(args['test']) == 1:
-            testModelPerformance(sess, env, args, actor, args['model'], num_test_cases=20)
+            testModelPerformance(sess, env, args, actor, args['model'], num_test_cases=40)
         else:
             print("Beginning training...")
             try:
@@ -380,7 +394,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', help='saved model to restore', default='')
     parser.add_argument('--test', help='test model', default=0)
 
-    parser.set_defaults(render_env=True)
+    parser.set_defaults(render_env=False)
 
     args = vars(parser.parse_args())
 
