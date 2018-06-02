@@ -177,16 +177,16 @@ def plotEpisodes(net_index, episodes, dt, num_episodes = 0):
 
     # Set parameters depending on which net
     if (net_index == 0):
-        state_dim = 3
         net_name = 'Angle'
         y_label = 'Theta Error (rad)'
     elif (net_index == 1):
-        state_dim = 2
         net_name = 'X Translation'
         y_label = 'X Error (mm)'
     elif (net_index == 2):
-        state_dim = 2
         net_name = 'Y Translation'
+        y_label = 'Y Error (mm)'
+    elif (net_index == 3):
+        net_name = 'Full Motion'
         y_label = 'Y Error (mm)'
 
     # Generate figure title

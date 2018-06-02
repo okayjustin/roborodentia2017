@@ -991,20 +991,6 @@ Thesis Committee Chair
 
 
 % LIST OF TABLES
-%
-% \def\listoftables{\@restonecolfalse
-%   \if@twocolumn\@restonecoltrue\onecolumn\fi
-%   \chapter*{\listtablename\@mkboth{\uppercase{\listtablename}}%
-% {\uppercase{\listtablename}}}\@starttoc{lot}\if@restonecol
-%   \twocolumn\fi}
-% \def\listoftables{\@restonecolfalse
-%   \if@twocolumn\@restonecoltrue\onecolumn\fi
-%   \chapter*{\listtablename\@mkboth{\uppercase{\listtablename}}%
-% {\uppercase{\listtablename}}}
-%   \addcontentsline{toc}{chapter}{\listtablename}
-%   {\ssp\@starttoc{lot}}\if@restonecol
-%   \twocolumn\fi}
-
 \def\listoftables{\@restonecolfalse
   \if@twocolumn\@restonecoltrue\onecolumn\fi
   \chapter*{\listtablename\@mkboth{\uppercase{\listtablename}}%
@@ -1012,7 +998,7 @@ Thesis Committee Chair
    \addcontentsline{toc}{chapter}{\listtablename}
    {\ssp\@starttoc{lot}\addtocontents{lot}{\hbox to \linewidth{\hspace{1.5em}Table\hfill Page}}}\if@restonecol
     \twocolumn\fi}
-
+   
 
 \let\l@table\l@figure
 
