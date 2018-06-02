@@ -61,10 +61,10 @@
 
 % Custom colors
 \usepackage{color}
-\definecolor{deepblue}{rgb}{0,0,0.5}
-\definecolor{deepred}{rgb}{0.6,0,0}
-\definecolor{deepgreen}{rgb}{0,0.5,0}
-\definecolor{gray}{rgb}{0.2,0.2,0.2}
+\definecolor{deepblue}{rgb}{0,0,0.8}
+\definecolor{deepred}{rgb}{0.8,0,0}
+\definecolor{deepgreen}{rgb}{0,0.8,0}
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
 
 \usepackage{linegoal}
 
@@ -85,7 +85,7 @@
 % C style
 \newcommand\cstyle{\lstset{
 	language=C,
-	basicstyle=\ssp\ttfamily\small,
+	basicstyle=\ssp\ttfamily\scriptsize,
 	frame=tb, % draw a frame at the top and bottom of the code block
  	tabsize=3, % tab space width
 	showstringspaces=false, % don't mark spaces in strings
@@ -100,10 +100,8 @@
 \newcommand\cstyleinline{\lstset{
 	language=C,
 	basicstyle=\ssp\ttfamily,
-	frame=tb, % draw a frame at the top and bottom of the code block
  	tabsize=3, % tab space width
 	showstringspaces=false, % don't mark spaces in strings
-	numbers=left, % display line numbers on the left
 	commentstyle=\color{deepgreen}, % comment color
 	keywordstyle=\color{deepblue}, % keyword color
 	stringstyle=\color{deepred}, % string color
@@ -124,14 +122,30 @@
 % Python style for highlighting
 \newcommand\pythonstyle{\lstset{
 		language=Python,
-		basicstyle=\ssp\ttfamily\small,
+		basicstyle=\ssp\ttfamily\scriptsize,
 		otherkeywords={self},             % Add keywords here
-		keywordstyle=\ttb\color{deepblue},
+		keywordstyle=\color{deepblue},
 		emph={MyClass,__init__},          % Custom highlighting
-		emphstyle=\ttb\color{deepred},    % Custom highlighting style
+		emphstyle=\color{deepred},    % Custom highlighting style
 		stringstyle=\color{deepgreen},
+		numbers=left,
 		commentstyle=\color{gray}, % comment color
 		frame=tb,                         % Any extra options here
+		showstringspaces=false,            % 
+		tabsize=3, % tab space width
+		breaklines=true
+}}
+
+% Python style for inline
+\newcommand\pythonstyleinline{\lstset{
+		language=Python,
+		basicstyle=\ssp\ttfamily,
+		otherkeywords={self},             % Add keywords here
+		keywordstyle=\color{deepblue},
+		emph={MyClass,__init__},          % Custom highlighting
+		emphstyle=\color{deepred},    % Custom highlighting style
+		stringstyle=\color{deepgreen},
+		commentstyle=\color{gray}, % comment color
 		showstringspaces=false,            % 
 		tabsize=3, % tab space width
 		breaklines=true
@@ -151,7 +165,7 @@
 		\lstinputlisting[#1]{#2}}}
 
 % Python for inline
-\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+\newcommand\pythoninline[1]{{\pythonstyleinline\lstinline!#1!}}
 
 
 
@@ -188,41 +202,41 @@
     
 \begin{document}
 
-%% Declarations for Front Matter
-%\input{frontmatter}
-%
-%\maketitle
-%
-%\begin{frontmatter}
-%
-%% Custom made for Cal Poly (by Mark Barry, modified by Andrew Tsui).
-%\copyrightpage
-%
-%% Custom made for Cal Poly (by Andrew Tsui).
-%\committeemembershippage
-%
-%\begin{abstract}
-%\input{abstract}
-%\end{abstract}
-%
-%\begin{acknowledgements}
-%\input{acknowledgements}
-%\end{acknowledgements}
-%
-%\tableofcontents
-%
-%\listoftables
-%
-%\listoffigures
-%
-%\lstlistoflistings
-%
-%% Add CHAPTER into table of contents.
-%\addtocontents{toc}{%
-%   \noindent CHAPTER
-%}
-%
-%\end{frontmatter}
+% Declarations for Front Matter
+\input{frontmatter}
+
+\maketitle
+
+\begin{frontmatter}
+
+% Custom made for Cal Poly (by Mark Barry, modified by Andrew Tsui).
+\copyrightpage
+
+% Custom made for Cal Poly (by Andrew Tsui).
+\committeemembershippage
+
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+\begin{acknowledgements}
+\input{acknowledgements}
+\end{acknowledgements}
+
+\tableofcontents
+
+\listoftables
+
+\listoffigures
+
+\lstlistoflistings
+
+% Add CHAPTER into table of contents.
+\addtocontents{toc}{%
+   \noindent CHAPTER
+}
+
+\end{frontmatter}
 
 \pagestyle{plain}
 

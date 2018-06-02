@@ -101,9 +101,9 @@ class ActorNetwork(object):
 
         # Op for periodically updating target network with online network
         # weights
-        self.update_target_network_params = \
-            [self.target_network_params[i].assign(tf.multiply(self.network_params[i], self.tau) +
-                                                  tf.multiply(self.target_network_params[i], 1. - self.tau))
+        self.update_target_network_params = [self.target_network_params[i].assign( \
+                tf.multiply(self.network_params[i], self.tau) + \
+                tf.multiply(self.target_network_params[i], 1. - self.tau))
                 for i in range(len(self.target_network_params))]
 
         # This gradient will be provided by the critic network
@@ -112,7 +112,8 @@ class ActorNetwork(object):
         # Combine the gradients here
         self.unnormalized_actor_gradients = tf.gradients(
             self.scaled_out, self.network_params, -self.action_gradient)
-        self.actor_gradients = list(map(lambda x: tf.div(x, self.batch_size), self.unnormalized_actor_gradients))
+        self.actor_gradients = list(map(lambda x: tf.div(x, self.batch_size), 
+            self.unnormalized_actor_gradients))
 
         # Optimization Op
         self.optimize = tf.train.AdamOptimizer(self.learning_rate).\
@@ -123,10 +124,10 @@ class ActorNetwork(object):
 
     def create_actor_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim], name='ActorInputs')
-        net = tflearn.fully_connected(inputs, ACTOR_L1_NODES, name='ActorInputsNet') #400
+        net = tflearn.fully_connected(inputs, ACTOR_L1_NODES, name='ActorInputsNet')
         net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm1Net')
         net = tflearn.activations.relu(net)
-        net = tflearn.fully_connected(net, ACTOR_L2_NODES, name='ActorNetNet') #300
+        net = tflearn.fully_connected(net, ACTOR_L2_NODES, name='ActorNetNet')
         net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm2Net')
         net = tflearn.activations.relu(net)
         # Final layer weights are init to Uniform[-3e-3, 3e-3]
@@ -187,9 +188,9 @@ class CriticNetwork(object):
 
         # Op for periodically updating target network with online network
         # weights with regularization
-        self.update_target_network_params = \
-            [self.target_network_params[i].assign(tf.multiply(self.network_params[i], self.tau) \
-            + tf.multiply(self.target_network_params[i], 1. - self.tau))
+        self.update_target_network_params = [self.target_network_params[i].assign( \
+            tf.multiply(self.network_params[i], self.tau) + \
+            tf.multiply(self.target_network_params[i], 1. - self.tau)) \
                 for i in range(len(self.target_network_params))]
 
         # Network target (y_i)
@@ -214,14 +215,14 @@ class CriticNetwork(object):
     def create_critic_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim], name='CriticInputs')
         action = tflearn.input_data(shape=[None, self.a_dim], name='CriticAction')
-        net = tflearn.fully_connected(inputs, CRITIC_L1_NODES, name='CriticInputsNet') #400
+        net = tflearn.fully_connected(inputs, CRITIC_L1_NODES, name='CriticInputsNet')
         net = tflearn.layers.normalization.batch_normalization(net)
         net = tflearn.activations.relu(net)
 
         # Add the action tensor in the 2nd hidden layer
         # Use two temp layers to get the corresponding weights and biases
-        t1 = tflearn.fully_connected(net, CRITIC_L2_NODES, name='CriticNetT1') #300
-        t2 = tflearn.fully_connected(action, CRITIC_L2_NODES, name='CriticActionT2') #300
+        t1 = tflearn.fully_connected(net, CRITIC_L2_NODES, name='CriticNetT1')
+        t2 = tflearn.fully_connected(action, CRITIC_L2_NODES, name='CriticActionT2')
 
         net = tflearn.activation(
             tf.matmul(net, t1.W) + tf.matmul(action, t2.W) + t2.b, activation='relu')
@@ -229,7 +230,7 @@ class CriticNetwork(object):
         # linear layer connected to 1 output representing Q(s,a)
         # Weights are init to Uniform[-3e-3, 3e-3]
         w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
-        out = tflearn.fully_connected(net, 1, weights_init=w_init,name='CriticNetOut')
+        out = tflearn.fully_connected(net,1, weights_init=w_init,name='CriticNetOut')
         return inputs, action, out
 
     def train(self, inputs, action, predicted_q_value):

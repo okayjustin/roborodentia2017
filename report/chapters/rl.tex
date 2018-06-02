@@ -149,15 +149,243 @@ To ensure adequate exploration, Lillicrap et al.\ added Ornstein-Uhlenbeck proce
 dx_t = \theta(\mu-x_t) dt + \sigma dW_t, \theta>0, \sigma>0
 \end{equation}
 
-Lillicrap et al.\ used DDPQ to solve over 20 different simulated physics environments such as cartpole swing-up and driving using the same network architecture and hyper-parameters, demonstrating the generalizability of the technique. Although the approach required about 2.5 million steps of experience to solve most problems, it needed 20 times less than DQN. 
+Lillicrap et al.\ used DDPQ to solve over 20 different simulated physics environments such as cart pole swing-up and driving using the same network architecture and hyper-parameters, demonstrating the generalizability of the technique. Although the approach required about 2.5 million steps of experience to solve most problems, it needed 20 times less than DQN. 
 
 To reiterate, the important advantage of the DDPG technique is its ability to handle both continuous action and state spaces of varying magnitude, critical to many real-life control problems. 
 
-\section{DDPG Implementation}
+\section{Implementation}
 All code is implemented in Python 3.6 and uses libraries from TensorFlow \cite{tensorflow} and OpenAI Gym \cite{openaigym}. An implementation of the Lillicrap's DDPG algorithm from Patrick Emami's wonderful reinforcement learning primer formed the initial code base to which modifications and new developments were added \cite{emami_2016}.
 
+\subsection{Artificial Neural Networks}
+\subsubsection{Critic Network}
+Listing \ref{list:critic_net} implements the critic network class. The function \pythoninline{create_critic_network()} at line 55 instantiates the TensorFlow network graph. The critic consists of a \pythoninline{s_dim}-node state input layer, another \pythoninline{a_dim}-node action input layer, two fully connected hidden layers, and a 1-node output layer, illustrated in Figure \ref{fig:critic_net}. The state input layer enters into the first hidden layer while the action input layer connects to the second hidden layer. The first hidden layer uses a fully connected network layer of weights with biases, a batch normalization layer described previously, and the rectified linear unit (ReLU) activation function $ReLU(x) = max(0,x)$. Deep neural networks widely use the ReLU function for speeding up large computations both in forward and backward passes of the network \cite{2017arXiv171005941R}. The derivative of the ReLU function is simply 1 for positive inputs and 0 otherwise, greatly simplifying the back propagation algorithm. The second hidden layer consists of 600 nodes, half of which connect to the first hidden layer output and half that connect to the action input layer. Finally, the output layer is a single node with no activation function to obtain linear output.
 
-\subsection{title}
+The \pythoninline{action_gradients()} function returns a list of the gradients of the output with respect to each action, used by the actor network to update its weights. Finally, the \pythoninline{train()} function optimizes network weights and biases to minimize the loss function using the Adam optimizer \cite{adam_opt}. The loss is defined as the mean square value of the difference between the mini-batch of critic outputs and the mini-batch of predicted Q-value from the target network equivalent to Equation \ref{eq:dqn_loss_func}. The Adam method, developed by Kingma and Ba, stands for "adaptive moment estimation" and possesses many of the benefits afforded by the AdaGrad and RMSProp algorithms including compatibility with sparse gradients, parameter update magnitudes invariant to gradient rescaling, step size annealing, and bounded step size \cite{adam_opt}\cite{duchi_2011}\cite{tieleman_2012}.
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=8.5in, keepaspectratio]{figures/critic_net.pdf}
+	\caption{Critic ANN Structure}\label{fig:critic_net}
+\end{figure}
+
+\begin{python}[caption={Critic Network Class},label={list:critic_net}]
+CRITIC_L1_NODES = 400
+CRITIC_L2_NODES = 300
+
+class CriticNetwork(object):
+    """
+    Input to the network is the state and action, output is Q(s,a).
+    The action must be obtained from the output of the Actor network.
+
+    """
+
+    def __init__(self, sess, state_dim, action_dim, learning_rate, tau, gamma, num_actor_vars):
+        self.sess = sess
+        self.s_dim = state_dim
+        self.a_dim = action_dim
+        self.learning_rate = learning_rate
+        self.tau = tau
+        self.gamma = gamma
+
+        # Create the critic network
+        self.inputs, self.action, self.out = self.create_critic_network()
+
+        self.network_params = tf.trainable_variables()[num_actor_vars:]
+
+        # Target Network
+        self.target_inputs, self.target_action, self.target_out = self.create_critic_network()
+
+        self.target_network_params = tf.trainable_variables()[(len(self.network_params) + num_actor_vars):]
+
+        # Op for periodically updating target network with online network
+        # weights with regularization
+        self.update_target_network_params = [self.target_network_params[i].assign( \
+            tf.multiply(self.network_params[i], self.tau) + \
+            tf.multiply(self.target_network_params[i], 1. - self.tau)) \
+                for i in range(len(self.target_network_params))]
+
+        # Network target (y_i)
+        self.predicted_q_value = tf.placeholder(tf.float32, [None, 1])
+
+        # Define loss and optimization Op
+        self.loss = tflearn.mean_square(self.predicted_q_value, self.out)
+        self.optimize = tf.train.AdamOptimizer(
+            self.learning_rate).minimize(self.loss)
+
+        # Get the gradient of the net w.r.t. the action.
+        # For each action in the mini-batch (i.e., for each x in xs),
+        # this will sum up the gradients of each critic output in the mini-batch
+        # w.r.t. that action. Each output is independent of all
+        # actions except for one.
+        self.action_grads = tf.gradients(self.out, self.action)
+
+        self.num_trainable_vars = len(
+            self.network_params) + len(self.target_network_params)
+
+
+    def create_critic_network(self):
+        inputs = tflearn.input_data(shape=[None, self.s_dim], name='CriticInputs')
+        action = tflearn.input_data(shape=[None, self.a_dim], name='CriticAction')
+        net = tflearn.fully_connected(inputs, CRITIC_L1_NODES, name='CriticInputsNet')
+        net = tflearn.layers.normalization.batch_normalization(net)
+        net = tflearn.activations.relu(net)
+
+        # Add the action tensor in the 2nd hidden layer
+        # Use two temp layers to get the corresponding weights and biases
+        t1 = tflearn.fully_connected(net, CRITIC_L2_NODES, name='CriticNetT1')
+        t2 = tflearn.fully_connected(action, CRITIC_L2_NODES, name='CriticActionT2')
+
+        net = tflearn.activation(
+            tf.matmul(net, t1.W) + tf.matmul(action, t2.W) + t2.b, activation='relu')
+
+        # linear layer connected to 1 output representing Q(s,a)
+        # Weights are init to Uniform[-3e-3, 3e-3]
+        w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
+        out = tflearn.fully_connected(net,1, weights_init=w_init,name='CriticNetOut')
+        return inputs, action, out
+
+    def train(self, inputs, action, predicted_q_value):
+        return self.sess.run([self.out, self.optimize], feed_dict={
+            self.inputs: inputs,
+            self.action: action,
+            self.predicted_q_value: predicted_q_value
+        })
+
+    def predict(self, inputs, action):
+        return self.sess.run(self.out, feed_dict={
+            self.inputs: inputs,
+            self.action: action
+        })
+
+    def predict_target(self, inputs, action):
+        return self.sess.run(self.target_out, feed_dict={
+            self.target_inputs: inputs,
+            self.target_action: action
+        })
+
+    def action_gradients(self, inputs, actions):
+        return self.sess.run(self.action_grads, feed_dict={
+            self.inputs: inputs,
+            self.action: actions
+        })
+
+    def update_target_network(self):
+        self.sess.run(self.update_target_network_params)
+\end{python}
+
+\subsubsection{Actor Network}
+Listing \ref{list:actor_net} implements the actor ANN. The function \pythoninline{create_actor_network()} at line 56 defines the TensorFlow graph of the network. The actor uses an \pythoninline{s_dim}-node input layer, two fully connected hidden layers, and a  \pythoninline{a_dim}-node output layer, illustrated in Figure \ref{fig:actor_net}. The two hidden layers consist of a fully connected network layer of weights with biases, a batch normalization layer described previously, and the ReLU activation function. The two hidden layers use 400 and 300 nodes, respectively, matching Lillicrap's implementation \cite{lillicrap_2016}. Finally, the output layer is a fully connected network, tanh activation function to limit the output to $[-1,+1]$, and a multiplier to scale the output to $[-$\pythoninline{action_bound}$,+$\pythoninline{action_bound}$]$.
+
+The \pythoninline{train()} function implements the key idea of the policy gradient method. The gradient of the output with respect to the network weights and biases are calculated and weighted the by the action gradients obtained from the critic. The weighting step effectively makes "good" actions more likely and "bad" actions less likely. The gradients are normalized by the batch size and then applied to the network weights and biased according to the Adam optimization method. 
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/actor_net.pdf}
+	\caption{Actor ANN Structure}\label{fig:actor_net}
+\end{figure}
+
+\begin{python}[caption={Actor Network Class},label={list:actor_net}]
+ACTOR_L1_NODES = 400
+ACTOR_L2_NODES = 300
+
+class ActorNetwork(object):
+    """
+    Input to the network is the state, output is the action
+    under a deterministic policy.
+
+    The output layer activation is a tanh to keep the action
+    between -action_bound and action_bound
+    """
+
+    def __init__(self, sess, state_dim, action_dim, action_bound, learning_rate, tau, batch_size):
+        self.sess = sess
+        self.s_dim = state_dim
+        self.a_dim = action_dim
+        self.action_bound = action_bound
+        self.learning_rate = learning_rate
+        self.tau = tau
+        self.batch_size = batch_size
+
+        # Actor Network
+        self.inputs, self.out, self.scaled_out = self.create_actor_network()
+
+        self.network_params = tf.trainable_variables()
+
+        # Target Network
+        self.target_inputs, self.target_out, self.target_scaled_out = self.create_actor_network()
+
+        self.target_network_params = tf.trainable_variables()[
+            len(self.network_params):]
+
+        # Op for periodically updating target network with online network
+        # weights
+        self.update_target_network_params = [self.target_network_params[i].assign( \
+                tf.multiply(self.network_params[i], self.tau) + \
+                tf.multiply(self.target_network_params[i], 1. - self.tau))
+                for i in range(len(self.target_network_params))]
+
+        # This gradient will be provided by the critic network
+        self.action_gradient = tf.placeholder(tf.float32, [None, self.a_dim])
+
+        # Combine the gradients here
+        self.unnormalized_actor_gradients = tf.gradients(
+            self.scaled_out, self.network_params, -self.action_gradient)
+        self.actor_gradients = list(map(lambda x: tf.div(x, self.batch_size), 
+            self.unnormalized_actor_gradients))
+
+        # Optimization Op
+        self.optimize = tf.train.AdamOptimizer(self.learning_rate).\
+            apply_gradients(zip(self.actor_gradients, self.network_params))
+
+        self.num_trainable_vars = len(
+            self.network_params) + len(self.target_network_params)
+
+    def create_actor_network(self):
+        inputs = tflearn.input_data(shape=[None, self.s_dim], name='ActorInputs')
+        net = tflearn.fully_connected(inputs, ACTOR_L1_NODES, name='ActorInputsNet')
+        net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm1Net')
+        net = tflearn.activations.relu(net)
+        net = tflearn.fully_connected(net, ACTOR_L2_NODES, name='ActorNetNet')
+        net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm2Net')
+        net = tflearn.activations.relu(net)
+        # Final layer weights are init to Uniform[-3e-3, 3e-3]
+        w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
+        out = tflearn.fully_connected(
+            net, self.a_dim, activation='tanh', weights_init=w_init, name='ActorOutNet')
+        # Scale output to -action_bound to action_bound
+        scaled_out = tf.multiply(out, self.action_bound)
+        return inputs, out, scaled_out
+
+    def train(self, inputs, a_gradient):
+        self.sess.run(self.optimize, feed_dict={
+            self.inputs: inputs,
+            self.action_gradient: a_gradient
+        })
+
+    def predict(self, inputs):
+        return self.sess.run(self.scaled_out, feed_dict={
+            self.inputs: inputs
+        })
+
+    def predict_target(self, inputs):
+        return self.sess.run(self.target_scaled_out, feed_dict={
+            self.target_inputs: inputs
+        })
+
+    def update_target_network(self):
+        self.sess.run(self.update_target_network_params)
+
+    def get_num_trainable_vars(self):
+        return self.num_trainable_vars
+\end{python}
+
+Both actor and critic classes create a regular and target network in the \pythoninline{__init__()} function. The target network is structurally identical to the regular actor/critic networks. Recall the network weights are denoted as $\theta_i$ while target network weights use $\theta^-_i$. Each class provides a function \pythoninline{update_target_network()}  that adjusts target network weights to be closer to the regular network weights by the factor $\tau=0.001$ as in Equation \ref{eq:target_update}. The \pythoninline{predict()} and \pythoninline{predict_targets()} functions return the forward pass output of the regular and target networks, respectively.
+\begin{equation}
+\label{eq:target_update}
+\theta^-_i \gets \tau\theta_i + (1-\tau)\theta^-_i
+\end{equation}
+
+\subsection{DDPG}
+
+%\begin{python}[caption={Caption},label={list:label}]
+%
+%\end{python}
 
 
 \section{Training}
