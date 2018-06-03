@@ -1,0 +1,6 @@
+model_checkpoint_path: "model.ckpt"
+all_model_checkpoint_paths: "..\\transx_101_-61\\model.ckpt"
+all_model_checkpoint_paths: "..\\transx_121_-61\\model.ckpt"
+all_model_checkpoint_paths: "..\\transx_141_-63\\model.ckpt"
+all_model_checkpoint_paths: "..\\transx_161_-61\\model.ckpt"
+all_model_checkpoint_paths: "model.ckpt"

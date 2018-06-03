@@ -163,7 +163,7 @@ def train(sess, env, args, actor, critic, actor_noise):
 
 # Trains one episode of data
 def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
-    env.setWallCollision(False)
+    # env.setWallCollision(False)
     s = env.reset()
 
     # Track the episode reward and average max q
@@ -261,7 +261,7 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
         episodes.append(transitions)
         test_total_reward += ep_reward
 
-    env.setWallCollision(False)
+    # env.setWallCollision(False)
 
     # Return the average test reward
     return (test_total_reward / (m+1), episodes)

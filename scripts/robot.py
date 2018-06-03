@@ -72,8 +72,8 @@ class Robot():
     LEFT_RIGHT_WHEEL_DIST = 251.4  # Distance between the centers of left and right wheels in mm
 
     # Motor constants
-    wheel_max_thetadotdot = 430 * 0.2  # Max wheel rotational acceleration in rad/s^2
-    wheel_max_thetadot = 24.46 * 0.5   # Max wheel rotational velocity in rad/s
+    wheel_max_thetadotdot = 430   # Max wheel rotational acceleration in rad/s^2
+    wheel_max_thetadot = 24.46    # Max wheel rotational velocity in rad/s
     friction_constant = wheel_max_thetadotdot / wheel_max_thetadot # Friction constant in 1/s
 
     # UART Commands

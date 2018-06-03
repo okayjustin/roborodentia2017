@@ -1,0 +1,5 @@
+model_checkpoint_path: "model.ckpt"
+all_model_checkpoint_paths: "..\\angle_1_-703\\model.ckpt"
+all_model_checkpoint_paths: "..\\angle_21_-46\\model.ckpt"
+all_model_checkpoint_paths: "..\\angle_41_-47\\model.ckpt"
+all_model_checkpoint_paths: "model.ckpt"

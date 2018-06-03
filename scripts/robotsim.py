@@ -156,31 +156,11 @@ class SimRobot():
             self.net_index = 1
             obs_high = np.array([2400., 1600.])
 
-            # Load angle control ann
-            print("Loading angle ANN")
-            angle_model_path = './results/models-angle/model.ckpt'
-            self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = 2.0)
-
-            # # Load transy control ann
-            # print("Loading transy ANN")
-            # transy_model_path = './results/models-transy/model.ckpt'
-            # self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
-
         elif (train == 'transy'):
             act_dim = 1
             self.net_index = 2
             obs_high = np.array([2400., 1600.])
 
-            # Load angle control ann
-            print("Loading angle ANN")
-            angle_model_path = './results/models-angle/model.ckpt'
-            self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = 2.0)
-
-            # Load transx control ann
-            print("Loading transx ANN")
-            transx_model_path = './results/models-transx/model.ckpt'
-            self.transx_ann = ann(transx_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
-        
         elif (train == 'all'):
             act_dim = 3
             self.net_index = 3
@@ -259,7 +239,7 @@ class SimRobot():
             self.v_sensitivity = np.array([1 for i in range(4)])
 
         # Update desired state
-        # self.robot.setDesired(self.state[6:9])
+        self.robot.setDesired(self.state[6:9])
 
         # Update observations
         for i in range(0,3):

@@ -587,7 +587,7 @@ Before discussing the results, some parameters must be defined. The Roborodentia
 \end{figure}
 
 \subsection{Three Actors Implementation}
-Since the robot's mecanum wheels permit omni-directional movement, position control can be viewed as three separate control loops. Therefore, early experiments used three individually-trained, single-action actors to provide orthogonal controls $u_x$, $u_y$, and $u_\theta$. The three controls are converted to individual motor voltages, $v_0$, $v_1$, $v_2$, and $v_3$, by calculating the translation vector magnitude $V_d = \sqrt{u_x^2 + u_y^2}/2$ and angle $\theta_d = \text{atan2}(u_y / u_x)$ and using Equations \ref{eq:mecanum_v0} through \ref{eq:mecanum_v3} \cite{li_2018}\cite{rahman_2014}.
+Since the robot's mecanum wheels permit omni-directional movement, position control can be viewed as three separate control loops. Therefore, early experiments used three individually-trained, single-action actors to provide orthogonal controls $u_x$, $u_y$, and $u_\theta$. The three controls are converted to individual motor voltages, $v_0$, $v_1$, $v_2$, and $v_3$, by calculating the translation vector magnitude $V_d = \sqrt{u_x^2 + u_y^2}/2$ and angle $\theta_d = \text{atan2}(u_y / u_x)$ and using Equations \ref{eq:mecanum_v0} through \ref{eq:mecanum_v3} \cite{li_2018}\cite{rahman_2014}. The three actors will be referred to as the "x translation", "y translation", and "angle" networks. Each episode lasts 10 seconds with 0.05 second steps for 200 steps per episode.
 \begin{align}
 v_0 &= V_d \text{sin}(\theta_d + \pi/4) - u_\theta  \label{eq:mecanum_v0}\\
 v_1 &= V_d \text{cos}(\theta_d + \pi/4) + u_\theta  \label{eq:mecanum_v1}\\
@@ -595,17 +595,105 @@ v_2 &= V_d \text{sin}(\theta_d + \pi/4) + u_\theta  \label{eq:mecanum_v2}\\
 v_3 &= V_d \text{cos}(\theta_d + \pi/4) - u_\theta  \label{eq:mecanum_v3}
 \end{align}
 
+\subsubsection{X Translation Network}
+The x translation network takes in the robot's x position and velocity and outputs $u_x$. Since the Y translation network accomplishes the exact same task in the same way but in the y direction, only the X translation network will be discussed. As described above in Actor Testing, the networks are periodically tested to observe their change in performance with more training. Figures \ref{fig:x_r} and \ref{fig:x_q} show the average testing episode reward and average max Q versus episodes trained, respectively. Figures \ref{fig:x_actor_contour} and \ref{fig:x_critic_contour} show contour plots of the actor and critic outputs as functions of the two inputs.
 \begin{figure}[H]
-	\begin{tabular}{ccc}
-		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_21.pdf} &  
-		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_41.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_81.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_161.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_321.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_641.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_1281.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_2141.pdf} \\
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/x_r.pdf}
+	\caption{X Translation Test Reward} \label{fig:x_r}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/x_q.pdf}
+	\caption{X Translation Network Average Max Q} \label{fig:x_q}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/transx_transitions/1_1.pdf}
+	\caption{X Translation Network Performance -- 1 Episode}\label{fig:x_perf1}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/transx_transitions/1_21.pdf}
+	\caption{X Translation Network Performance -- 21 Episode}\label{fig:x_perf21}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/transx_transitions/1_81.pdf}
+	\caption{X Translation Network Performance -- 81 Episode}\label{fig:x_perf81}
+\end{figure}
+\begin{figure}[H]
+	\begin{tabular}{cc}
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_1.pdf} &  
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_21.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_41.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_81.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_121.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_161.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_201.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_261.pdf} \\
 	\end{tabular}
-	\caption{Angle Actor Output Progression}\label{fig:angle_contour}
+	\caption{X Translation Actor Output Progression}\label{fig:x_actor_contour}
+\end{figure}
+\begin{figure}[H]
+	\begin{tabular}{cc}
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_1.pdf} &  
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_21.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_41.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_81.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_121.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_161.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_201.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_261.pdf} \\
+	\end{tabular}
+	\caption{X Translation Critic Output Progression}\label{fig:x_critic_contour}
 \end{figure}
 
+
+
+\subsubsection{Angle Translation Network}
+The angle network takes in the robot's angle as $\text{cos}(\theta)$ and $\text{sin}(\theta)$ as well as the rotational velocity $\dot{\theta}$ and outputs $u_\theta$.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_r.pdf}
+	\caption{Angle Test Reward} \label{fig:angle_r}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_q.pdf}
+	\caption{Angle Network Average Max Q} \label{fig:angle_q}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_transitions/0_1.pdf}
+	\caption{Angle Network Performance -- 1 Episode}\label{fig:angle_perf1}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_transitions/0_21.pdf}
+	\caption{Angle Network Performance -- 21 Episode}\label{fig:angle_perf21}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_transitions/0_61.pdf}
+	\caption{Angle Network Performance -- 81 Episode}\label{fig:angle_perf81}
+\end{figure}
+\begin{figure}[H]
+	\begin{tabular}{cc}
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_1.pdf} &  
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_21.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_41.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_81.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_121.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_161.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_221.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_301.pdf} \\
+	\end{tabular}
+	\caption{Angle Actor Output Progression}\label{fig:angle_actor_contour}
+\end{figure}
+\begin{figure}[H]
+	\begin{tabular}{cc}
+		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_1.pdf} &  
+		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_21.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_41.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_81.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_121.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_161.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_221.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_301.pdf} \\
+	\end{tabular}
+	\caption{Angle Critic Output Progression}\label{fig:angle_critic_contour}
+\end{figure}
+
+\subsection{Single Actor Implementation}
 \begin{figure}[H]
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_r.pdf}
 	\caption{Training and Test Reward} \label{fig:all_r}
