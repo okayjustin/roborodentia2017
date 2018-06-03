@@ -139,7 +139,7 @@ The deep deterministic policy gradient algorithm, developed by Lillicrap et al.,
 
 Additionally, Lillicrap et al.\ adapted batch normalization from Ioffe's work to allow ANN hyper-parameter generalization for environments with features of varying magnitude \cite{2015arXiv150203167I}; each feature in a minibatch is normalized to unit mean and variance. In their implementation, batch normalization was applied to network inputs, all layers of the policy network, and all layers of the Q network before the action input (detailed later).
 
-To ensure adequate exploration, Lillicrap et al.\ added Ornstein-Uhlenbeck process noise to the policy output $\mu(s_t | \theta^\mu_t)$ to create the exploration policy $\mu'(s_t)$ as shown in Equation \ref{eq:exploration_policy} \cite{lillicrap_2016}. The Ornstein-Uhlenbeck process satisfies the condition shown in Equation \ref{eq:ornstein-uhlenbeck} where $x_t$ is the process position at time $t$, $\theta$ and $\sigma$ are parameters, and $W_t$ is the Weiner process \cite{uhlenbeck_ornstein}. The process produces random, time-correlated values that drift toward a long-term mean, in this case 0.
+To ensure adequate exploration, Lillicrap et al.\ added Ornstein-Uhlenbeck process noise to the policy output $\mu(s_t | \theta^\mu_t)$ to create the exploration policy $\mu'(s_t)$ as shown in Equation \ref{eq:exploration_policy} \cite{lillicrap_2016}. The Ornstein-Uhlenbeck process satisfies the condition shown in Equation \ref{eq:ornstein-uhlenbeck} where $x_t$ is the process position at time $t$, $\theta$ and $\sigma$ are parameters, and $W_t$ is the Weiner process \cite{uhlenbeck_ornstein}. The process produces random, time-correlated values that drift toward a long-term mean, in this case 0. The Ornstein-Uhlenbeck action noise class shown in Listing \ref{list:ornstein-uhlenbeck} is provided by OpenAI under the MIT License \cite{ddpg_noise}.
 \begin{equation}
 \label{eq:exploration_policy}
 \mu'(s_t) = \mu(s_t | \theta^\mu_t) + \mathcal{N}
@@ -148,10 +148,32 @@ To ensure adequate exploration, Lillicrap et al.\ added Ornstein-Uhlenbeck proce
 \label{eq:ornstein-uhlenbeck}
 dx_t = \theta(\mu-x_t) dt + \sigma dW_t, \theta>0, \sigma>0
 \end{equation}
+\begin{python}[caption={Ornstein-Uhlenbeck Action Noise \cite{ddpg_noise}},label={list:ornstein-uhlenbeck}]
+class OrnsteinUhlenbeckActionNoise:
+    def __init__(self, mu, sigma=0.3, theta=.15, dt=0.05, x0=None):
+        self.theta = theta
+        self.mu = mu
+        self.sigma = sigma
+        self.dt = dt
+        self.x0 = x0
+        self.reset()
+
+    def __call__(self):
+        x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + \
+                self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.mu.shape)
+        self.x_prev = x
+        return x
+
+    def reset(self):
+        self.x_prev = self.x0 if self.x0 is not None else np.zeros_like(self.mu)
+
+    def __repr__(self):
+        return 'OrnsteinUhlenbeckActionNoise(mu={}, sigma={})'.format(self.mu, self.sigma)
+\end{python}
 
 Lillicrap et al.\ used DDPQ to solve over 20 different simulated physics environments such as cart pole swing-up and driving using the same network architecture and hyper-parameters, demonstrating the generalizability of the technique. Although the approach required about 2.5 million steps of experience to solve most problems, it needed 20 times less than DQN. 
 
-To reiterate, the important advantage of the DDPG technique is its ability to handle both continuous action and state spaces of varying magnitude, critical to many real-life control problems. 
+To reiterate, the important advantage of the DDPG technique is its ability to handle both continuous action and state spaces of varying magnitude, critical to many real-life control problems. Specific algorithm details are covered in the Implementation section.
 
 \section{Implementation}
 All code is implemented in Python 3.6 and uses libraries from TensorFlow \cite{tensorflow} and OpenAI Gym \cite{openaigym}. An implementation of the Lillicrap's DDPG algorithm from Patrick Emami's wonderful reinforcement learning primer formed the initial code base to which modifications and new developments were added \cite{emami_2016}.
@@ -382,19 +404,198 @@ Both actor and critic classes create a regular and target network in the \python
 \end{equation}
 
 \subsection{DDPG}
+The DDPG training algorithm is as follows:
+\begin{enumerate}
+\item Set training parameters such as learning rates, discount factor $\gamma$, target network update parameter $\tau$, and mini-batch size. The arguments use default values unless specified in the program arguments list.
+\begin{python}[caption={Training Parameter Initialization},label={list:train_param_init},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+parser.add_argument('--actor-lr', help='actor network learning rate', default=0.001) 
+parser.add_argument('--critic-lr', help='critic network learning rate', default=0.0001) 
+parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) 
+parser.add_argument('--tau', help='soft target update parameter', default=0.001) 
+parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
+parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
+\end{python}
+\item Initialize the actor network, critic network, Ornstein-Uhlenbeck exploration noise, and experience replay buffer. Set the random seed to a specific value for repeatability.
+\begin{python}[caption={Network, Noise, and Experience Replay Buffer Initialization},label={list:net_init},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+print("Instantiating actor...")
+actor = ActorNetwork(sess, state_dim, action_dim, action_bound,
+                     float(args['actor_lr']), float(args['tau']),
+                     int(args['minibatch_size']))
 
+print("Instantiating critic...")
+critic = CriticNetwork(sess, state_dim, action_dim,
+                       float(args['critic_lr']), float(args['tau']),
+                       float(args['gamma']),
+                       actor.get_num_trainable_vars())
+actor_noise = OrnsteinUhlenbeckActionNoise(mu=np.zeros(action_dim), dt=env.dt)
+replay_buffer = ReplayBuffer(int(args['buffer_size']), int(args['random_seed']))
+\end{python}
+\item Initialize TensorFlow variables and \pythoninline{tf.train.Saver()} for saving trained models to disk.
+\begin{python}[caption={Saver Initialization},label={list:saver_init},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+sess.run(tf.global_variables_initializer())
+saver = tf.train.Saver()
+\end{python}
+\item Start training loop. Each run of this loop is one episode.
+	\begin{enumerate}
+	\item Reset the environment randomly and get the initial state. Reset the episode reward and average max Q for each step to track actor performance.
+	\begin{python}[caption={Episode Reset},label={list:ep_reset},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+s = env.reset()
+
+# Track the episode reward and average max q
+ep_reward = 0
+ep_ave_max_q = 0
+	\end{python}
+	\item Start step loop. Each run of this loop is one step in the episode.
+		\begin{enumerate}
+		\item Predict an action (i.e. forward pass through actor network) and add Ornstein-Uhlenbeck exploration noise. Execute the action and receive a reward, next state, and if the environment is terminating. Add the transition to the experience replay buffer.
+		\begin{python}[caption={Actor Predict and Step},label={list:act_pred_step},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+# Predict action and add exploration noise
+a = actor.predict(np.reshape(s, (1, actor.s_dim))) + actor_noise()
+action = a[0]
+
+# Execute action in environment to change state
+s2, r, terminal, info = env.step(action)
+
+replay_buffer.add(np.reshape(s, (actor.s_dim,)), \
+        np.reshape(action, (actor.a_dim,)), r, terminal, \
+        np.reshape(s2, (actor.s_dim,)))
+		\end{python}
+		\item If the experience replay buffer contains at least the mini-batch number of transitions, sample a mini-batch of transitions. Use the target critic network to produce a target Q and calculate $y_i$ from the mini-batch of transitions for use in the critic loss function. Update critic and actor network weights then target critic and actor weights.
+		\begin{python}[caption={Network Update},label={list:net_update},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+# Keep adding experience to the memory until
+# there are at least minibatch size samples
+if replay_buffer.size() > int(args['minibatch_size']):
+	s_batch, a_batch, r_batch, t_batch, s2_batch = \
+	  	replay_buffer.sample_batch(int(args['minibatch_size']))
+	
+	# Calculate targets
+	target_q = critic.predict_target(
+	  	s2_batch, actor.predict_target(s2_batch))
+	
+	y_i = []
+	for k in range(int(args['minibatch_size'])):
+	  	if t_batch[k]:
+	      	y_i.append(r_batch[k])
+	  	else:
+	      	y_i.append(r_batch[k] + critic.gamma * target_q[k])
+	
+	# Update the critic given the targets
+	predicted_q_value, _ = critic.train( s_batch, a_batch, \
+	  	np.reshape(y_i, (int(args['minibatch_size']), 1)))
+	
+	ep_ave_max_q += np.amax(predicted_q_value)
+	
+	# Update the actor policy using the sampled gradient
+	a_outs = actor.predict(s_batch)
+	grads = critic.action_gradients(s_batch, a_outs)
+	actor.train(s_batch, grads[0])
+	
+	# Update target networks
+	actor.update_target_network()
+	critic.update_target_network()
+		\end{python}
+		\item Update state for the next step and increment episode reward.
+		\begin{python}[caption={Step Cleanup},label={list:ep_clean},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+# Update state for next step
+s = s2
+
+# Increment episode reward
+ep_reward += r
+		\end{python}
+		\item If the environment is terminated, break out of the episode. Otherwise, loop back.
+		\begin{python}[caption={Episode Termination},label={list:ep_term},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+# End of episode
+if terminal:
+  	break
+		\end{python}
+		\end{enumerate}
+	\item Print episode information to track progress.
+	\begin{python}[caption={Print Episode Results},label={list:print_ep},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+print('Ep: %d | Reward: %d | Qmax: %0.4f' % \
+	(i, int(ep_reward), ep_ave_max_q / float(ep_len)))
+	\end{python}
+	\item Periodically test the network performance (detailed in the subsection Actor Testing), record test results, save network weights to file, and produce contour plots of actor and critic outputs.
+	\begin{python}[caption={Network Evaluation},label={list:net_eval},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+# Test the network's performance
+if (i % test_period == 0):
+    # Test the network and get the total reward
+    print("Testing network in %d cases..." % (num_test_cases))
+    test_reward, episodes = testNetworkPerformance(env, args, actor, num_test_cases)
+    plotEpisodes(env.net_index, episodes, env.dt, i+1)
+
+    # Save network session
+    filepath = "./results/%s/%s_%d_%d/model.ckpt" % (sess_dir, args['env'], i+1,int(test_reward))
+    save_path = saver.save(sess, filepath)
+
+    # Contour plots of ANN output
+    if (args['env'] != 'all'):
+        plotANN(env.net_index, actor, i+1, 0)
+        plotANN(env.net_index, critic, i+1, 1)
+	\end{python}	
+	\end{enumerate}
+\end{enumerate}
+
+\subsection{Actor Testing}
+The training loop periodically tests the actor to evaluate performance with the \pythoninline{testNetworkPerformance()} function shown in Listing \ref{list:actor_testing}. The actor steps through a number of varied but predefined test cases. For example, the robot orientation $\theta$ ranges from $-\pi$ to $+\pi$. If using 11 test cases, the robot would begin at $\theta=[-\pi, -0.8\pi, -0.6\pi, -0.4\pi, -0.2\pi, 0, +0.2\pi, +0.4\pi, +0.6\pi, +0.8\pi, pi]$ to evaluate behavior at various states. Additionally, the action does not receive Ornstein-Uhlenbeck exploration noise. The function returns the average reward per episode as the measure of actor performance.
+\begin{python}[caption={Actor Testing Function},label={list:actor_testing}]
+# Tests the actor network against a number of test cases
+def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False):
+    test_total_reward = 0.0
+    episodes = []
+
+    # Test the network against random scenarios
+    env.setWallCollision(True)
+    for m in range(num_test_cases + 1):
+        transitions = []
+        s = env.reset(False, True, m, num_test_cases)
+        ep_reward = 0.0
+        for n in range(int(args['max_episode_len'])):
+            if (args['render_env'] and render == True):
+                env.render()
+
+            # Choose action based on inputs
+            a = actor.predict(np.reshape(s, (1, actor.s_dim)))
+            action = a[0]
+
+            # Execute action and get new state, reward
+            s, r, terminal, info = env.step(action)
+            ep_reward += r
+
+            transition = (action, s, r)
+            transitions.append(transition)
+            if terminal:
+                break
+        episodes.append(transitions)
+        test_total_reward += ep_reward
+
+    env.setWallCollision(False)
+
+    # Return the average test reward
+    return (test_total_reward / (m+1), episodes)
+
+\end{python}
 %\begin{python}[caption={Caption},label={list:label}]
 %
 %\end{python}
 
-
-\section{Training}
-
-\section{Testing}
-
 \section{Results}
+\subsection{Parameter Definitions}
+Before discussing the results, some parameters must be defined. The Roborodentia field is 2438.4 mm long in the x direction and 1219.2 mm wide in the y direction as shown in Figure \ref{fig:field_defs} \cite{roborodentia}. Viewed from above, the coordinate (0,0) is the bottom-left corner while (2438.4, 1219.2) is the top-right corner. The robot position, ($x$, $y$, $\theta$), is represented as a vector in the field plane where the base of the vector is at the robot center. Note that the vector orientation deviates from standard notation; 0 radians is in line with the positive y-axis and $+\pi/2$ radians is in line with the negative x-axis. The x velocity and acceleration of the robot refer to motion parallel to the field x-axis. Three control inputs $u_x$, $u_y$, and $u_\theta$ correspond proportionally to force applied to the robot and range between -2 to +2. For absolute clarity, positive $u_x$ moves the robot in the direction of the positive x-axis, positive $u_y$ pushes towards the positive y-axis, and positive $u_\theta$ torques the robot in the positive $\theta$ direction. Robot velocities are defined similarly using ($\dot{x}$, $\dot{y}$, $\dot{\theta}$). Units of position, orientation, linear velocity, and rotational velocity are mm, mm/s, radians, and radians/s, respectively.
+\begin{figure}[H]
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/field_defs.png}
+	\caption{Roborodentia Field Definitions} \label{fig:field_defs}
+\end{figure}
 
-\begin{figure}
+\subsection{Three Actors Implementation}
+Since the robot's mecanum wheels permit omni-directional movement, position control can be viewed as three separate control loops. Therefore, early experiments used three individually-trained, single-action actors to provide orthogonal controls $u_x$, $u_y$, and $u_\theta$. The three controls are converted to individual motor voltages, $v_0$, $v_1$, $v_2$, and $v_3$, by calculating the translation vector magnitude $V_d = \sqrt{u_x^2 + u_y^2}/2$ and angle $\theta_d = \text{atan2}(u_y / u_x)$ and using Equations \ref{eq:mecanum_v0} through \ref{eq:mecanum_v3} \cite{li_2018}\cite{rahman_2014}.
+\begin{align}
+v_0 &= V_d \text{sin}(\theta_d + \pi/4) - u_\theta  \label{eq:mecanum_v0}\\
+v_1 &= V_d \text{cos}(\theta_d + \pi/4) + u_\theta  \label{eq:mecanum_v1}\\
+v_2 &= V_d \text{sin}(\theta_d + \pi/4) + u_\theta  \label{eq:mecanum_v2}\\
+v_3 &= V_d \text{cos}(\theta_d + \pi/4) - u_\theta  \label{eq:mecanum_v3}
+\end{align}
+
+\begin{figure}[H]
 	\begin{tabular}{ccc}
 		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_21.pdf} &  
 		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_41.pdf} \\
@@ -402,7 +603,7 @@ Both actor and critic classes create a regular and target network in the \python
 		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_321.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_641.pdf} \\
 		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_1281.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_2141.pdf} \\
 	\end{tabular}
-	\caption{caption}
+	\caption{Angle Actor Output Progression}\label{fig:angle_contour}
 \end{figure}
 
 \begin{figure}[H]

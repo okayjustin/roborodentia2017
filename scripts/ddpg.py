@@ -231,7 +231,7 @@ def trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render):
 
     return (j, ep_reward, ep_ave_max_q)
 
-# Tests the actor network against a number of random cases
+# Tests the actor network against a number of test cases
 def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False):
     test_total_reward = 0.0
     episodes = []
@@ -345,8 +345,6 @@ def main(args):
         actor = ActorNetwork(sess, state_dim, action_dim, action_bound,
                              float(args['actor_lr']), float(args['tau']),
                              int(args['minibatch_size']))
-#        for op in tf.get_default_graph().get_operations():
-#            print(str(op.name))
 
         print("Instantiating critic...")
         critic = CriticNetwork(sess, state_dim, action_dim,
@@ -374,10 +372,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
 
     # agent parameters
-    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.0001) #0.0001
-    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.0001) #=0.001
-    parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) #0.99
-    parser.add_argument('--tau', help='soft target update parameter', default=0.001) #0.001
+    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.0001) 
+    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.001) 
+    parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) 
+    parser.add_argument('--tau', help='soft target update parameter', default=0.001) 
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
     parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
 
