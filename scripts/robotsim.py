@@ -487,7 +487,7 @@ class SimRobot():
 
         elif (self.train == 'transx'):
             # Rewarded for staying near desired x coordinate
-            self.reward_dist = -1.0 * ((x - xdes) / 764)**2.
+            self.reward_dist = -1.0 * ((x - xdes) / 100)**2.
             # Minimize velocities
             self.reward_vel =  -0.1 * (xdot / 65.)**2
             # Minimize effort

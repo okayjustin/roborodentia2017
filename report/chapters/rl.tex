@@ -33,7 +33,7 @@ Core to many RL algorithms, the Q-function or action-value function is the expec
 \LTXtable{\textwidth}{tables/tab_rl_defs.tex}
 
 \section{Reinforcement Learning Algorithms}
-Many reinforcement learning algorithms have been applied to control including Q-Learning, State-Action-Reward-State-Action (SARSA), and Deep Deterministic Policy Gradient (DDPG), among others. Note that these methods differ from evolutionary algorithms in that they actively learn as they interact with the environment.
+Many reinforcement learning algorithms have been applied to control including Q-Learning, State-Action-Reward-State-Action (SARSA), deep Q-network (DQN), policy gradients (PG), deep policy gradients (DPG), and deep deterministic policy gradients (DDPG), among others \cite{sutton_2017}\cite{sutton_policygrad}\cite{silver_2017}\cite{silver_lever_heess_degris_wierstra_riedmiller}\cite{lillicrap_2016}. Note that these methods differ from evolutionary algorithms in that they actively learn as they interact with the environment.
 
 RL algorithms can be classified by their use of models (model-based vs.\ model-free) and actor policy (on-policy vs.\ off-policy) \cite{sutton_2017}. Model-based strategies first develop a model of the environment and then use a planning algorithm along with the model to create a controller while model-free algorithms forgo the model entirely.
 
