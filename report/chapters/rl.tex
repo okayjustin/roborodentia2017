@@ -1,5 +1,5 @@
 \chapter{Reinforcement Learning}
-The robot controls its motors using artificial neural networks (ANN) and the deep deterministic policy gradient (DDPG) algorithm, developed by Lillicrap et al.\ \cite{lillicrap_2016}. The system runs in Python 3, leaning heavily on the TensorFlow library \cite{tensorflow} for artificial neural network instantiation, updating, and saving. The following sections briefly cover reinforcement learning (RL) techniques that form the foundation of DDPG. It is worth noting that Sutton's introductory book on RL provides excellent background on many of the following algorithms and more \cite{sutton_2017}.
+The robot controls its motors using artificial neural networks (ANN) and the deep deterministic policy gradient (DDPG) algorithm, developed by Lillicrap et al.\ \cite{lillicrap_2016}. The system runs in Python 3 \cite{python3}, leaning heavily on the TensorFlow library \cite{tensorflow} for artificial neural network instantiation, updating, and saving. The following sections briefly cover reinforcement learning (RL) techniques that form the foundation of DDPG. It is worth noting that Sutton's introductory book on RL provides excellent background on many of the following algorithms and more \cite{sutton_2017}.
 
 \section{Reinforcement Learning Background}
 Reinforcement learning (RL) is a subset of machine learning that aims to solve control and action selection problems rather than to perform classification or data clustering. Most reinforcement learning problems involve six main elements: an actor, the environment, rewards, a policy, a value function, and sometimes a model. An actor (sometimes called an agent) takes actions in an environment which returns a state and reward, illustrated in Figure \ref{fig:actor_env_loop}. The actor's primary goal is to maximize the accumulated reward received from the environment. A policy determines which actions the actor takes given the current state and can be considered a mapping from state to action. The value function indicates the long-term reward expected from a state so even if a state only has a small immediate reward, it may possess high value since it leads to high reward states. Some algorithms involve a model of the environment, allowing prediction of the next state from the current state and action. Table \ref{tab:rl_defs} summarizes some common terms and definitions used in the reinforcement learning literature.
@@ -56,39 +56,45 @@ Clearly, the Q-function always exists but not necessarily in an analytic or obvi
 	Q(s,a)=R(s) + \gamma (\text{max}_{a'}(Q(s',a')))
 \end{equation}
 
-To improve convergence, Equation \ref{eq:bellman} is modified to include the learning rate $\alpha$. The pseudocode for Q-learning presented by Sutton is reproduced below. The $\text{max}_{a'}()$ operator maximizes its argument with respect to $a'$.
-\begin{center} \begin{tabular}{|p{0.9\linewidth}|}\hline % or any other width
-Initialize $Q(s,a)$ arbitrarily. \\
-Repeat (for each episode): \\
-\qquad Initialize $s$\\
-\qquad Repeat (for each step of episode):\\
-\qquad \qquad Choose $a$ from $s$ using policy derived from $Q$ (e.g., $\epsilon$-greedy)\\
-\qquad \qquad Take action $a$, observe $r$, $s'$\\
-\qquad \qquad $Q(s,a)\gets (1-\alpha)Q(s,a) + \alpha [r + \gamma \text{max}_{a'}Q(s',a')]$\\
-\qquad \qquad $s \gets s';$\\
-\qquad until $s$ is terminal \\
-\hline
-\end{tabular} \end{center}
+To improve convergence, Equation \ref{eq:bellman} is modified to include the learning rate $\alpha$. The pseudocode for Q-learning presented by Sutton is reproduced in Table \ref{tab:qlearning_pseudo}. The $\text{max}_{a'}()$ operator maximizes its argument with respect to $a'$.
+\begin{table}[h]
+	\caption{Q-Learning Pseudocode}  \label{tab:qlearning_pseudo}
+	\begin{tabular}{|p{0.9\linewidth}|}\hline % or any other width
+		Initialize $Q(s,a)$ arbitrarily. \\
+		Repeat (for each episode): \\
+		\qquad Initialize $s$\\
+		\qquad Repeat (for each step of episode):\\
+		\qquad \qquad Choose $a$ from $s$ using policy derived from $Q$ (e.g., $\epsilon$-greedy)\\
+		\qquad \qquad Take action $a$, observe $r$, $s'$\\
+		\qquad \qquad $Q(s,a)\gets (1-\alpha)Q(s,a) + \alpha [r + \gamma \text{max}_{a'}Q(s',a')]$\\
+		\qquad \qquad $s \gets s';$\\
+		\qquad until $s$ is terminal \\
+		\hline
+	\end{tabular}
+\end{table}
 
 Notice the algorithm updates the Q-value, $Q(s,a)$, from the Q-value of the next state and greedy policy action, $\text{max}_{a'}Q(s',a')$, regardless of the policy and action taken by the actor. This characteristic makes Q-learning an off-policy algorithm. The Q-value for a particular state and action only updates when the actor visits said state and action so the actor must still explore (i.e.\ not always take greedy actions) for Q-learning to converge.
 
 Clearly, the tabular Q method quickly becomes unfeasible for more complex problems, especially when the states or actions become continuous rather than discrete. When the action or state spaces are continuous, the algorithm must discretize them, forcing a tradeoff between resolution and tractability. For the tic-tac-toe example, the table would be 19,683 rows by 9 columns for a total of 177,147 Q-values while the Q-value table for a game of chess would possess more elements than there are atoms in the known universe.
 
 \subsection{State-Action-Reward-State-Action (SARSA)}
-SARSA is an on-policy algorithm which shares many characteristics with Q-learning. The name comes from the fact that the Q update equation uses the current \textbf{s}tate and \textbf{a}ction as well as the next \textbf{r}eward, \textbf{s}tate, and \textbf{a}ction. The pseudocode for SARSA presented by Sutton is reproduced below:
-\begin{center} \begin{tabular}{|p{0.9\linewidth}|}\hline % or any other width
-Initialize $Q(s,a)$ arbitrarily. \\
-Repeat (for each episode): \\
-\qquad Initialize $s$\\
-\qquad Choose $a$ from $s$ using policy derived from $Q$ (e.g., $\epsilon$-greedy)\\
-\qquad Repeat (for each step of episode):\\
-\qquad \qquad Take action $a$, observe $r$, $s'$\\
-\qquad \qquad Choose $a'$ from $s'$ using policy derived from $Q$ (e.g., $\epsilon$-greedy)\\
-\qquad \qquad $	Q(s,a)\gets (1-\alpha)Q(s,a) + \alpha [r + \gamma Q(s',a')]$\\
-\qquad \qquad $s \gets s'; a \gets a'$;\\
-\qquad until $s$ is terminal \\
-\hline
-\end{tabular} \end{center}
+SARSA is an on-policy algorithm which shares many characteristics with Q-learning. The name comes from the fact that the Q update equation uses the current \textbf{s}tate and \textbf{a}ction as well as the next \textbf{r}eward, \textbf{s}tate, and \textbf{a}ction. The pseudocode for SARSA presented by Sutton is reproduced in Table \ref{tab:sarsa}:
+\begin{table}[h]
+	\caption{SARSA Pseudocode}  \label{tab:sarsa}
+	\begin{tabular}{|p{0.9\linewidth}|}\hline % or any other width
+		Initialize $Q(s,a)$ arbitrarily. \\
+		Repeat (for each episode): \\
+		\qquad Initialize $s$\\
+		\qquad Choose $a$ from $s$ using policy derived from $Q$ (e.g., $\epsilon$-greedy)\\
+		\qquad Repeat (for each step of episode):\\
+		\qquad \qquad Take action $a$, observe $r$, $s'$\\
+		\qquad \qquad Choose $a'$ from $s'$ using policy derived from $Q$ (e.g., $\epsilon$-greedy)\\
+		\qquad \qquad $	Q(s,a)\gets (1-\alpha)Q(s,a) + \alpha [r + \gamma Q(s',a')]$\\
+		\qquad \qquad $s \gets s'; a \gets a'$;\\
+		\qquad until $s$ is terminal \\
+		\hline
+	\end{tabular}
+\end{table}
 
 Unlike Q-learning, SARSA updates Q-values from the next state and next action $Q(s',a')$, making it an on-policy strategy. Like Q-learning, the actor must take exploratory actions for the algorithm to update Q at all states and actions and achieve convergence.
 

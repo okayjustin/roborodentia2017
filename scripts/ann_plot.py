@@ -178,16 +178,20 @@ def plotEpisodes(net_index, episodes, dt, num_episodes = 0):
     # Set parameters depending on which net
     if (net_index == 0):
         net_name = 'Angle'
-        y_label = 'Theta Error (rad)'
+        act_label = ['Action']
+        y_label = ['$\Theta$ Error (rad)']
     elif (net_index == 1):
         net_name = 'X Translation'
-        y_label = 'X Error (mm)'
+        act_label = ['Action']
+        y_label = ['X Error (mm)']
     elif (net_index == 2):
         net_name = 'Y Translation'
-        y_label = 'Y Error (mm)'
+        act_label = ['Action']
+        y_label = ['Y Error (mm)']
     elif (net_index == 3):
         net_name = 'Full Motion'
-        y_label = 'Y Error (mm)'
+        act_label = ['X Act', 'Y Act', '$\Theta$ Act', ]
+        y_label = ['X Err (mm)', 'Y Err (mm)', '$\Theta$ Err (rad)']
 
     # Generate figure title
     ep_name = "- %d Episodes" % num_episodes if (num_episodes != 0) else ""
@@ -200,28 +204,46 @@ def plotEpisodes(net_index, episodes, dt, num_episodes = 0):
     t = np.arange(0, tmax, dt)
 
     # Generate plot
-    fig, axarr = plt.subplots(3, sharex=True)
+    fig, axarr = plt.subplots(1 + 2 * len(y_label), sharex=True)
 
     # Plot labels
     fig.suptitle(plot_title)
-    axarr[0].set_ylabel('Action')
-    axarr[1].set_ylabel(y_label)
-    axarr[2].set_ylabel('Reward')
-    axarr[2].set_xlabel('Time (s)')
+    for i in range(0, len(y_label)):
+        axarr[2*i].set_ylabel(act_label[i])
+        axarr[2*i + 1].set_ylabel(y_label[i])
+    axarr[2*i + 2].set_ylabel('Reward')
+    axarr[2*i + 2].set_xlabel('Time (s)')
 
     # Add plots
     for i in range(0, len(episodes) - 1, 5):
         ep = episodes[i+1]
-        a = [transition[0] for transition in ep]
-        if (net_index == 0):
-            s = [np.arctan2(transition[1][1], transition[1][0]) for transition in ep]
-        else:
-            s = [transition[1][0] for transition in ep]
-        r = [transition[2] for transition in ep]
 
-        axarr[0].plot(t, a, linewidth=0.2)
-        axarr[1].plot(t, s, linewidth=0.2)
-        axarr[2].plot(t, r, linewidth=0.2)
+        # Parse action
+        if (net_index == 3):
+            a = [[transition[0][0] for transition in ep], 
+                 [transition[0][1] for transition in ep], 
+                 [transition[0][2] for transition in ep]]
+        else:
+            a = [[transition[0] for transition in ep]]
+        
+        # Parse state
+        if (net_index == 0):
+            s = [[np.arctan2(transition[1][1], transition[1][0]) for transition in ep]]
+        elif (net_index == 3):
+            s = [[transition[1][0] for transition in ep], 
+                 [transition[1][2] for transition in ep], 
+                 [np.arctan2(transition[1][5], transition[1][4]) for transition in ep]]
+        else:
+            s = [[transition[1][0] for transition in ep]]
+
+        # Parse reward
+        r = [transition[2] for transition in ep]
+        
+        # Plot each
+        for i in range(0, len(y_label)):
+            axarr[2*i].plot(t, a[i], linewidth=0.2)
+            axarr[2*i + 1].plot(t, s[i], linewidth=0.2)
+        axarr[2*i + 2].plot(t, r, linewidth=0.2)
 
     # Save figure
     filestub =  "figures/transitions/%d_%d.pdf" % (net_index, num_episodes)
@@ -229,6 +251,8 @@ def plotEpisodes(net_index, episodes, dt, num_episodes = 0):
     directory = os.path.dirname(filepath)
     if not os.path.exists(directory):
         os.makedirs(directory)
+    #fig = matplotlib.pyplot.gcf()
+    fig.set_size_inches(6, 7)
     fig.savefig(filepath, bbox_inches='tight')
 
     end_time =  timer()

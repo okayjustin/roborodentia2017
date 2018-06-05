@@ -194,6 +194,7 @@ class SimRobot():
         self.reward = 0
         self.terminal = 0
         self.last_u = np.zeros(self.u_len)
+        self.testNet = testNet
 
         # Limit range of values for each state var
         if (self.net_index == 0):
@@ -336,7 +337,13 @@ class SimRobot():
             self.robot.printSensorVals()
 
         # End cycle if time hits max or robot moves to an extreme bound
-        if ((self.time > TIME_MAX)):# or (self.online and (abs(self.state[4]) > 1.2))):
+        error_x = abs(self.state[0] - self.state[6])
+        error_y = abs(self.state[2] - self.state[7])
+        end_early = ((self.testNet == None) and 
+            ((error_x > 1200 - self.robot.LEN_X/2) or 
+            (error_y > 600 - self.robot.LEN_Y/2)))
+
+        if ((self.time > TIME_MAX) or end_early):# or (self.online and (abs(self.state[4]) > 1.2))):
             self.halt()
             self.terminal = 1
 
@@ -447,52 +454,75 @@ class SimRobot():
         self.obs = self.obs_sets[self.net_index]
 
     def updateReward(self):
+        x = self.robot.state[0].curVal()
+        xdot = self.robot.state[1].curVal()
+        y = self.robot.state[2].curVal()
+        ydot = self.robot.state[3].curVal()
+        th = self.robot.state[4].curVal()
+        thdot = self.robot.state[5].curVal()
+        xdes = self.robot.state[6].curVal()
+        ydes = self.robot.state[7].curVal()
+        thdes = self.robot.state[8].curVal()
+
+        error_x = abs(x - self.state[6])
+        error_y = abs(self.state[2] - self.state[7])
+        end_early = ((self.testNet == None) and 
+            ((error_x > 1200 - self.robot.LEN_X/2) or 
+            (error_y > 600 - self.robot.LEN_Y/2)))
+
+        # If ending early, receive penalty
+        if (end_early):
+            penalty = -50.0 
+        else:
+            penalty = 0
+
         if (self.train == 'angle'):
             # Keep angle at 0
-            self.reward_theta = -1.0 * (self.angle_normalize(self.state[4]) - self.angle_normalize(self.state[8]))**2.
+            self.reward_theta = -1.0 * (self.angle_normalize(th) - self.angle_normalize(thdes))**2.
+            # Minimize velocities
+            self.reward_rvel = -0.1 * thdot**2
             # Minimize effort
             self.reward_effort = -0.001 * self.last_u[2]**2
-            # Minimize velocities
-            self.reward_rvel = -0.1 * self.state[5]**2
             self.reward = self.reward_theta + self.reward_rvel + self.reward_effort 
 
         elif (self.train == 'transx'):
             # Rewarded for staying near desired x coordinate
-            self.reward_dist = -0.00001 * (self.state[0] - self.state[6])**2.
+            self.reward_dist = -1.0 * ((x - xdes) / 764)**2.
             # Minimize velocities
-            self.reward_vel = -0.0000005 * self.state[1]**2
+            self.reward_vel =  -0.1 * (xdot / 65.)**2
+            # Minimize effort
             self.reward_effort = -0.001 * self.last_u[0]**2
             #print("Rewards: %f, %f, %f" % (self.reward_dist, self.reward_vel, self.reward_effort))
             self.reward = self.reward_dist + self.reward_vel + self.reward_effort
 
         elif (self.train == 'transy'):
             # Rewarded for staying near desired y coordinate
-            self.reward_dist = -0.00001 * pow(self.state[2] - self.state[7], 2)
+            self.reward_dist = -0.00001 * pow(y - ydes, 2)
             # Minimize velocities
-            self.reward_vel = -0.0000005 * self.state[3]**2
+            self.reward_vel = -0.0000005 * ydot**2
             self.reward_effort = -0.001 * self.last_u[1]**2
             self.reward = self.reward_dist + self.reward_vel + self.reward_effort
 
         elif (self.train == 'all'):
             # Keep angle at 0
-            self.reward_theta = -1.0 * (self.angle_normalize(self.state[4]) - self.angle_normalize(self.state[8]))**2.
+            self.reward_theta = -1.0 * (self.angle_normalize(th) - self.angle_normalize(thdes))**2.
             # Minimize effort
-            self.reward_efforta = -0.005 * self.last_u[2]**2
+            self.reward_efforta = -0.01 * self.last_u[2]**2
             # Minimize velocities
-            self.reward_rvel = -0.1 * self.state[5]**2
+            self.reward_rvel = -0.1 * thdot**2
 
             # Rewarded for staying near desired x coordinate
-            self.reward_distx = -0.00001 * (self.state[0] - self.state[6])**2.
+            self.reward_distx = -0.00001 * (x - xdes)**2.
             # Minimize velocities
-            self.reward_velx = -0.0000005 * self.state[1]**2
-            self.reward_effortx = -0.001 * self.last_u[0]**2
+            self.reward_velx =  -0.0000005 * xdot**2
+            self.reward_effortx = -0.01 * self.last_u[0]**2
             #print("Rewards: %f, %f, %f" % (self.reward_dist, self.reward_vel, self.reward_effort))
 
             # Rewarded for staying near desired y coordinate
-            self.reward_disty = -0.00001 * pow(self.state[2] - self.state[7], 2)
+            self.reward_disty = -0.00001 * pow(y - ydot, 2)
             # Minimize velocities
-            self.reward_vely = -0.0000005 * self.state[3]**2
-            self.reward_efforty = -0.001 * self.last_u[1]**2
+            self.reward_vely =  -0.0000005 * ydot**2
+            self.reward_efforty = -0.01 * self.last_u[1]**2
 
             self.reward = self.reward_theta + self.reward_rvel + self.reward_efforta + \
                 self.reward_distx + self.reward_velx + self.reward_effortx + \
@@ -500,6 +530,9 @@ class SimRobot():
 
         if (DEBUG_PRINT):
             print("Reward: %f" % self.reward)
+        
+        # Additional penalty for ending early
+        self.reward += penalty
         return self.reward
 
     def render(self, mode='human'):

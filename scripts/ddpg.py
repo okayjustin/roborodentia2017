@@ -129,7 +129,7 @@ def train(sess, env, args, actor, critic, actor_noise):
                     trainEpisode(env, args, actor, critic, actor_noise, replay_buffer, render)
 
             print('Ep: %d | Reward: %d | Qmax: %0.4f' % \
-                    (i, int(ep_reward), ep_ave_max_q / float(ep_len)))
+                    (i, int(ep_reward), ep_ave_max_q / float(ep_len+1)))
 
             # Test the network's performance
             if (i % test_period == 0):
@@ -320,6 +320,7 @@ def main(args):
     if ((args['env'] == 'angle') or (args['env'] == 'transx') or \
         (args['env'] == 'transy') or (args['env'] == 'all')):
         env = robotsim.SimRobot(train = args['env'], online = int(args['online']))
+        env.setWallCollision(True)
     else:
         env = gym.make(args['env'])
 
