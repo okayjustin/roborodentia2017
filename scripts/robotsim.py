@@ -297,7 +297,7 @@ class SimRobot():
         self.time += dt
 
         # Execute command
-        self.execute(u)
+        self.execute([2,0,0])#u)
 
         # Get sensor vals
         sensor_vals = self.getSensorVals()
@@ -463,6 +463,8 @@ class SimRobot():
         xdes = self.robot.state[6].curVal()
         ydes = self.robot.state[7].curVal()
         thdes = self.robot.state[8].curVal()
+
+        print(xdot)
 
         error_x = abs(x - self.state[6])
         error_y = abs(self.state[2] - self.state[7])

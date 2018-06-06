@@ -184,6 +184,22 @@ To reiterate, the important advantage of the DDPG technique is its ability to ha
 \section{Implementation}
 All code is implemented in Python 3.6 and uses libraries from TensorFlow \cite{tensorflow} and OpenAI Gym \cite{openaigym}. An implementation of the Lillicrap's DDPG algorithm from Patrick Emami's wonderful reinforcement learning primer formed the initial code base to which modifications and new developments were added \cite{emami_2016}.
 
+\subsection{Robot Simulation}
+
+\subsubsection{Reward}
+The rewards given by the environment, shown in Equations \ref{eq:reward_x} to \ref{eq:reward_uth}, consist of the distance from the set point, velocity, and action value for each of $x$, $y$, and $\theta$ of the robot.
+\begin{align}
+r_x &= -0.00001 (x-x_{des})^2 \label{eq:reward_x}\\
+r_y &= -0.00001 (y-y_{des})^2 \\
+r_\theta &= -1.0 (norm(\theta)-norm(\theta_{des}))^2 \\
+r_{\dot{x}} &= -0.000001 \dot{x}^2 \\
+r_{\dot{y}} &= -0.000001 \dot{y}^2 \\
+r_{\dot{\theta}} &= -0.1 \dot{\theta}^2 \\
+r_{u_x} &= -0.001u_x^2 \\
+r_{u_y} &= -0.001u_y^2 \\
+r_{u_\theta} &= -0.001u_\theta^2 \label{eq:reward_uth}
+\end{align}
+
 \subsection{Artificial Neural Networks}
 \subsubsection{Critic Network}
 Listing \ref{list:critic_net} implements the critic network class. The function \pythoninline{create_critic_network()} at line 55 instantiates the TensorFlow network graph. The critic consists of a \pythoninline{s_dim}-node state input layer, another \pythoninline{a_dim}-node action input layer, two fully connected hidden layers, and a 1-node output layer, illustrated in Figure \ref{fig:critic_net}. The state input layer enters into the first hidden layer while the action input layer connects to the second hidden layer. The first hidden layer uses a fully connected network layer of weights with biases, a batch normalization layer described previously, and the rectified linear unit (ReLU) activation function $ReLU(x) = max(0,x)$. Deep neural networks widely use the ReLU function for speeding up large computations both in forward and backward passes of the network \cite{2017arXiv171005941R}. The derivative of the ReLU function is simply 1 for positive inputs and 0 otherwise, greatly simplifying the back propagation algorithm. The second hidden layer consists of 600 nodes, half of which connect to the first hidden layer output and half that connect to the action input layer. Finally, the output layer is a single node with no activation function to obtain linear output.
@@ -410,7 +426,11 @@ Both actor and critic classes create a regular and target network in the \python
 \end{equation}
 
 \subsection{DDPG}
-The DDPG training algorithm is as follows:
+Figure \ref{fig:ddpg_flow} displays the DDPG training algorithm flowchart.
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=6in, height=8.5in, keepaspectratio]{figures/ddpg_flow.pdf}
+	\caption{DDPG Flowchart}\label{fig:ddpg_flow}
+\end{figure}
 \begin{enumerate}
 \item Set training parameters such as learning rates, discount factor $\gamma$, target network update parameter $\tau$, and mini-batch size. The arguments use default values unless specified in the program arguments list.
 \begin{python}[caption={Training Parameter Initialization},label={list:train_param_init},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
