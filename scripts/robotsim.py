@@ -476,57 +476,41 @@ class SimRobot():
         else:
             penalty = 0
 
+        # Rewarded for staying near desired x coordinate
+        r_x = -1.0 * ((x - xdes) / 100.)**2. /10
+        # Minimize velocities
+        r_xdot =  -0.1 * (xdot / 100.)**2 /10
+        # Minimize effort
+        r_ux = -0.001 * self.last_u[0]**2
+
+        # Rewarded for staying near desired y coordinate
+        r_y =  -1.0 * ((y - ydes) / 100.)**2. /10
+        # Minimize velocities
+        r_ydot = -0.1 * (ydot / 100.)**2 /10
+        # Minimize effort
+        r_uy = -0.001 * self.last_u[1]**2
+
+        # Keep angle at 0
+        r_th = -1.0 * (self.angle_normalize(th) - self.angle_normalize(thdes))**2.
+        # Minimize velocities
+        r_thdot = -0.1 * thdot**2
+        # Minimize effort
+        r_uth = -0.001 * self.last_u[2]**2
+
+        # Calc rewards for each case
+        reward_x  = r_x  + r_xdot  + r_ux
+        reward_y  = r_y  + r_ydot  + r_uy
+        reward_th = r_th + r_thdot + r_uth
+        # print("%0.3f %0.3f %0.3f" % (reward_x, reward_y, reward_th))
+
         if (self.train == 'angle'):
-            # Keep angle at 0
-            self.reward_theta = -1.0 * (self.angle_normalize(th) - self.angle_normalize(thdes))**2.
-            # Minimize velocities
-            self.reward_rvel = -0.1 * thdot**2
-            # Minimize effort
-            self.reward_effort = -0.001 * self.last_u[2]**2
-            self.reward = self.reward_theta + self.reward_rvel + self.reward_effort 
-
+            self.reward = reward_th
         elif (self.train == 'transx'):
-            # Rewarded for staying near desired x coordinate
-            self.reward_dist = -1.0 * ((x - xdes) / 100)**2.
-            # Minimize velocities
-            self.reward_vel =  -0.1 * (xdot / 65.)**2
-            # Minimize effort
-            self.reward_effort = -0.001 * self.last_u[0]**2
-            #print("Rewards: %f, %f, %f" % (self.reward_dist, self.reward_vel, self.reward_effort))
-            self.reward = self.reward_dist + self.reward_vel + self.reward_effort
-
+            self.reward = reward_x
         elif (self.train == 'transy'):
-            # Rewarded for staying near desired y coordinate
-            self.reward_dist = -0.00001 * pow(y - ydes, 2)
-            # Minimize velocities
-            self.reward_vel = -0.0000005 * ydot**2
-            self.reward_effort = -0.001 * self.last_u[1]**2
-            self.reward = self.reward_dist + self.reward_vel + self.reward_effort
-
+            self.reward = reward_y
         elif (self.train == 'all'):
-            # Keep angle at 0
-            self.reward_theta = -1.0 * (self.angle_normalize(th) - self.angle_normalize(thdes))**2.
-            # Minimize effort
-            self.reward_efforta = -0.01 * self.last_u[2]**2
-            # Minimize velocities
-            self.reward_rvel = -0.1 * thdot**2
-
-            # Rewarded for staying near desired x coordinate
-            self.reward_distx = -0.00001 * (x - xdes)**2.
-            # Minimize velocities
-            self.reward_velx =  -0.0000005 * xdot**2
-            self.reward_effortx = -0.01 * self.last_u[0]**2
-            #print("Rewards: %f, %f, %f" % (self.reward_dist, self.reward_vel, self.reward_effort))
-
-            # Rewarded for staying near desired y coordinate
-            self.reward_disty = -0.00001 * pow(y - ydot, 2)
-            # Minimize velocities
-            self.reward_vely =  -0.0000005 * ydot**2
-            self.reward_efforty = -0.01 * self.last_u[1]**2
-
-            self.reward = self.reward_theta + self.reward_rvel + self.reward_efforta + \
-                self.reward_distx + self.reward_velx + self.reward_effortx + \
-                self.reward_disty + self.reward_vely + self.reward_efforty
+            self.reward = reward_x + reward_y + reward_th
 
         if (DEBUG_PRINT):
             print("Reward: %f" % self.reward)

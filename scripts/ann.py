@@ -124,12 +124,16 @@ class ActorNetwork(object):
 
     def create_actor_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim], name='ActorInputs')
-        net = tflearn.fully_connected(inputs, ACTOR_L1_NODES, name='ActorInputsNet')
+        net = tflearn.layers.normalization.batch_normalization(inputs, name='ActorBatchNorm0Net')
+        net = tflearn.fully_connected(net, ACTOR_L1_NODES, name='ActorInputsNet')
+        # inputs = tflearn.input_data(shape=[None, self.s_dim], name='ActorInputs')
+        # net = tflearn.fully_connected(inputs, ACTOR_L1_NODES, name='ActorInputsNet')
+        
+        net = tflearn.activations.relu(net)
         net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm1Net')
-        net = tflearn.activations.relu(net)
         net = tflearn.fully_connected(net, ACTOR_L2_NODES, name='ActorNetNet')
-        net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm2Net')
         net = tflearn.activations.relu(net)
+        net = tflearn.layers.normalization.batch_normalization(net, name='ActorBatchNorm2Net')
         # Final layer weights are init to Uniform[-3e-3, 3e-3]
         w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
         out = tflearn.fully_connected(
@@ -168,18 +172,22 @@ class CriticNetwork(object):
 
     """
 
-    def __init__(self, sess, state_dim, action_dim, learning_rate, tau, gamma, num_actor_vars):
+    def __init__(self, sess, state_dim, action_dim, learning_rate, tau, gamma, beta, num_actor_vars):
         self.sess = sess
         self.s_dim = state_dim
         self.a_dim = action_dim
         self.learning_rate = learning_rate
         self.tau = tau
         self.gamma = gamma
+        self.beta = beta
 
         # Create the critic network
         self.inputs, self.action, self.out = self.create_critic_network()
 
         self.network_params = tf.trainable_variables()[num_actor_vars:]
+        
+        # Get network weights only for L2 weight decay (no biases)
+        self.network_weights = [v for v in self.network_params if 'W' in v.name]
 
         # Target Network
         self.target_inputs, self.target_action, self.target_out = self.create_critic_network()
@@ -197,7 +205,17 @@ class CriticNetwork(object):
         self.predicted_q_value = tf.placeholder(tf.float32, [None, 1])
 
         # Define loss and optimization Op
-        self.loss = tflearn.mean_square(self.predicted_q_value, self.out)
+        self.regularizers = tf.nn.l2_loss(self.network_weights[0]) \
+            + tf.nn.l2_loss(self.network_weights[1]) \
+            + tf.nn.l2_loss(self.network_weights[2]) \
+            + tf.nn.l2_loss(self.network_weights[3])
+        # self.loss = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+        #     out_layer, tf_train_labels) +
+        #     beta*tf.nn.l2_loss(hidden_weights) +
+        #     beta*tf.nn.l2_loss(hidden_biases) +
+        #     beta*tf.nn.l2_loss(out_weights) +
+        #     beta*tf.nn.l2_loss(out_biases)))
+        self.loss = tflearn.mean_square(self.predicted_q_value, self.out) + self.beta * self.regularizers
         self.optimize = tf.train.AdamOptimizer(
             self.learning_rate).minimize(self.loss)
 
@@ -215,8 +233,8 @@ class CriticNetwork(object):
     def create_critic_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim], name='CriticInputs')
         action = tflearn.input_data(shape=[None, self.a_dim], name='CriticAction')
-        net = tflearn.fully_connected(inputs, CRITIC_L1_NODES, name='CriticInputsNet')
-        net = tflearn.layers.normalization.batch_normalization(net)
+        net = tflearn.layers.normalization.batch_normalization(inputs)
+        net = tflearn.fully_connected(net, CRITIC_L1_NODES, name='CriticInputsNet')
         net = tflearn.activations.relu(net)
 
         # Add the action tensor in the 2nd hidden layer
