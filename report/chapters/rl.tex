@@ -499,22 +499,22 @@ if replay_buffer.size() > int(args['minibatch_size']):
 	# Update target networks
 	actor.update_target_network()
 	critic.update_target_network()
-		\end{python}
-		\item Update state for the next step and increment episode reward.
-		\begin{python}[caption={Step Cleanup},label={list:ep_clean},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+		\end{python}	
+		\end{enumerate}
+	\item Update state for the next step and increment episode reward.
+	\begin{python}[caption={Step Cleanup},label={list:ep_clean},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
 # Update state for next step
 s = s2
 
 # Increment episode reward
 ep_reward += r
-		\end{python}
-		\item If the environment is terminated, break out of the episode. Otherwise, loop back.
-		\begin{python}[caption={Episode Termination},label={list:ep_term},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
+	\end{python}
+	\item If the environment is terminated, break out of the episode. Otherwise, loop back.
+	\begin{python}[caption={Episode Termination},label={list:ep_term},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
 # End of episode
 if terminal:
   	break
-		\end{python}
-		\end{enumerate}
+	\end{python}
 	\item Print episode information to track progress.
 	\begin{python}[caption={Print Episode Results},label={list:print_ep},xleftmargin=\dimexpr-\csname @totalleftmargin\endcsname]
 print('Ep: %d | Reward: %d | Qmax: %0.4f' % \
