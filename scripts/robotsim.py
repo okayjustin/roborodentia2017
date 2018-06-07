@@ -208,15 +208,15 @@ class SimRobot():
         elif (self.net_index == 2):
             max_val = FIELD_YMAX - LEN_Y / 2
             min_val = LEN_Y / 2
-            state_index = 2 
+            state_index = 2
         elif (self.net_index == 3):
             max_val = np.array([FIELD_XMAX - LEN_X / 2, FIELD_YMAX - LEN_Y / 2, np.pi])
             min_val = np.array([LEN_X / 2, LEN_Y / 2, -np.pi])
-            state_index = [0,2,4] 
-        
+            state_index = [0,2,4]
+
         # Initialize to starting state
         self.state = self.state_start
-        
+
         if (randomize):
             if (self.online):
                 # Set a new desired x, y, theta
@@ -226,7 +226,7 @@ class SimRobot():
                 self.robot.setDesired([xdes, ydes, thdes])
             else:
                 self.state[state_index] = np.random.uniform(low=min_val, high=max_val)
-                
+
                 # Randomize variable friction and voltage sensitivity per wheel
                 self.friction_var = np.array([Robot.friction_constant * \
                         (1+np.random.uniform(-MOTOR_DELTA, MOTOR_DELTA)) for i in range(4)])
@@ -284,7 +284,7 @@ class SimRobot():
             u_transx = [0] # self.transx_ann.predict(np.reshape(self.obs_sets[1],(1,2)))[0]
             u_transy = u
             u_angle = [0] # self.angle_ann.predict(np.reshape(self.obs_sets[0],(1,3)))[0]
-        
+
         elif self.train == 'all':
             u_transx = [u[0]]
             u_transy = [u[1]]
@@ -297,7 +297,7 @@ class SimRobot():
         self.time += dt
 
         # Execute command
-        self.execute([2,0,0])#u)
+        self.execute(u)
 
         # Get sensor vals
         sensor_vals = self.getSensorVals()
@@ -339,8 +339,8 @@ class SimRobot():
         # End cycle if time hits max or robot moves to an extreme bound
         error_x = abs(self.state[0] - self.state[6])
         error_y = abs(self.state[2] - self.state[7])
-        end_early = ((self.testNet == None) and 
-            ((error_x > 1200 - self.robot.LEN_X/2) or 
+        end_early = ((self.testNet == None) and
+            ((error_x > 1200 - self.robot.LEN_X/2) or
             (error_y > 600 - self.robot.LEN_Y/2)))
 
         if ((self.time > TIME_MAX) or end_early):# or (self.online and (abs(self.state[4]) > 1.2))):
@@ -464,17 +464,15 @@ class SimRobot():
         ydes = self.robot.state[7].curVal()
         thdes = self.robot.state[8].curVal()
 
-        print(xdot)
-
         error_x = abs(x - self.state[6])
         error_y = abs(self.state[2] - self.state[7])
-        end_early = ((self.testNet == None) and 
-            ((error_x > 1200 - self.robot.LEN_X/2) or 
+        end_early = ((self.testNet == None) and
+            ((error_x > 1200 - self.robot.LEN_X/2) or
             (error_y > 600 - self.robot.LEN_Y/2)))
 
         # If ending early, receive penalty
         if (end_early):
-            penalty = -50.0 
+            penalty = -50.0
         else:
             penalty = 0
 
@@ -516,7 +514,7 @@ class SimRobot():
 
         if (DEBUG_PRINT):
             print("Reward: %f" % self.reward)
-        
+
         # Additional penalty for ending early
         self.reward += penalty
         return self.reward
