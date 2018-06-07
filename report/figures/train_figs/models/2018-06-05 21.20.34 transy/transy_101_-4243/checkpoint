@@ -1,0 +1,6 @@
+model_checkpoint_path: "model.ckpt"
+all_model_checkpoint_paths: "..\\transy_21_-4243\\model.ckpt"
+all_model_checkpoint_paths: "..\\transy_41_-4243\\model.ckpt"
+all_model_checkpoint_paths: "..\\transy_61_-4243\\model.ckpt"
+all_model_checkpoint_paths: "..\\transy_81_-4243\\model.ckpt"
+all_model_checkpoint_paths: "model.ckpt"

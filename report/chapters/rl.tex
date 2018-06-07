@@ -628,7 +628,7 @@ r = -0.00001(x-x_{desired})^2-0.0000005\dot{x}^2-0.001u_x^2
 \label{eq:x_reward}
 \end{equation}
 
-As described above in Actor Testing, the networks are periodically tested to observe their change in performance with more training. Figure \ref{fig:x_r} shows the average testing episode reward from the \pythoninline{testNetworkPerformance()} function with 41 test cases versus number of episodes trained. Figure \ref{fig:x_q} shows the average max Q versus number of episodes trained. The average max Q is calculated as the average maximum Q within each mini-batch of predicted Q's. The actor quickly learns and achieves an average test episode reward of -59 after 81 episodes. After 200 episodes, the average reward begins to decrease, indicating the possibility of over-training. However, the average max Q continues to increase.
+As described above in Actor Testing, the networks are periodically tested to observe their change in performance with more training. Figures \ref{fig:x_r} and \ref{fig:x_rzoom} show the average testing episode reward from the \pythoninline{testNetworkPerformance()} function with 41 test cases versus number of episodes trained. Figure \ref{fig:x_q} shows the average max Q versus number of episodes trained. The average max Q is calculated as the average maximum Q within each mini-batch of predicted Q's. The actor quickly learns and achieves an average test episode reward of -59 after 81 episodes. After 200 episodes, the average reward begins to decrease, indicating the possibility of over-training. However, the average max Q continues to increase.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/x_r.pdf}
@@ -636,18 +636,23 @@ As described above in Actor Testing, the networks are periodically tested to obs
 \end{figure}
 \begin{figure}[H]
 	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/x_rzoom.pdf}
+	\caption{X Translation Test Reward Zoomed} \label{fig:x_rzoom}
+\end{figure}
+\begin{figure}[H]
+	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/x_q.pdf}
 	\caption{X Translation Network Average Max Q} \label{fig:x_q}
 \end{figure}
 
-Figure \ref{fig:x_perf81} shows the actor's action, error from the set point, and reward versus time for nine different initial conditions. Appendix \ref{appendix:x_perf} provides additional plots for different numbers of episodes trained. Regardless of the starting distance from the set point, the actor appears to drive the robot at maximum speed to reach the set point as quickly as possible since the distance affects the reward most drastically. After reaching the desired x location, the action oscillates to maintain the position.
+Figure \ref{fig:x_perf} shows the actor's action, error from the set point, and reward versus time for nine different initial conditions. Appendix \ref{appendix:x_perf} provides additional plots for different numbers of episodes trained. Regardless of the starting distance from the set point, the actor appears to drive the robot at maximum speed to reach the set point as quickly as possible since the distance affects the reward most drastically. After reaching the desired x location, the action oscillates to maintain the position.
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/transx_transitions/1_81.pdf}
-	\caption{X Translation Network Performance -- 81 Episode}\label{fig:x_perf81}
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/transx_transitions/1_161.pdf}
+	\caption{X Translation Network Performance -- 161 Episodes}\label{fig:x_perf}
 \end{figure}
 
-Figure \ref{fig:x_actor_contour} displays a series of contour plots of the actor outputs as functions of the two inputs over different numbers of episodes trained. The actor contour plots reveal the actor output to be highly polarized with only a sliver of low-valued $u_x$, leading to the oscillatory action seen in Figure \ref{x_perf81}. It is highly likely that actor is incapable of sufficiently reducing the velocity such that the momentum of the robot does not carry it across the sliver and oscillating. Throughout training, the critical point at zero distance error and zero velocity yields $u_x=0$ while two "arms" of $u_x=0$ extend outward at varying angles.
+Figure \ref{fig:x_actor_contour} displays a series of contour plots of the actor outputs as functions of the two inputs over different numbers of episodes trained. The actor contour plots reveal the actor output to be highly polarized with only a sliver of low-valued $u_x$, leading to the oscillatory action seen in Figure \ref{fig:x_perf}. It is highly likely that actor is incapable of sufficiently reducing the velocity such that the momentum of the robot does not carry it across the sliver and oscillating. Throughout training, the critical point at zero distance error and zero velocity yields $u_x=0$ while two "arms" of $u_x=0$ extend outward at varying angles.
 \begin{figure}[H]
 	\begin{tabular}{cc}
 		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_1.pdf} &  
@@ -684,6 +689,11 @@ r = -1.0(\text{norm}(\theta)-\text{norm}(\theta_{desired}))^2-0.1\dot{\theta}^2-
 \end{figure}
 \begin{figure}[H]
 	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_rzoom.pdf}
+	\caption{Angle Test Reward Zoomed} \label{fig:angle_rzoom}
+\end{figure}
+\begin{figure}[H]
+	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_q.pdf}
 	\caption{Angle Network Average Max Q} \label{fig:angle_q}
 \end{figure}
@@ -692,7 +702,7 @@ Appendix \ref{appendix:angle_perf} provides additional plots for different numbe
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_transitions/0_61.pdf}
-	\caption{Angle Network Performance -- 81 Episode}\label{fig:angle_perf61}
+	\caption{Angle Network Performance -- 81 Episodes}\label{fig:angle_perf}
 \end{figure}
 
 \begin{figure}[H]
@@ -721,9 +731,17 @@ Appendix \ref{appendix:angle_perf} provides additional plots for different numbe
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_r.pdf}
 	\caption{Training and Test Reward} \label{fig:all_r}
 \end{figure}
-
+\begin{figure}[H]
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_rzoom.pdf}
+	\caption{Training and Test Reward Zoomed} \label{fig:all_rzoom}
+\end{figure}
 \begin{figure}[H]
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_q.pdf}
 	\caption{Average Max Q} \label{fig:all_q}
 \end{figure}
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in,  keepaspectratio]{figures/train_figs/all_transitions/3_17281.pdf}
+	\caption{All Network Performance -- 17281 Episodes}\label{fig:all_perf}
+\end{figure}
