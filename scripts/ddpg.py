@@ -295,7 +295,7 @@ def testModelPerformance(sess, env, args, actor, model, num_test_cases):
     plotEpisodes(env.net_index, episodes, env.dt, episodes_trained)
 
     # Contour plots of ANN output
-    if (args['env'] != 'all'):
+    if ((args['env'] != 'all') and (args['env'] != 'test_three_actor')):
         plotANN(env.net_index, actor, episodes_trained, 0)
 
     print('| Average reward: {:d}'.format(int(test_reward)))
@@ -318,7 +318,8 @@ def writeLog(sess_dir, args, ep, ep_reward, ep_q, test_reward=None):
 def main(args):
 
     if ((args['env'] == 'angle') or (args['env'] == 'transx') or \
-        (args['env'] == 'transy') or (args['env'] == 'all')):
+        (args['env'] == 'transy') or (args['env'] == 'all') or \
+        (args['env'] == 'test_three_actor')):
         env = robotsim.SimRobot(train = args['env'], online = int(args['online']))
         env.setWallCollision(True)
     else:

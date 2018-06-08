@@ -1,0 +1,6 @@
+model_checkpoint_path: "model.ckpt"
+all_model_checkpoint_paths: "..\\all_15081_-261\\model.ckpt"
+all_model_checkpoint_paths: "..\\all_15101_-256\\model.ckpt"
+all_model_checkpoint_paths: "..\\all_15121_-272\\model.ckpt"
+all_model_checkpoint_paths: "..\\all_15141_-266\\model.ckpt"
+all_model_checkpoint_paths: "model.ckpt"

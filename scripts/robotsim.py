@@ -171,6 +171,21 @@ class SimRobot():
             self.net_index = 3
             obs_high = np.array([2400., 1600., 2400., 1600., 1., 1., 25.])
 
+            # Load transx control ann
+            print("Loading transx ANN")
+            transx_model_path = './models/three_actor/transx/model.ckpt'
+            self.transx_ann = ann(transx_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
+            
+            # Load transy control ann
+            print("Loading transy ANN")
+            transy_model_path = './models/three_actor/transy/model.ckpt'
+            self.transy_ann = ann(transy_model_path, state_dim = 2, action_dim = 1, action_space_high = 2.0)
+            
+            # Load angle control ann
+            print("Loading angle ANN")
+            angle_model_path = './models/three_actor/angle/model.ckpt'
+            self.angle_ann = ann(angle_model_path, state_dim = 3, action_dim = 1, action_space_high = 2.0)
+
         elif (train == 'sim'):
             act_dim = 3
             self.net_index = 4
@@ -215,6 +230,10 @@ class SimRobot():
             min_val = LEN_Y / 2
             state_index = 2
         elif (self.train == 'all'):
+            max_val = np.array([FIELD_XMAX - LEN_X / 2, FIELD_YMAX - LEN_Y / 2, np.pi])
+            min_val = np.array([LEN_X / 2, LEN_Y / 2, -np.pi])
+            state_index = [0,2,4]
+        elif (self.train == 'test_three_actor'):
             max_val = np.array([FIELD_XMAX - LEN_X / 2, FIELD_YMAX - LEN_Y / 2, np.pi])
             min_val = np.array([LEN_X / 2, LEN_Y / 2, -np.pi])
             state_index = [0,2,4]
@@ -269,7 +288,7 @@ class SimRobot():
         # u[0]: Field x velocity
         # u[1]: Field y velocity
         # u[2]: Rotational speed, -1 to 1, +1 CW, -1 CCW
-
+        
         if self.train == 'sim':
             u_transx = [u[0]]
             u_transy = [u[1]]
@@ -282,22 +301,29 @@ class SimRobot():
 
         elif self.train == 'transx':
             u_transx = u
-            u_transy = [0] #self.transy_ann.predict(self.obs_sets[2])
-            u_angle = [0] #self.angle_ann.predict(np.reshape(self.obs_sets[0],(1,3)))[0]
+            u_transy = [0] 
+            u_angle = [0] 
 
         elif self.train == 'transy':
-            u_transx = [0] # self.transx_ann.predict(np.reshape(self.obs_sets[1],(1,2)))[0]
+            u_transx = [0] 
             u_transy = u
-            u_angle = [0] # self.angle_ann.predict(np.reshape(self.obs_sets[0],(1,3)))[0]
+            u_angle = [0] 
 
         elif self.train == 'all':
             u_transx = [u[0]]
             u_transy = [u[1]]
             u_angle = [u[2]]
 
+        elif self.train == 'test_three_actor':
+            u_transx = self.transx_ann.predict(self.obs_sets[1])
+            u_transy = self.transy_ann.predict(self.obs_sets[2])
+            u_angle  = self.angle_ann.predict(self.obs_sets[0])
+            
+
         u = np.concatenate((u_transx, u_transy, u_angle))
         u = np.clip(u, -2., 2.)
-
+        info = u
+        
         dt = self.dt
         self.time += dt
 
@@ -352,7 +378,6 @@ class SimRobot():
             self.halt()
             self.terminal = 1
 
-        info = {}
         return self.obs, self.reward, self.terminal, info
 
     def execute(self, u):
