@@ -250,9 +250,14 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
             a = actor.predict(np.reshape(s, (1, actor.s_dim)))
             action = a[0]
 
+
             # Execute action and get new state, reward
             s, r, terminal, info = env.step(action)
             ep_reward += r
+            
+            # TEMPORARY
+            if (args['env'] == 'test_three_actor'):
+                action = info
 
             transition = (action, s, r)
             transitions.append(transition)
@@ -385,7 +390,7 @@ if __name__ == '__main__':
     # run parameters
     parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='angle')
     parser.add_argument('--online', help='choose the gym env- tested on {Robot}', default='0')
-    parser.add_argument('--random-seed', help='random seed for repeatability', default=1234)
+    parser.add_argument('--random-seed', help='random seed for repeatability', default=2345)
     parser.add_argument('--max-episodes', help='max num of episodes to do while training', default=50000)
     parser.add_argument('--max-episode-len', help='max length of 1 episode', default=1000)
     parser.add_argument('--render-env', help='render the gym env', action='store_true')

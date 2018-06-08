@@ -315,9 +315,9 @@ class SimRobot():
             u_angle = [u[2]]
 
         elif self.train == 'test_three_actor':
-            u_transx = self.transx_ann.predict(self.obs_sets[1])
-            u_transy = self.transy_ann.predict(self.obs_sets[2])
-            u_angle  = self.angle_ann.predict(self.obs_sets[0])
+            u_transx = self.transx_ann.predict([self.obs_sets[1]])
+            u_transy = self.transy_ann.predict([self.obs_sets[2]])
+            u_angle  = self.angle_ann.predict([self.obs_sets[0]])
             
 
         u = np.concatenate((u_transx, u_transy, u_angle))
@@ -539,7 +539,7 @@ class SimRobot():
             self.reward = reward_x
         elif (self.train == 'transy'):
             self.reward = reward_y
-        elif (self.train == 'all'):
+        elif (self.train == 'all' or self.train == 'test_three_actor'):
             self.reward = reward_x + reward_y + reward_th
 
         if (DEBUG_PRINT):
