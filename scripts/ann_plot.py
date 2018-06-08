@@ -44,6 +44,8 @@ Supply the ann by one of these arguments:
     ann: already loaded ann
 '''
 def plotANN(net_index, ann_in, num_episodes = 0, act_or_crit = 0):
+    print("PLOT ANN DISABLED FOR TESTING")
+    return
     # Time the function
     start_time =  timer()
 
@@ -220,25 +222,25 @@ def plotEpisodes(net_index, episodes, dt, num_episodes = 0):
 
         # Parse action
         if (net_index == 3):
-            a = [[transition[0][0] for transition in ep], 
-                 [transition[0][1] for transition in ep], 
+            a = [[transition[0][0] for transition in ep],
+                 [transition[0][1] for transition in ep],
                  [transition[0][2] for transition in ep]]
         else:
             a = [[transition[0] for transition in ep]]
-        
+
         # Parse state
         if (net_index == 0):
             s = [[np.arctan2(transition[1][1], transition[1][0]) for transition in ep]]
         elif (net_index == 3):
-            s = [[transition[1][0] for transition in ep], 
-                 [transition[1][2] for transition in ep], 
+            s = [[transition[1][0] for transition in ep],
+                 [transition[1][2] for transition in ep],
                  [np.arctan2(transition[1][5], transition[1][4]) for transition in ep]]
         else:
             s = [[transition[1][0] for transition in ep]]
 
         # Parse reward
         r = [transition[2] for transition in ep]
-        
+
         # Plot each
         for i in range(0, len(y_label)):
             axarr[2*i].plot(t, a[i], linewidth=0.2)

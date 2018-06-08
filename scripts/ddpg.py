@@ -57,9 +57,9 @@ from replay_buffer import ReplayBuffer
 
 kRENDER_EVERY = 1 # Render only every xth episode to speed up training
 kTEST_PERIOD_ONLINE = 20
-kTEST_PERIOD_OFFLINE = 20
+kTEST_PERIOD_OFFLINE = 999999999 #20
 kNUM_TEST_CASES_ONLINE = 2
-kNUM_TEST_CASES_OFFLINE = 40
+kNUM_TEST_CASES_OFFLINE = 1 #40
 
 # Taken from https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py, which is
 # based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
@@ -254,7 +254,7 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
             # Execute action and get new state, reward
             s, r, terminal, info = env.step(action)
             ep_reward += r
-            
+
             # TEMPORARY
             if (args['env'] == 'test_three_actor'):
                 action = info
@@ -379,11 +379,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
 
     # agent parameters
-    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.0001) 
-    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.001) 
-    parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) 
-    parser.add_argument('--tau', help='soft target update parameter', default=0.001) 
-    parser.add_argument('--beta', help='L2 weight decay parameter', default=0.01) 
+    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.0001)
+    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.001)
+    parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99)
+    parser.add_argument('--tau', help='soft target update parameter', default=0.001)
+    parser.add_argument('--beta', help='L2 weight decay parameter', default=0.01)
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
     parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
 
