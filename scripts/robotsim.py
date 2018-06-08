@@ -166,6 +166,11 @@ class SimRobot():
             self.net_index = 3
             obs_high = np.array([2400., 1600., 2400., 1600., 1., 1., 25.])
 
+        elif (train == 'test_three_actor'):
+            act_dim = 3
+            self.net_index = 3
+            obs_high = np.array([2400., 1600., 2400., 1600., 1., 1., 25.])
+
         elif (train == 'sim'):
             act_dim = 3
             self.net_index = 4
@@ -197,19 +202,19 @@ class SimRobot():
         self.testNet = testNet
 
         # Limit range of values for each state var
-        if (self.net_index == 0):
+        if (self.train == 'angle'):
             max_val = np.pi
             min_val = -np.pi
             state_index = 4
-        elif (self.net_index == 1):
+        elif (self.train == 'transx'):
             max_val = FIELD_XMAX - LEN_X / 2
             min_val = LEN_X / 2
             state_index = 0
-        elif (self.net_index == 2):
+        elif (self.train == 'transy'):
             max_val = FIELD_YMAX - LEN_Y / 2
             min_val = LEN_Y / 2
             state_index = 2
-        elif (self.net_index == 3):
+        elif (self.train == 'all'):
             max_val = np.array([FIELD_XMAX - LEN_X / 2, FIELD_YMAX - LEN_Y / 2, np.pi])
             min_val = np.array([LEN_X / 2, LEN_Y / 2, -np.pi])
             state_index = [0,2,4]
@@ -472,21 +477,21 @@ class SimRobot():
 
         # If ending early, receive penalty
         if (end_early):
-            penalty = -50.0
+            penalty = -100.0
         else:
             penalty = 0
 
         # Rewarded for staying near desired x coordinate
-        r_x = -1.0 * ((x - xdes) / 100.)**2. /10
+        r_x = -0.00001 * (x - xdes)**2.
         # Minimize velocities
-        r_xdot =  -0.1 * (xdot / 100.)**2 /10
+        r_xdot =  -0.0000005 * xdot**2
         # Minimize effort
         r_ux = -0.001 * self.last_u[0]**2
 
         # Rewarded for staying near desired y coordinate
-        r_y =  -1.0 * ((y - ydes) / 100.)**2. /10
+        r_y =  -0.00001 * (y - ydes)**2.
         # Minimize velocities
-        r_ydot = -0.1 * (ydot / 100.)**2 /10
+        r_ydot = -0.0000005 * ydot**2
         # Minimize effort
         r_uy = -0.001 * self.last_u[1]**2
 

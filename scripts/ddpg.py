@@ -64,7 +64,7 @@ kNUM_TEST_CASES_OFFLINE = 40
 # Taken from https://github.com/openai/baselines/blob/master/baselines/ddpg/noise.py, which is
 # based on http://math.stackexchange.com/questions/1287634/implementing-ornstein-uhlenbeck-in-matlab
 class OrnsteinUhlenbeckActionNoise:
-    def __init__(self, mu, sigma=0.2, theta=.15, dt=0.05, x0=None):
+    def __init__(self, mu, sigma=0.3, theta=.15, dt=0.05, x0=None):
         self.theta = theta
         self.mu = mu
         self.sigma = sigma
@@ -90,7 +90,7 @@ class OrnsteinUhlenbeckActionNoise:
 
 def train(sess, env, args, actor, critic, actor_noise):
     sess.run(tf.global_variables_initializer())
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(max_to_keep=None)
 
     # Initialize target network weights
     actor.update_target_network()
@@ -373,18 +373,18 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
 
     # agent parameters
-    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.00001) 
-    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.0001) 
+    parser.add_argument('--actor-lr', help='actor network learning rate', default=0.0001) 
+    parser.add_argument('--critic-lr', help='critic network learning rate', default=0.001) 
     parser.add_argument('--gamma', help='discount factor for critic updates', default=0.99) 
-    parser.add_argument('--tau', help='soft target update parameter', default=0.0001) 
+    parser.add_argument('--tau', help='soft target update parameter', default=0.001) 
     parser.add_argument('--beta', help='L2 weight decay parameter', default=0.01) 
     parser.add_argument('--buffer-size', help='max size of the replay buffer', default=1000000)
-    parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=128)
+    parser.add_argument('--minibatch-size', help='size of minibatch for minibatch-SGD', default=64)
 
     # run parameters
     parser.add_argument('--env', help='choose the gym env- tested on {Robot}', default='angle')
     parser.add_argument('--online', help='choose the gym env- tested on {Robot}', default='0')
-    parser.add_argument('--random-seed', help='random seed for repeatability', default=6969)
+    parser.add_argument('--random-seed', help='random seed for repeatability', default=1234)
     parser.add_argument('--max-episodes', help='max num of episodes to do while training', default=50000)
     parser.add_argument('--max-episode-len', help='max length of 1 episode', default=1000)
     parser.add_argument('--render-env', help='render the gym env', action='store_true')
