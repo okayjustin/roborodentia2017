@@ -1,62 +1,73 @@
 \chapter{Reinforcement Learning}
-The robot controls its motors using artificial neural networks (ANN) and the deep deterministic policy gradient (DDPG) algorithm, developed by Lillicrap et al.\ \cite{lillicrap_2016}. The system runs in Python 3 \cite{python3}, leaning heavily on the TensorFlow library \cite{tensorflow} for artificial neural network instantiation, updating, and saving. The following sections briefly cover reinforcement learning (RL) techniques that form the foundation of DDPG. It is worth noting that Sutton's introductory book on RL provides excellent background on many of the following algorithms and more \cite{sutton_2017}.
+The robot controls its motors using artificial neural networks (ANN) and the deep deterministic policy gradient (DDPG) algorithm, developed by Lillicrap et al.\ \cite{lillicrap_2016}. The system runs in Python 3 \cite{python3}, leaning heavily on the TensorFlow library with GPU support \cite{tensorflow} for artificial neural network instantiation, updating, and saving. After training, the system actuates each of the four drive motors to move the robot to a desired position and orientation in the Roborodentia field while minimizing the velocity and effort applied (i.e. energy spent). Two distinct approaches, the "three actor" and "single actor" variants, solve the problem with varying degrees of success. Before delving into the implementation and results, the following sections briefly cover reinforcement learning (RL) techniques that form the foundation of DDPG. It is worth noting that Sutton's introductory book on RL provides excellent background on many of the following algorithms and more \cite{sutton_2017}. 
 
 \section{Reinforcement Learning Background}
-Reinforcement learning (RL) is a subset of machine learning that aims to solve control and action selection problems rather than to perform classification or data clustering. Most reinforcement learning problems involve six main elements: an actor, the environment, rewards, a policy, a value function, and sometimes a model. An actor (sometimes called an agent) takes actions in an environment which returns a state and reward, illustrated in Figure \ref{fig:actor_env_loop}. The actor's primary goal is to maximize the accumulated reward received from the environment. A policy determines which actions the actor takes given the current state and can be considered a mapping from state to action. The value function indicates the long-term reward expected from a state so even if a state only has a small immediate reward, it may possess high value since it leads to high reward states. Some algorithms involve a model of the environment, allowing prediction of the next state from the current state and action. Table \ref{tab:rl_defs} summarizes some common terms and definitions used in the reinforcement learning literature.
+Reinforcement learning (RL) is a subset of machine learning that aims to solve control and action selection problems rather than to perform classification or data clustering. In other words, the concern lies in determining which actions an actor should take in an environment to receive the greatest reward. Most reinforcement learning problems involve six main elements: an actor, the environment, rewards, a policy, a value function, and sometimes a model. An actor (sometimes called an agent) takes actions in an environment which returns a state and reward, illustrated in Figure \ref{fig:actor_env_loop}. The actor's primary goal is to maximize the accumulated reward received from the environment. A policy determines which actions the actor takes given the current state and can be considered a mapping from state to action. The value function indicates the long-term reward expected from a state so even if a state only has a small immediate reward, it may possess high value since it leads to high reward states. Some algorithms involve a model of the environment, allowing prediction of the next state from the current state and action. Table \ref{tab:rl_defs} summarizes some common terms and definitions used in the reinforcement learning literature.
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=3in, height=3.85in, keepaspectratio]{figures/actor_env_loop.pdf}
 	\caption{Actor-Environment Feedback Loop}\label{fig:actor_env_loop}
 \end{figure}
-Actors strive to maximize the long-term discounted reward, $G_t$, where the subscript $t$ denotes the time step \cite{sutton_2017}. In RL problems with a definitive end (denoted by $t=T$) such as a game of chess, $G_t$ is finite and can be calculated simply as the sum of all future rewards (\ref{eq:Gt_simple}). 
-\begin{equation}
-	\label{eq:Gt_simple}
-	G_t=R_{t+1}+R_{t+2}+\dots + R_{T}=\sum_{k=t}^{T-1} R_{k+1}
-\end{equation}
-However, continuous problems such as maintaining the temperature of a refrigerator have no maximum time step and therefore, a possibly infinite $G_t$. Shown in Equation \ref{eq:Gt_discount}, the introduction of a discount factor, $\gamma$, makes such a situation manageable. The discount factor weights the worth of future rewards exponentially by their distance into the future and ranges from 0--1 where 0 completely devalues future rewards while a discount factor of 1 weights all future rewards equally. In practice, the discount factor is less than 1 in order to allow $G_t$ to converge \cite{sutton_2017}. The discount factor can be considered a knob that sets the algorithm's outlook between myopic (short-sighted, only values immediate rewards) and far-sighted (willing to sacrifice immediate reward for greater long-term return).
-\begin{equation}
-\label{eq:Gt_discount}
-	G_t=R_{t+1}+\gamma R_{t+2}+\gamma^2 R_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
-\end{equation}
 
-The value function is the expected long-term reward as function of the state under a certain policy $\pi$ (\ref{eq:value_func}). The $\mathbb{E}_\pi$ operator evaluates the expected value provided the actor follows policy $\pi$.
-\begin{equation}
-	\label{eq:value_func}
-	V_\pi(s)=\mathbb{E}_\pi [G_t | S_t =s]
-\end{equation}
-
-Core to many RL algorithms, the Q-function or action-value function is the expected long-term reward as a function of the state \textbf{and action} under a certain policy $\pi$ (\ref{eq:q_func}). The important distinction from the value function is dependency on the action. 
-\begin{equation}
-	\label{eq:q_func}
-	Q_\pi(s,a)=\mathbb{E}_\pi [G_t | S_t =s, A_t=a]
-\end{equation}
-
-\LTXtable{\textwidth}{tables/tab_rl_defs.tex}
-
-\section{Reinforcement Learning Algorithms}
-Many reinforcement learning algorithms have been applied to control including Q-Learning, State-Action-Reward-State-Action (SARSA), deep Q-network (DQN), policy gradients (PG), deep policy gradients (DPG), and deep deterministic policy gradients (DDPG), among others \cite{sutton_2017}\cite{sutton_policygrad}\cite{silver_2017}\cite{silver_lever_heess_degris_wierstra_riedmiller}\cite{lillicrap_2016}. Note that these methods differ from evolutionary algorithms in that they actively learn as they interact with the environment.
-
-RL algorithms can be classified by their use of models (model-based vs.\ model-free) and actor policy (on-policy vs.\ off-policy) \cite{sutton_2017}. Model-based strategies first develop a model of the environment and then use a planning algorithm along with the model to create a controller while model-free algorithms forgo the model entirely.
-
-On-policy algorithms learn the policy followed by the actor while off-policy strategies learn a policy different from the one followed by the actor. For example, in Q-learning, the Q-function learns a greedy policy regardless of which policy the actor is following \cite{sutton_2017}. Various policies exist but the most commonly referred to in the literature include optimal, greedy, $\epsilon$-greedy, and random. The optimal policy $\pi_*$, by definition, produces greater value for every possible state than any other policy $\pi$, expressed in (\ref{eq:optimalpol}) where $\mathcal{S}$ is the set of all possible states. An actor using the greedy policy always takes the action with the highest value or Q-value depending on implementation. The $\epsilon$-greedy policy tells an actor to pick the greedy action with probability $1-\epsilon$ and a random action with probability $\epsilon$. Finally, an actor under the random policy always takes random actions.
-\begin{equation}
-	\label{eq:optimalpol}
-v_{\pi_*}(s) \geq v_{\pi}(s), \forall s \in \mathcal{S}
-\end{equation}
-
-\subsection{Q-Learning}
-Q-Learning is an off-model, off-policy algorithm that estimates the Q-function of the environment. The Q-function represents the "quality" of every possible action in every possible state. For example, imagine a game of tic-tac-toe as shown in Figure \ref{fig:tictactoe}. Each of the nine spaces can take one of three values (blank, X, or O) so the game has $3^9=19,683$ possible states (although some states are not achievable as the game would end once a player gets three in a row). Given a particular state, the Q-function returns the quality, i.e.\ predicted goodness, of each possible action the player could take. Therefore, the optimal action to take is simply the one with the highest Q-value. 
+To better conceptualize these terms, consider a game of tic-tac-toe as shown in Figure \ref{fig:tictactoe}. The \textbf{environment} is the game itself including the rules and game board. The two \textbf{actors} (players) sequentially take the \textbf{action} of placing marks in the boxes. Winning the game would grant a good \textbf{reward} while losing might yield a bad reward. Note that the descriptors "good" and "bad" are deliberately vague as numerous valid implementations of the reward exist. Conceptually, the reward allows the actor to differentiate between desirable and undesirable actions and states. Each of the nine spaces can take one of three values (blank, X, or O) so the game has $3^9=19,683$ possible \textbf{states} (although some states are not achievable as the game would end once a player gets three in a row).
 \begin{figure}[H]   % [h] means here
 	\centering \includegraphics[width=2in, height=3.85in, keepaspectratio]{figures/tictactoe.pdf}
 	\caption{A Game of Tic Tac Toe}\label{fig:tictactoe}
 \end{figure}
 
-Clearly, the Q-function always exists but not necessarily in an analytic or obvious form. So-called tabular Q-learning methods use a 2-D matrix to represent the Q-function with rows for all possible states and columns for all possible actions \cite{mccullock}. The table is initialized with guesses (possibly randomly or with all elements set to 0) and iteratively updated to approximate the true Q-function using the Bellman equation (\ref{eq:bellman}).
+\subsection{Reward}
+Actors strive to maximize the long-term discounted reward, $G_t$, where the subscript $t$ denotes the time step \cite{sutton_2017}. In RL problems with a definitive end (denoted by $t=T$) such as a game of chess, $G_t$ is finite and can be calculated simply as the sum of all future rewards (\ref{eq:Gt_simple}). 
+\begin{equation}
+	\label{eq:Gt_simple}
+	G_t=R_{t+1}+R_{t+2}+\dots + R_{T}=\sum_{k=t}^{T-1} R_{k+1}
+\end{equation}
+
+However, continuous problems, such as maintaining the temperature of a refrigerator, have no maximum time step and therefore, a possibly infinite $G_t$. Shown in Equation \ref{eq:Gt_discount}, the introduction of a discount factor, $\gamma$, makes such a situation manageable. The discount factor weights the worth of future rewards exponentially by their distance into the future and ranges from 0--1 where 0 completely devalues future rewards while a discount factor of 1 weights all future rewards equally. In practice, the discount factor is less than 1 in order to allow $G_t$ to converge \cite{sutton_2017}. The discount factor can be considered a knob that sets the algorithm's outlook between myopic (short-sighted, only values immediate rewards) and far-sighted (willing to sacrifice immediate reward for greater long-term returns).
+\begin{equation}
+\label{eq:Gt_discount}
+	G_t=R_{t+1}+\gamma R_{t+2}+\gamma^2 R_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
+\end{equation}
+
+\subsection{Value Functions}
+The value function is the expected long-term reward $G_t$ as a function of the state $s$ under a certain policy $\pi$ (\ref{eq:value_func}). The $\mathbb{E}_\pi$ operator evaluates the expected value provided the actor follows policy $\pi$.
+\begin{equation}
+	\label{eq:value_func}
+	V_\pi(s)=\mathbb{E}_\pi [G_t | s]
+\end{equation}
+
+Core to many RL algorithms, the Q-function or action-value function is the expected long-term reward $G_t$ as a function of the state $s$ \textbf{and action} $a$ under a certain policy $\pi$ (\ref{eq:q_func}). The important distinction from the value function is dependency on the action. Since the Q-function uses three variables ($s$, $a$, and $Q$), it can be plotted in three dimensions as in Figure \ref{fig:q_ex_plot}. Again considering tic tac toe, if $s=0$ represents the starting, i.e. blank, state of the game, the red slice of Figure \ref{fig:q_ex_plot} represents the Q-values or expected long-term reward for each of the nine possible starting actions. Note that the actual plot of tic tac toe's Q-function would use discrete points rather than the continuous function shown. The Q-function is defined for all possible states and actions so tic tac toe contains $19,683 \text{ states} \cdot 9 \text{ actions} = 177,147$ discrete Q-values. Notice that the Q-function is non-obvious, highly non-linear, and may be continuous or discrete depending on the specific problem.
+\begin{equation}
+	\label{eq:q_func}
+	Q_\pi(s,a)=\mathbb{E}_\pi [G_t |s,a]
+\end{equation}
+\begin{figure}[H]   % [h] means here
+	\centering \includegraphics[width=4in, height=3.85in, keepaspectratio]{figures/q_ex_plot.png}
+	\caption{3D Q-Function Example}\label{fig:q_ex_plot}
+\end{figure}
+
+\LTXtable{\textwidth}{tables/tab_rl_defs.tex}
+
+\subsection{Policies}
+Various policies exist but the most commonly referred to in the literature include optimal, greedy, $\epsilon$-greedy, and random. The optimal policy $\pi_*$, by definition, produces greater or equal value for every possible state than any other policy $\pi$, expressed in Equation \ref{eq:optimalpol}, where $v_{\pi_*}$ represents the value function of the optimal policy, $v_{\pi}$ is the value function of any other policy $\pi$, and $\mathcal{S}$ is the set of all possible states. An actor under the random policy always takes random actions. An actor using the greedy policy takes the action with the highest value or Q-value depending on implementation. However, an actor following a greedy policy may not sufficiently explore the environment, i.e. try new things to discover better actions or states. To allow a balance between exploration (discovering better rewards) and exploitation (obtaining the most reward), the $\epsilon$-greedy policy tells an actor to pick the greedy action with probability $1-\epsilon$ and a random action with probability $\epsilon$ where $\epsilon$ ranges between 0 and 1. 
+\begin{equation}
+	\label{eq:optimalpol}
+v_{\pi_*}(s) \geq v_{\pi}(s), \forall s \in \mathcal{S}
+\end{equation}
+
+\section{Reinforcement Learning Algorithms}
+Many reinforcement learning algorithms have been applied to control including Q-Learning, State-Action-Reward-State-Action (SARSA), deep Q-network (DQN), policy gradients (PG), deep policy gradients (DPG), and deep deterministic policy gradients (DDPG), among others \cite{sutton_2017}\cite{sutton_policygrad}\cite{silver_2017}\cite{silver_lever_heess_degris_wierstra_riedmiller}\cite{lillicrap_2016}. Note that these methods differ from evolutionary algorithms in that they actively learn as they interact with the environment.
+
+RL algorithms can be classified by their use of models (model-based vs.\ model-free) and actor policy (on-policy vs.\ off-policy) \cite{sutton_2017}. Model-based strategies first develop a model of the environment and then use a planning algorithm along with the model to create a controller while model-free algorithms forgo the model entirely. On-policy strategies learn the policy followed by the actor while off-policy techniques learn a policy different from the one followed by the actor. For example, in Q-learning, the Q-function learns the greedy policy even if the actor is following the random policy \cite{sutton_2017}. 
+
+\subsection{Q-Learning}
+Q-Learning is an off-model, off-policy algorithm that estimates the Q-function of the environment. The Q-function represents the "quality" of every possible action in every possible state. Given a particular state, the Q-function returns the quality, i.e.\ predicted goodness, of each possible action the player could take. Therefore, the optimal action to take is simply the one with the highest Q-value. 
+
+Clearly, the Q-function always exists but not necessarily in an analytic or obvious form. So-called tabular Q-learning methods use a 2-D matrix to represent the Q-function with rows for all possible states and columns for all possible actions \cite{mccullock}. The table is initialized with guesses (possibly randomly or with all elements set to 0) and iteratively updated to approximate the true Q-function $Q^*$ using the Bellman equation (\ref{eq:bellman}). The equation states that the expected long-term reward Q for state $s$ and action $a$ is equal to the reward received from being in state $s$ plus the discounted ($\gamma$) maximum Q of the next state $s'$. For clarity, the $\text{max}_{a'}(\cdot)$ operator chooses $a'$ to maximize its argument $(\cdot)$ so $\text{max}_{a'}(Q(s',a'))$ means the maximum Q of the next state $s'$ irrespective of the action $a'$. The proof of the Bellman equation is beyond the scope of this thesis, but Sutton's introductory book mentioned previously provides further explanation.
 \begin{equation}
 	\label{eq:bellman}
 	Q(s,a)=R(s) + \gamma (\text{max}_{a'}(Q(s',a')))
 \end{equation}
 
-To improve convergence, Equation \ref{eq:bellman} is modified to include the learning rate $\alpha$. The pseudocode for Q-learning presented by Sutton is reproduced in Table \ref{tab:qlearning_pseudo}. The $\text{max}_{a'}()$ operator maximizes its argument with respect to $a'$.
+To improve convergence, i.e. when the estimated Q-function approaches the optimal $Q^*$, Equation \ref{eq:bellman} is modified to include the learning rate $\alpha$. The pseudocode for Q-learning presented by Sutton is reproduced in Table \ref{tab:qlearning_pseudo}. Some environments, like chess, eventually terminate (at the end of the game) while others, such as maintaining a refrigerator's temperature, may never actually terminate.
 \begin{table}[h]
 	\caption{Q-Learning Pseudocode}  \label{tab:qlearning_pseudo}
 	\begin{tabular}{|p{0.9\linewidth}|}\hline % or any other width
@@ -66,19 +77,23 @@ To improve convergence, Equation \ref{eq:bellman} is modified to include the lea
 		\qquad Repeat (for each step of episode):\\
 		\qquad \qquad Choose $a$ from $s$ using policy derived from $Q$ (e.g., $\epsilon$-greedy)\\
 		\qquad \qquad Take action $a$, observe $r$, $s'$\\
-		\qquad \qquad $Q(s,a)\gets (1-\alpha)Q(s,a) + \alpha [r + \gamma \text{max}_{a'}Q(s',a')]$\\
+		\qquad \qquad $Q(s,a)\gets (1-\alpha)Q(s,a) + \alpha [r + \gamma \text{max}_{a'}(Q(s',a'))]$\\
 		\qquad \qquad $s \gets s';$\\
 		\qquad until $s$ is terminal \\
 		\hline
 	\end{tabular}
 \end{table}
 
-Notice the algorithm updates the Q-value, $Q(s,a)$, from the Q-value of the next state and greedy policy action, $\text{max}_{a'}Q(s',a')$, regardless of the policy and action taken by the actor. This characteristic makes Q-learning an off-policy algorithm. The Q-value for a particular state and action only updates when the actor visits said state and action so the actor must still explore (i.e.\ not always take greedy actions) for Q-learning to converge.
+Notice the algorithm recursively updates the Q-value, $Q(s,a)$, from the Q-value of the next state and greedy policy action, $\text{max}_{a'}Q(s',a')$, regardless of the policy and action taken by the actor. This characteristic makes Q-learning an off-policy algorithm. The Q-value for a particular state and action only updates when the actor visits said state and action so the actor must still explore (i.e.\ not always take greedy actions) for Q-learning to converge. Figure \ref{fig:q_learning_ex} illustrates the recursive Q-function update using the tic tac toe example. Hence methods such as the yet-to-be-discussed Deep Q-Network Method represent the Q-function using other structures like artificial neural networks.
+\begin{figure}   % [h] means here
+	\centering \includegraphics[width=6in, height=8.5in, keepaspectratio]{figures/q_learning_ex.pdf}
+	\caption{Tabular Q Update Example}\label{fig:q_learning_ex}
+\end{figure}
 
 Clearly, the tabular Q method quickly becomes unfeasible for more complex problems, especially when the states or actions become continuous rather than discrete. When the action or state spaces are continuous, the algorithm must discretize them, forcing a tradeoff between resolution and tractability. For the tic-tac-toe example, the table would be 19,683 rows by 9 columns for a total of 177,147 Q-values while the Q-value table for a game of chess would possess more elements than there are atoms in the known universe.
 
 \subsection{State-Action-Reward-State-Action (SARSA)}
-SARSA is an on-policy algorithm which shares many characteristics with Q-learning. The name comes from the fact that the Q update equation uses the current \textbf{s}tate and \textbf{a}ction as well as the next \textbf{r}eward, \textbf{s}tate, and \textbf{a}ction. The pseudocode for SARSA presented by Sutton is reproduced in Table \ref{tab:sarsa}:
+SARSA is an on-policy algorithm which shares many characteristics with Q-learning. The name comes from the fact that the Q update equation uses the current \textbf{s}tate and \textbf{a}ction as well as the next \textbf{r}eward, \textbf{s}tate, and \textbf{a}ction. The pseudocode for SARSA presented by Sutton is reproduced in Table \ref{tab:sarsa}.
 \begin{table}[h]
 	\caption{SARSA Pseudocode}  \label{tab:sarsa}
 	\begin{tabular}{|p{0.9\linewidth}|}\hline % or any other width
@@ -107,43 +122,47 @@ To overcome these limitations, DQN replaces the tabular Q concept with an artifi
 L_i(\theta_i) = (r + \gamma \text{max}_{a'}Q(s', a';\theta^-_i)-Q(s,a;\theta_i))^2
 \end{equation}
 
-To assist DQN training, Mnih et al.\ used a technique called experience replay \cite{Mnih_2015} As the actor explores within environment, the algorithm records transitions consisting of the current state, action taken, reward, and next state at each time step into a so-called experience replay buffer. After collecting a minimum number of experiences, the artificial neural network trains from data sampled randomly from the buffer, hence the name "experience replay". The technique removes time correlations in the training data, improving convergence, and also allows experience reuse, advantageous when obtaining data is difficult or costly.
+To assist DQN training, Mnih et al.\ used a technique called experience replay \cite{Mnih_2015} As the actor explores within environment, the algorithm records transitions consisting of the current state, action taken, reward, and next state at each time step into a so-called experience replay buffer. After collecting a minimum number of experiences, the artificial neural network trains from data sampled randomly from the buffer, hence the name "experience replay". The technique removes time correlations in the training data, improves convergence, and also allows experience reuse, advantageous when obtaining data is difficult or costly. In the context of ANNs, convergence refers to when the ANN output approaches the function being approximated by the network.
 
-The second technique Mnih et al.\ used to counter training instability involves generating target Q-values, $y_j$, from an identical but separate ANN, called the target Q-network $\hat{Q}$ with weights $\theta^-_i$. In effect, this creates a time delay between when the weights of $Q$ are updated and when those updates affect the policy and target Q-network, reducing the likelihood of policy instability. 
+The second technique Mnih et al.\ used to counter training instability, i.e. when the network weights oscillate instead of settling, involves generating target Q-values, $y_j$, from an identical but separate ANN, called the target Q-network $\hat{Q}$ with weights $\theta^-_i$. In effect, this creates a time delay between when the weights of $Q$ are updated and when those updates affect the policy and target Q-network, reducing the likelihood of policy instability. 
 
 For example, using a 64 transition mini-batch, the network randomly samples 64 transitions from the experience replay buffer and trains the network $Q$ with 64 iterations as in \ref{eq:dqn_loss_func}. After, the target network $\hat{Q}$ clones the weights $\theta_i$ from $Q$ and the process repeats.
 
-DQN replaced the tabular Q with an artificial neural network to solve RL problems with large Q spaces. However, the policy still uses a discrete action space, posing a problem for situations requiring continuously variable actions. For example, a system with five actions discretized into only four bits each already produces 32,768 different actions. Policy gradient methods can overcome this limitation.
+The DQN method replaces the tabular Q with an artificial neural network to solve RL problems with large Q spaces. However, the algorithm's policy still uses a discrete action space, posing a problem for situations requiring continuously variable actions. For example, a system with five actions discretized into only four bits each already produces 32,768 different actions. Policy gradient methods can overcome this limitation as described next.
 
 \subsection{Stochastic Policy Gradient Method}
-Q-Learning, SARSA, and DQN are value-based methods as they rely on finding the environment's underlying Q-function and produce a policy to maximize Q. Policy gradient methods find the optimal policy directly which makes them policy-based strategies \cite{sutton_policygrad}. In fact, DeepMind's AlphaGo famously defeated grandmaster Go player Fan Hui in 2015 and Lee Sedol in 2016 using an algorithm incorporating a policy gradient method, definitively proving its viability \cite{silver_2017}.
+Q-Learning, SARSA, and DQN are value-based methods as they rely on finding the environment's underlying Q-function and produce a policy to maximize Q. Policy gradient methods find the optimal policy directly which makes them policy-based strategies \cite{sutton_policygrad}. In fact, DeepMind's AlphaGo famously defeated grandmaster Go player Fan Hui in 2015 and Lee Sedol in 2016 using an algorithm incorporating a policy gradient method, demonstrating its viability \cite{silver_2017}.
 
-The underlying premise of stochastic policy gradients is simple: get a state, take a particular action with probability $P(a)$, and record the reward. If the reward is "good", increase the probability of taking that action or decrease it if the reward is "bad". Note that the terms "good" and "bad" are intentionally vague as to not constrain them to one particular interpretation. After many iterations, the actor will most likely take actions that produce good rewards. But of course, not all is so simple. Much like the so-called "butterfly effect", a single action can cascade into a multitude of unknown futures meaning the worth of a particular action cannot be determined by the immediate reward produced \cite{Lorenz_1963}. 
+The core of the policy gradient method is the parametrized probabilistic action distribution $P[a|s;\theta]$. Essentially, the distribution defines the probability of any single action in the set of all possible actions for a particular given state $s$. For example, if an actor has three possible actions, they might occur 10\%, 30\%, and 60\% of the time, respectively. The distribution's parameters $\theta$ adjust the shape and therefore the likelihoods of each action. Also, note that $P[a|s;\theta]$ is continuous so the policy produces continuous-valued actions.
 
-Instead, the rewards are accumulated for a long period in episodes, at the end of which actions are judged based on the total reward. Now, a different issue arises: the credit assignment problem \cite{fu_2008}. If an episode contains 1,000 actions, which ones ultimately produced the good reward and which were inconsequential or detrimental? Rather than determining the individual actions responsible, the algorithm deems all actions in an episode culpable so if the episode outcome is good, all actions taken become more likely and if not, the inverse occurs \cite{karpathy_2016}. Like AlphaGo, many policy gradient implementations use an artificial neural network where the inputs are states and outputs are action probabilities \cite{silver_2017}. Therefore, the act of making actions more or less probable is carried out with the standard back-propagation algorithm where the gradient is adjusted by normalized episodic reward \cite{karpathy_2016}.
-%A more concrete implementation is shown below in pseudocode where $P(s,a,\theta)$ represents the parametrized probability of action $a$ in state $s$ for all possible states and actions, $\theta$ represents the parameters controlling the probability distribution:
-%\begin{center} \begin{tabular}{|p{0.9\linewidth}|}\hline % or any other width
-%Initialize $P(s,a,\theta)$ arbitrarily. \\
-%Repeat until satisfactory performance: \\
-%\quad Policy rollout n times (typ. 20 to 100): \\
-%\quad \quad Initialize $s$\\
-%\quad \quad Repeat (for each step of episode):\\
-%\quad \quad \quad Stochastically choose $a$ from $s$ using policy derived from $P(s,a,\theta)$\\
-%\quad \quad \quad Take action $a$, observe $s'$, accumulate $r$\\
-%\quad \quad \quad $s \gets s'$;\\
-%\quad \quad until $s$ is terminal \\
-%\quad Normalize the $r$ from n policy rollouts. \\
-%\quad 
-%\hline
-%\end{tabular} \end{center}
+The underlying premise of stochastic policy gradients is simple: get a state, take a particular action with probability $P[a|s;\theta]$, and record the reward. If the reward is "good", increase the probability of taking that action by modifying $\theta$ or decrease it if the reward is "bad". Note that the terms "good" and "bad" are intentionally vague as to not constrain them to one particular interpretation. After many iterations, the actor will most likely take actions that produce good rewards. But of course, not all is so simple. Much like the so-called "butterfly effect" \cite{Lorenz_1963}, a single action can cascade into a multitude of unknown futures meaning the worth of a particular action cannot be determined by the immediate reward produced. 
+
+Instead, the rewards are accumulated for a long period in episodes, at the end of which actions are judged based on the total reward. Now, a different issue arises: the credit assignment problem \cite{fu_2008}. If an episode contains 1,000 actions, which ones ultimately produced the good reward and which were inconsequential or detrimental? Rather than determining the individual actions responsible, the algorithm deems all actions in an episode culpable so if the episode outcome is good, all actions taken become more likely and if not, the inverse occurs \cite{karpathy_2016}. Like AlphaGo, many policy gradient implementations use an artificial neural network where the inputs are states and outputs are action probabilities \cite{silver_2017}. Therefore, the act of making actions more or less probable is carried out with gradient descent similar to back propagation for ANNs \cite{karpathy_2016}. The specific implementation details are beyond the scope of the thesis.
 
 \subsection{Deterministic Policy Gradient Method (DPG)}
 The deterministic policy gradient method (DPG), developed by Silver et al., shares the same foundation as stochastic policy gradients, but instead of representing the policy as a probability distribution, the policy deterministically chooses actions from the given states \cite{silver_lever_heess_degris_wierstra_riedmiller}. Silver et al.\ have shown that the DPG is actually a limiting case of stochastic policy gradients where the policy distribution variance is 0. Another key difference is that while the stochastic policy gradient integrates over the state and action spaces, the DPG only integrates over the state space. Consequently, the stochastic case requires more samples to compute. Finally, the stochastic policy inherently chooses exploratory actions due to its probabilistic nature so Silver developed an off-policy learning algorithm using a stochastic policy to ensure sufficient exploration despite producing a deterministic policy.
 
 \subsection{Deep Deterministic Policy Gradient (DDPG)}
-The deep deterministic policy gradient algorithm, developed by Lillicrap et al., is a model-free, off-policy actor-critic strategy based on the Silver et al.'s DPG algorithm combined with learnings from Mnih et al.'s work on the DQN algorithm \cite{lillicrap_2016}\cite{Mnih_2015}\cite{silver_lever_heess_degris_wierstra_riedmiller}. DDPG improves on DPG by representing the actor policy with an ANN and applying the experience replay and target network techniques from DQN. 
+The robot's motors are controlled with continuous actions so the policy gradient method provides a decent solution. However, PG methods converge more slowly and have less learning stability than the DQN algorithm, as compared in Table \ref{tab:dqn_pg_comparison} \cite{yu_dqn_vs_pg}. Therefore, the deep deterministic policy gradient (DDPG), developed by Lillicrap et al., augments the DPG algorithm with techniques from DQN to obtain the best of both worlds.
+\begin{table}[h]
+	\caption{DQN and PG Comparison \cite{yu_dqn_vs_pg}}  \label{tab:dqn_pg_comparison}
+	\begin{tabularx}{\textwidth}{@{} l|c|c @{}}
+		\toprule
+		& Deep Q-Network Method & Policy Gradient Method \\ 
+		\midrule
+		Policy Action Space & Discrete & Continuous \\
+		Policy State Space & Continuous & Continuous \\
+		Q-Function Action Space & Continuous & n/a \\
+		Q-Function State Space & Continuous & n/a \\
+		Learning Stability & More Stable & Less Stable \\
+		Convergence Speed & Faster & Slower \\
+		\bottomrule
+	\end{tabularx} 
+\end{table}
 
-Additionally, Lillicrap et al.\ adapted batch normalization from Ioffe's work to allow ANN hyper-parameter generalization for environments with features of varying magnitude \cite{2015arXiv150203167I}; each feature in a minibatch is normalized to unit mean and variance. In their implementation, batch normalization was applied to network inputs, all layers of the policy network, and all layers of the Q network before the action input (detailed later).
+The DDPG algorithm is a model-free, off-policy actor-critic strategy based on the Silver et al.'s DPG algorithm combined with learnings from Mnih et al.'s work on the DQN algorithm \cite{lillicrap_2016}\cite{Mnih_2015}\cite{silver_lever_heess_degris_wierstra_riedmiller}. DDPG improves on DPG by representing the actor policy with an ANN and applying the experience replay and target network techniques from DQN. 
+
+Additionally, Lillicrap et al.\ adapted batch normalization from Ioffe's work to allow ANN hyper-parameter generalization for environments with features of varying magnitude \cite{2015arXiv150203167I}; each feature in a minibatch is normalized to unit mean and variance. In other words, the DDPG algorithm can use the same set of hyper-parameters, e.g. learning rates, discount factor, update parameter $\tau$, etc., for widely different environments. In their implementation, batch normalization was applied to network inputs, all layers of the policy network, and all layers of the Q network before the action input (detailed later).
 
 To ensure adequate exploration, Lillicrap et al.\ added Ornstein-Uhlenbeck process noise to the policy output $\mu(s_t | \theta^\mu_t)$ to create the exploration policy $\mu'(s_t)$ as shown in Equation \ref{eq:exploration_policy} \cite{lillicrap_2016}. The Ornstein-Uhlenbeck process satisfies the condition shown in Equation \ref{eq:ornstein-uhlenbeck} where $x_t$ is the process position at time $t$, $\theta$ and $\sigma$ are parameters, and $W_t$ is the Weiner process \cite{uhlenbeck_ornstein}. The process produces random, time-correlated values that drift toward a long-term mean, in this case 0. The Ornstein-Uhlenbeck action noise class shown in Listing \ref{list:ornstein-uhlenbeck} is provided by OpenAI under the MIT License \cite{ddpg_noise}.
 \begin{equation}
@@ -177,28 +196,47 @@ class OrnsteinUhlenbeckActionNoise:
         return 'OrnsteinUhlenbeckActionNoise(mu={}, sigma={})'.format(self.mu, self.sigma)
 \end{python}
 
-Lillicrap et al.\ used DDPQ to solve over 20 different simulated physics environments such as cart pole swing-up and driving using the same network architecture and hyper-parameters, demonstrating the generalizability of the technique. Although the approach required about 2.5 million steps of experience to solve most problems, it needed 20 times less than DQN. 
+Lillicrap et al.\ used DDPQ to solve over 25 different simulated physics environments such as cart pole swing-up and driving using the same network architecture and hyper-parameters, demonstrating the generalizability of the technique. For details of the environments, see OpenAI Gym \cite{openaigym}. Although the approach required about 2.5 million steps of experience to solve most problems, it needed 20 times less than DQN. 
 
 To reiterate, the important advantage of the DDPG technique is its ability to handle both continuous action and state spaces of varying magnitude, critical to many real-life control problems. Specific algorithm details are covered in the Implementation section.
 
 \section{Implementation}
-All code is implemented in Python 3.6 and uses libraries from TensorFlow \cite{tensorflow} and OpenAI Gym \cite{openaigym}. An implementation of the Lillicrap's DDPG algorithm from Patrick Emami's wonderful reinforcement learning primer formed the initial code base to which modifications and new developments were added \cite{emami_2016}.
+All code is implemented in Python 3.6 and uses modules from TensorFlow \cite{tensorflow} (ANN implementation), OpenAI Gym (Ornstein-Uhlenbeck action noise) \cite{openaigym}, and Pyglet (environment rendering). An implementation of the Lillicrap's DDPG algorithm from Patrick Emami's wonderful reinforcement learning primer formed the initial code base to which modifications and new developments were added \cite{emami_2016}.
+
+
+\subsection{Parameter Definitions}
+The Roborodentia field is 2438.4 mm long in the x direction and 1219.2 mm wide in the y direction as shown in Figure \ref{fig:field_defs} \cite{roborodentia}. Viewed from above, the coordinate (0 mm, 0 mm) is the bottom-left corner while (2438.4 mm, 1219.2 mm) is the top-right corner. Units of position, orientation, linear velocity, and rotational velocity are mm, mm/s, radians, and radians/s, respectively.
+
+The robot position and orientation, ($x$, $y$, $\theta$), is represented as a vector in the field plane where the vector's tail is positioned at the robot center. Note that the vector orientation deviates from standard notation. At 0 radians, the vector points in the $+y$ direction, and at $+\pi/2$ radians, it points towards $-x$. 
+
+The $x$ and $y$ velocity of the robot refer to motion parallel to the field's x-axis and y-axis while the rotational velocity refers to the robot's rotation about its center. They are defined as $\dot{x}$, $\dot{y}$, and $\dot{\theta}$. 
+
+Three control inputs $u_x$, $u_y$, and $u_\theta$ correspond to the force applied to the robot and range between -2 to +2. For absolute clarity, positive $u_x$ moves the robot in the direction of the positive x-axis, positive $u_y$ pushes towards the positive y-axis, and positive $u_\theta$ torques the robot in the positive $\theta$ direction. 
+\begin{figure}[H]
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/field_defs.png}
+	\caption{Roborodentia Field Definitions} \label{fig:field_defs}
+\end{figure}
 
 \subsection{Robot Simulation}
+Since training the network using the real-life robot is difficult and time-costly, episodes take place in a simulation of the robot and competition field. While an ideal simulation would model many kinematics and dynamics of the robot, robust system modeling is beyond the scope of the thesis. Instead, a rudimentary model serves to demonstrate the efficacy of the DDPG algorithm. 
 
-\subsubsection{Reward}
-The rewards given by the environment, shown in Equations \ref{eq:reward_x} to \ref{eq:reward_uth}, consist of the distance from the set point, velocity, and action value for each of $x$, $y$, and $\theta$ of the robot.
+The simulation accounts for maximum wheel velocity and acceleration and calculates robot movement as a function of the four wheel velocities using the mecanum wheel equations \cite{li_2018}\cite{rahman_2014}. It also handles collision with the environment walls. The simulation does not model unequal loading and friction between wheels, the momentum of the robot as a whole, or small differences between the motors and wheels.
+
+\subsection{Reward Assignment}
+The reward assignment must reflect the actor's goal: to move the robot to a desired position and orientation in the field. The resulting policy after training depends greatly on careful selection of which actions and/or states receive better or worse rewards. The rewards as implemented, shown in Equations \ref{eq:reward_x} to \ref{eq:reward_uth}, consist of three categories: distance from the set point, velocity, and action value. Note that the $\text{norm}(\cdot)$ function normalizes the angle to between $-\pi$ and $+\pi$. Each of the nine reward equations produces a maximum reward of 0 and includes squared terms to introduce quadratically scaling.
 \begin{align}
-r_x &= -0.00001 (x-x_{des})^2 \label{eq:reward_x}\\
-r_y &= -0.00001 (y-y_{des})^2 \\
-r_\theta &= -1.0 (norm(\theta)-norm(\theta_{des}))^2 \\
-r_{\dot{x}} &= -0.000001 \dot{x}^2 \\
-r_{\dot{y}} &= -0.000001 \dot{y}^2 \\
+r_x &= -0.00001 (x-x_{desired})^2 \label{eq:reward_x}\\
+r_y &= -0.00001 (y-y_{desired})^2 \\
+r_\theta &= -1.0 (norm(\theta)-norm(\theta_{desired}))^2 \\
+r_{\dot{x}} &= -0.0000005 \dot{x}^2 \\
+r_{\dot{y}} &= -0.0000005 \dot{y}^2 \\
 r_{\dot{\theta}} &= -0.1 \dot{\theta}^2 \\
 r_{u_x} &= -0.001u_x^2 \\
 r_{u_y} &= -0.001u_y^2 \\
 r_{u_\theta} &= -0.001u_\theta^2 \label{eq:reward_uth}
 \end{align}
+
+The coefficients for $r_\theta$, $r_{\dot{\theta}}$, and $r_{u_\theta}$ come from OpenAI Gym's pendulum environment \cite{openai_pendulum}. The other coefficients scale the reward magnitudes within each category close to each other. Finally, the coefficients were adjusted through trial-and-error: the algorithm was run multiple times with slightly varied coefficients until the author felt the policy was "good enough". Future work includes a more systematic way to determine these coefficients.
 
 \subsection{Artificial Neural Networks}
 \subsubsection{Critic Network}
@@ -561,8 +599,52 @@ if (i % test_period == 0):
 	\end{enumerate}
 \end{enumerate}
 
-\subsection{Actor Testing}
-The training loop periodically tests the actor to evaluate performance with the \pythoninline{testNetworkPerformance()} function shown in Listing \ref{list:actor_testing}. The actor steps through a number of varied but predefined test cases. For example, the robot orientation $\theta$ ranges from $-\pi$ to $+\pi$. If using 11 test cases, the robot would begin at $\theta=[-\pi, -0.8\pi, -0.6\pi, -0.4\pi, -0.2\pi, 0, +0.2\pi, +0.4\pi, +0.6\pi, +0.8\pi, pi]$ to evaluate behavior at various states. Additionally, the action does not receive Ornstein-Uhlenbeck exploration noise. The function returns the average reward per episode as the measure of actor performance.
+\subsection{Two Approaches}
+Since the robot's mecanum wheels permit omni-directional movement, position and orientation control can be broken down into three separate DDPG actors, referred to as the "x translation", "y translation", and "rotation" or "angle" networks. Each actor receives two state inputs: position ($x$, $y$, or $\theta$) and velocity ($\dot{x}$, $\dot{y}$, or $\dot{\theta}$) and outputs one of three orthogonal controls ($u_x$, $u_y$, and $u_\theta$). This will be referred to as the "three actors approach". Each of the three networks trains in isolation from the other two; for example, when training the x translation network, $u_y$ and $u_\theta$ are fixed at 0.
+
+To simultaneously apply the effects of each control, they are converted to four individual motor voltages ($v_0$, $v_1$, $v_2$, and $v_3$) by calculating the translation vector magnitude $V_d = \sqrt{u_x^2 + u_y^2}/2$ and angle $\theta_d = \text{atan2}(u_y / u_x)$ then using Equations \ref{eq:mecanum_v0} through \ref{eq:mecanum_v3} \cite{li_2018}\cite{rahman_2014}. 
+\begin{align}
+v_0 &= V_d \text{sin}(\theta_d + \pi/4) - u_\theta  \label{eq:mecanum_v0}\\
+v_1 &= V_d \text{cos}(\theta_d + \pi/4) + u_\theta  \label{eq:mecanum_v1}\\
+v_2 &= V_d \text{sin}(\theta_d + \pi/4) + u_\theta  \label{eq:mecanum_v2}\\
+v_3 &= V_d \text{cos}(\theta_d + \pi/4) - u_\theta  \label{eq:mecanum_v3}
+\end{align}
+
+In the alternative "single actor approach", a single actor receives $x$, $y$, $\theta$, $\dot{x}$, $\dot{y}$, and $\dot{\theta}$ then produces the three control components $u_x$, $u_y$, and $u_\theta$. 
+
+While using three actors improves training convergence speed, it does not account for possible effects of simultaneously-applied control components as with the single actor case. However, it does allow for partial system retraining. For example, if the y translation network does not meet the design specification, it can be retrained independently whereas the single actor would require complete retraining. Additionally, separate actors simplifies troubleshooting and reward assignment tuning by isolating effects and reducing problem complexity. The primary downside to three actors is reduced speed due to processing three networks at each step versus just one. 
+
+A hybrid approach would start with the three actors approach, to tune and refine the reward assignments and hyper-parameters, and finish with the single actor to reap the processing speed advantage as shown in Figure \ref{fig:hybrid_approach_flow}.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/hybrid_approach_flow.pdf}
+	\caption{Hybrid Approach Flow} \label{fig:hybrid_approach_flow}
+\end{figure}
+
+\subsection{Training}
+Each episode lasts 10 seconds with 0.05 second steps for a total of 200 steps per episode. The learning rates, discount factor, target network update parameter $\tau$, and mini-batch size for the three actors approach come from the original DDPG publication. The learning rates and $\tau$ for the single actor variant are 10 times smaller to improve stability. Table \ref{tab:training_params} summarizes the training parameters.
+\begin{table}[h]
+	\caption{Training Parameters}  \label{tab:training_params}
+	\centering
+	\begin{tabular}{l|c|c}
+		\toprule
+		Parameter & Three Actors & Single Actor \\ 
+		\midrule
+		Episode Length (s) & 10 & 10 \\
+		Episode Step (s) & 0.05 & 0.05 \\
+		Actor Learning Rate $\alpha_{actor}$ & $10^{-4}$ & $10^{-5}$ \\
+		Critic Learning Rate $\alpha_{critic}$  & $10^{-3}$ & $10^{-4}$ \\
+		Discount Factor $\gamma$ & 0.99 & 0.99 \\
+		Target Network Update Parameter $\tau$ & $10^{-3}$ & $10^{-4}$ \\
+		Mini-Batch Size & 64 & 128 \\
+		\bottomrule
+	\end{tabular} 
+\end{table}
+
+Training took place on a desktop computer with an Intel i5-4670K CPU and Nvidia GeForce GTX 980 Ti GPU running Microsoft Windows 10 Pro \cite{intel}\cite{980ti}\cite{windows}. The computer processed 21,200 episodes of single actor training in about 23 hours and 51 minutes, achieving an average rate of 1 episode every 4.08 seconds.
+
+\subsection{Testing}
+The training loop periodically tests the actor to evaluate performance with the \pythoninline{testNetworkPerformance()} function shown in Listing \ref{list:actor_testing}. The actor steps through a series of predefined test cases. For example, the robot orientation $\theta$ ranges from $-\pi$ to $+\pi$. If using 11 test cases, the robot would begin at $\theta=[-\pi, -0.8\pi, -0.6\pi, -0.4\pi, -0.2\pi, 0, +0.2\pi, +0.4\pi, +0.6\pi, +0.8\pi, \pi]$ to evaluate behavior at various states. Additionally, the action does not receive Ornstein-Uhlenbeck exploration noise during testing. The function returns the average reward per episode as the measure of actor performance. The testing procedure as implemented uses 41 test cases.
 \begin{python}[caption={Actor Testing Function},label={list:actor_testing}]
 # Tests the actor network against a number of test cases
 def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False):
@@ -605,30 +687,14 @@ def testNetworkPerformance(env, args, actor, num_test_cases = 10, render = False
 %\end{python}
 
 \section{Results}
-\subsection{Parameter Definitions}
-Before discussing the results, some parameters must be defined. The Roborodentia field is 2438.4 mm long in the x direction and 1219.2 mm wide in the y direction as shown in Figure \ref{fig:field_defs} \cite{roborodentia}. Viewed from above, the coordinate (0,0) is the bottom-left corner while (2438.4, 1219.2) is the top-right corner. The robot position, ($x$, $y$, $\theta$), is represented as a vector in the field plane where the base of the vector is at the robot center. Note that the vector orientation deviates from standard notation; 0 radians is in line with the positive y-axis and $+\pi/2$ radians is in line with the negative x-axis. The x velocity and acceleration of the robot refer to motion parallel to the field x-axis. Three control inputs $u_x$, $u_y$, and $u_\theta$ correspond proportionally to force applied to the robot and range between -2 to +2. For absolute clarity, positive $u_x$ moves the robot in the direction of the positive x-axis, positive $u_y$ pushes towards the positive y-axis, and positive $u_\theta$ torques the robot in the positive $\theta$ direction. Robot velocities are defined similarly using ($\dot{x}$, $\dot{y}$, $\dot{\theta}$). Units of position, orientation, linear velocity, and rotational velocity are mm, mm/s, radians, and radians/s, respectively.
-\begin{figure}[H]
-	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/field_defs.png}
-	\caption{Roborodentia Field Definitions} \label{fig:field_defs}
-\end{figure}
-
-\subsection{Three Actors Variant}
-Since the robot's mecanum wheels permit omni-directional movement, position control can be viewed as three separate control loops. Therefore, early experiments used three individually-trained, single-action actors to provide orthogonal controls $u_x$, $u_y$, and $u_\theta$. The three controls are converted to individual motor voltages, $v_0$, $v_1$, $v_2$, and $v_3$, by calculating the translation vector magnitude $V_d = \sqrt{u_x^2 + u_y^2}/2$ and angle $\theta_d = \text{atan2}(u_y / u_x)$ and using Equations \ref{eq:mecanum_v0} through \ref{eq:mecanum_v3} \cite{li_2018}\cite{rahman_2014}. The three actors will be referred to as the "x translation", "y translation", and "angle" networks. Each episode lasts 10 seconds with 0.05 second steps for a total of 200 steps per episode. The each network's training uses a simulation of the robot and the environment detailed in the Software chapter.
-\begin{align}
-v_0 &= V_d \text{sin}(\theta_d + \pi/4) - u_\theta  \label{eq:mecanum_v0}\\
-v_1 &= V_d \text{cos}(\theta_d + \pi/4) + u_\theta  \label{eq:mecanum_v1}\\
-v_2 &= V_d \text{sin}(\theta_d + \pi/4) + u_\theta  \label{eq:mecanum_v2}\\
-v_3 &= V_d \text{cos}(\theta_d + \pi/4) - u_\theta  \label{eq:mecanum_v3}
-\end{align}
-
 \subsubsection{X Translation Network}
-The x translation network takes in the robot's x error, the difference between the desired and actual x positions, and velocity and outputs $u_x$. Since the Y translation network accomplishes the exact same task in the same way but in the y direction, only the X translation network will be discussed. The reward is calculated as shown in Equation \ref{eq:x_reward}. The actor receives a higher reward for keeping the robot near the desired set point, minimizing the velocity, and minimizing the effort (i.e. low $u_x$ values).
+The x translation network takes in the robot's $x$ error, the difference between the desired and actual $x$ positions, and velocity $\dot{x}$ and outputs control $u_x$. The reward is calculated as shown in Equation \ref{eq:x_reward}. The actor receives a higher reward for keeping the robot near the desired $x$ set point, minimizing the $x$ velocity, and minimizing the effort (i.e. low $u_x$ values).
 \begin{equation}
 r = -0.00001(x-x_{desired})^2-0.0000005\dot{x}^2-0.001u_x^2
 \label{eq:x_reward}
 \end{equation}
 
-As described above in Actor Testing, the networks are periodically tested to observe their change in performance with more training. Figures \ref{fig:x_r} and \ref{fig:x_rzoom} show the average testing episode reward from the \pythoninline{testNetworkPerformance()} function with 41 test cases versus number of episodes trained. Figure \ref{fig:x_q} shows the average max Q versus number of episodes trained. The average max Q is calculated as the average maximum Q within each mini-batch of predicted Q's. The actor quickly learns and achieves an average test episode reward of -59 after 81 episodes. After 200 episodes, the average reward begins to decrease, indicating the possibility of over-training. However, the average max Q continues to increase.
+As described above in the Testing section, the networks are periodically tested to observe their change in performance with more training. Figures \ref{fig:x_r} and \ref{fig:x_rzoom} show the average testing episode reward produced by the \mbox{\pythoninline{testNetworkPerformance()}} function versus the number of episodes trained. Figure \ref{fig:x_q} shows the average max Q versus number of episodes trained. The average max Q is calculated as the average maximum Q within each mini-batch of predicted Q's. Since the algorithm is model-free and the actor starts with zero knowledge of the environment, the initial test rewards remain near -2000. However, the actor quickly learns and achieves a -58 test reward after 161 episodes. After 181 episodes, the test reward and average max Q begin to decrease, indicating the possibility of over-training. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/x_r.pdf}
@@ -645,38 +711,84 @@ As described above in Actor Testing, the networks are periodically tested to obs
 	\caption{X Translation Network Average Max Q} \label{fig:x_q}
 \end{figure}
 
-Figure \ref{fig:x_perf} shows the actor's action, error from the set point, and reward versus time for nine different initial conditions. Appendix \ref{appendix:x_perf} provides additional plots for different numbers of episodes trained. Regardless of the starting distance from the set point, the actor appears to drive the robot at maximum speed to reach the set point as quickly as possible since the distance affects the reward most drastically. After reaching the desired x location, the action oscillates to maintain the position.
+Figure \ref{fig:x_perf} shows the action $u_x$, error from the set point, and reward versus time for eight episodes with different initial conditions after 161 episodes trained. Appendix \ref{appendix:x_perf} provides additional plots for different numbers of episodes trained. Regardless of the starting distance from the set point, the actor appears to drive the robot at maximum speed to reach the set point as quickly as possible since the positional error affects the reward most drastically. Soon after reaching the desired x position, the action decays to zero.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/transx_transitions/1_161.pdf}
 	\caption{X Translation Network Performance -- 161 Episodes}\label{fig:x_perf}
 \end{figure}
 
-Figure \ref{fig:x_actor_contour} displays a series of contour plots of the actor outputs as functions of the two inputs over different numbers of episodes trained. The actor contour plots reveal the actor output to be highly polarized with only a sliver of low-valued $u_x$, leading to the oscillatory action seen in Figure \ref{fig:x_perf}. It is highly likely that actor is incapable of sufficiently reducing the velocity such that the momentum of the robot does not carry it across the sliver and oscillating. Throughout training, the critical point at zero distance error and zero velocity yields $u_x=0$ while two "arms" of $u_x=0$ extend outward at varying angles.
-\begin{figure}[H]
+Figure \ref{fig:x_actor_contour} displays a series of contour plots of the actor outputs as functions of the two inputs over different numbers of episodes trained where the color indicates the action $u_x$. The plots reveal the trained actor's output as highly polarized with only a sliver of low-valued $u_x$. Figure \ref{fig:x_critic_contour} shows a similar series of plots for the critic output. Since Q is a function of both the state and action, each point represents the highest Q-value among all actions at the particular state. The plot of Q follows intuition: the nearer the robot to the desired $x$ location, the greater the expected long-term reward.
+\begin{figure}
 	\begin{tabular}{cc}
 		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_1.pdf} &  
-		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_21.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_41.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_81.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_121.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_161.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_201.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_261.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_41.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_81.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_121.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_161.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_201.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_241.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_actor/Actor1_281.pdf} \\
 	\end{tabular}
 	\caption{X Translation Actor Output Progression}\label{fig:x_actor_contour}
 \end{figure}
-\begin{figure}[H]
+\begin{figure}
 	\begin{tabular}{cc}
 		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_1.pdf} &  
-		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_21.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_41.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_81.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_121.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_161.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_201.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_261.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_41.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_81.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_121.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_161.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_201.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_241.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transx_critic/Critic1_281.pdf} \\
 	\end{tabular}
 	\caption{X Translation Critic Output Progression}\label{fig:x_critic_contour}
 \end{figure}
-Figure \ref{fig:x_critic_contour} shows a similar series of plots as Figure \ref{fig:x_actor_contour} except for the critic output rather than the actor's. Since Q is a function of both the state and action, the values shown represent the highest Q-value for any action across all states.
 
-\subsubsection{Angle Translation Network}
-The angle network takes in the robot's angle error as $\text{cos}(\theta-\theta_{desired})$ and $\text{sin}(\theta-\theta_{desired})$ as well as the rotational velocity $\dot{\theta}$ and outputs $u_\theta$. The reward is calculated as shown in Equation \ref{eq:angle_reward} where the $\text{norm}()$ function normalizes the angle to between $-\pi$ and $+\pi$.
+\subsubsection{Y Translation Network}
+The y translation network is nearly identical to the x translation but with a variable change so refer to the above for details. Figures \ref{fig:y_perf} through \ref{fig:y_q} contain plots equivalent to those shown for the x translation network. The test reward shows the same pattern of low test reward followed by a steep climb to a plateau. The jump in test reward aligns with the jump in average max Q at episode 161. The network also suffers from a decline in test reward from over training.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/y_r.pdf}
+	\caption{Y Translation Test Reward} \label{fig:y_r}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/y_rzoom.pdf}
+	\caption{Y Translation Test Reward Zoomed} \label{fig:y_rzoom}
+\end{figure}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/y_q.pdf}
+	\caption{Y Translation Network Average Max Q} \label{fig:y_q}
+\end{figure}
+
+Figure \ref{fig:y_perf} displays the actor's transient response from eight different initial starting points after 221 episodes trained. Appendix \ref{appendix:y_perf} contains additional plots for other episodes trained. The robot reaches the set point with a small overshoot, and the action decays to zero as desired, indicating a successful policy.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, height=6in, keepaspectratio]{figures/train_figs/transy_transitions/2_221.pdf}
+	\caption{Y Translation Network Performance -- 221 Episodes}\label{fig:y_perf}
+\end{figure}
+
+Figures \ref{fig:y_actor_contour} and \ref{fig:y_critic_contour} show the actor and critic contour plots, respectively. As expected, the contours are highly reminiscent of those for the x translation network.
+\begin{figure}[H]
+	\begin{tabular}{cc}
+		\includegraphics[width=65mm]{figures/train_figs/transy_actor/Actor2_1.pdf} &  
+		\includegraphics[width=65mm]{figures/train_figs/transy_actor/Actor2_41.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transy_actor/Actor2_81.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transy_actor/Actor2_181.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transy_actor/Actor2_221.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transy_actor/Actor2_261.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transy_actor/Actor2_301.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transy_actor/Actor2_341.pdf} \\
+	\end{tabular}
+	\caption{Y Translation Actor Output Progression}\label{fig:y_actor_contour}
+\end{figure}
+\begin{figure}[H]
+	\begin{tabular}{cc}
+		\includegraphics[width=65mm]{figures/train_figs/transy_critic/Critic2_1.pdf} &  
+		\includegraphics[width=65mm]{figures/train_figs/transy_critic/Critic2_41.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transy_critic/Critic2_81.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transy_critic/Critic2_181.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transy_critic/Critic2_221.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transy_critic/Critic2_261.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/transy_critic/Critic2_301.pdf} &   \includegraphics[width=65mm]{figures/train_figs/transy_critic/Critic2_341.pdf} \\
+	\end{tabular}
+	\caption{Y Translation Critic Output Progression}\label{fig:y_critic_contour}
+\end{figure}
+
+\subsubsection{Rotation Network}
+The angle network receives the robot's angle error as $\text{cos}(\theta-\theta_{desired})$ and $\text{sin}(\theta-\theta_{desired})$ as well as the rotational velocity $\dot{\theta}$ and outputs $u_\theta$. The reward is calculated as shown in Equation \ref{eq:angle_reward} where the $\text{norm}()$ function normalizes the angle to between $-\pi$ and $+\pi$.
 \begin{equation}
 r = -1.0(\text{norm}(\theta)-\text{norm}(\theta_{desired}))^2-0.1\dot{\theta}^2-0.001u_\theta^2
 \label{eq:angle_reward}
@@ -702,7 +814,7 @@ Appendix \ref{appendix:angle_perf} provides additional plots for different numbe
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_transitions/0_61.pdf}
-	\caption{Angle Network Performance -- 81 Episodes}\label{fig:angle_perf}
+	\caption{Angle Network Performance -- 61 Episodes}\label{fig:angle_perf}
 \end{figure}
 
 \begin{figure}[H]
@@ -726,7 +838,10 @@ Appendix \ref{appendix:angle_perf} provides additional plots for different numbe
 	\caption{Angle Critic Output Progression}\label{fig:angle_critic_contour}
 \end{figure}
 
-\subsection{Single Actor Variant}
+\subsection{Three Actors Combined}
+
+
+\subsection{Single Actor Network}
 \begin{figure}[H]
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_r.pdf}
 	\caption{Training and Test Reward} \label{fig:all_r}
@@ -740,8 +855,11 @@ Appendix \ref{appendix:angle_perf} provides additional plots for different numbe
 	\caption{Average Max Q} \label{fig:all_q}
 \end{figure}
 
+Appendix \ref{appendix:all_perf} contains additional plots for other episodes trained.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in,  keepaspectratio]{figures/train_figs/all_transitions/3_17281.pdf}
 	\caption{All Network Performance -- 17281 Episodes}\label{fig:all_perf}
 \end{figure}
+
+\subsection{Comparison of Three vs. One Actor}
