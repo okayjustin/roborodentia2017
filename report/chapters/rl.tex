@@ -694,7 +694,7 @@ r = -0.00001(x-x_{desired})^2-0.0000005\dot{x}^2-0.001u_x^2
 \label{eq:x_reward}
 \end{equation}
 
-As described above in the Testing section, the networks are periodically tested to observe their change in performance with more training. Figures \ref{fig:x_r} and \ref{fig:x_rzoom} show the average testing episode reward produced by the \mbox{\pythoninline{testNetworkPerformance()}} function versus the number of episodes trained. Figure \ref{fig:x_q} shows the average max Q versus number of episodes trained. The average max Q is calculated as the average maximum Q within each mini-batch of predicted Q's. Since the algorithm is model-free and the actor starts with zero knowledge of the environment, the initial test rewards remain near -2000. However, the actor quickly learns and achieves a -58 test reward after 161 episodes. After 181 episodes, the test reward and average max Q begin to decrease, indicating the possibility of over-training. 
+As described above in the Testing section, the networks are periodically tested to observe their change in performance with more training. Figures \ref{fig:x_r} and \ref{fig:x_rzoom} show the average testing episode reward produced by the \mbox{\pythoninline{testNetworkPerformance()}} function versus the number of episodes trained. Figure \ref{fig:x_q} shows the average max Q versus number of episodes trained. The average max Q is calculated as the average maximum Q within each mini-batch of predicted Q's. Since the algorithm is model-free and the actor starts with zero knowledge of the environment, the initial test rewards remain near -2000. However, the actor quickly learns and achieves a -58 test reward after 161 episodes. After 181 episodes, the test reward begins to decrease, indicating the possibility of over-training. Interestingly, the critic produces invalid Q estimates; the maximum reward for any step, and therefore Q, is 0. However, this does not impact the actor's ability to determine desirable actions.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/x_r.pdf}
@@ -794,6 +794,7 @@ r = -1.0(\text{norm}(\theta)-\text{norm}(\theta_{desired}))^2-0.1\dot{\theta}^2-
 \label{eq:angle_reward}
 \end{equation}
 
+Figures \ref{fig:angle_r} and \ref{fig:angle_rzoom} show test reward progress. The rotation network learns faster than either the x or y actors, achieving a reasonably good policy after only 41 episodes of training, due to the cyclical nature of rotation. Even if the actor decides to constantly spin the robot in one direction, it passes the set point with each revolution, obtaining useful experiences near the desired angle. However, in the x or y translation case, a constant movement in one direction leads the robot away from the set point and eventually gets it stuck at a wall instead of gaining effective experiences.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_r.pdf}
@@ -810,18 +811,19 @@ r = -1.0(\text{norm}(\theta)-\text{norm}(\theta_{desired}))^2-0.1\dot{\theta}^2-
 	\caption{Angle Network Average Max Q} \label{fig:angle_q}
 \end{figure}
 
-Appendix \ref{appendix:angle_perf} provides additional plots for different numbers of episodes trained. 
+As seen in Figure \ref{fig:angle_perf}, the rotation actor monotonically brings the robot to the desired angle with no overshoot and reduces the action to 0 afterwards. Appendix \ref{appendix:angle_perf} provides additional plots for different numbers of episodes trained. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/angle_transitions/0_61.pdf}
 	\caption{Angle Network Performance -- 61 Episodes}\label{fig:angle_perf}
 \end{figure}
 
+Figures \ref{fig:angle_actor_contour} and \ref{fig:angle_critic_contour} contain contour plots of the actor and critic outputs. As expected, the plots are periodic with respect to $\theta$. The actor contours take on a vaguely sinusoidal shape with only a thin sliver of area producing low action values, much like the other two networks. The critic network produces high Q values for states near the desired angle and low angular velocity.
 \begin{figure}[H]
 	\begin{tabular}{cc}
 		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_1.pdf} &  
 		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_21.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_41.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_81.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_61.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_81.pdf} \\
 		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_121.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_161.pdf} \\
 		\includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_221.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_actor/Actor0_301.pdf} \\
 	\end{tabular}
@@ -831,7 +833,7 @@ Appendix \ref{appendix:angle_perf} provides additional plots for different numbe
 	\begin{tabular}{cc}
 		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_1.pdf} &  
 		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_21.pdf} \\
-		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_41.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_81.pdf} \\
+		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_61.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_81.pdf} \\
 		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_121.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_161.pdf} \\
 		\includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_221.pdf} &   \includegraphics[width=65mm]{figures/train_figs/angle_critic/Critic0_301.pdf} \\
 	\end{tabular}
@@ -839,9 +841,15 @@ Appendix \ref{appendix:angle_perf} provides additional plots for different numbe
 \end{figure}
 
 \subsection{Three Actors Combined}
-
+After the three networks were trained, the best iteration of each (determined as rapid settling time, low or no overshoot, and decaying action value) was combined to produce a full control system capable of simultaneously modulating the  Figure \ref{fig:three_actor_response} displays the combined, simultaneous response of the three actor networks. C
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=6in, keepaspectratio]{figures/three_actor_response.pdf}
+	\caption{Combined Response} \label{fig:three_actor_response}
+\end{figure}
 
 \subsection{Single Actor Network}
+The single actor approach required reduced learning rates to prevent learning instability so the network trained for substantially longer before achieving reasonable performance. Figures \ref{fig:all_r} and \ref{fig:all_rzoom} show that the learning "jump" lasts nearly 1,000 episodes versus 20-60 episodes in the three actor case. Notably, Figure \ref{fig:all_rzoom} shows that, on average, the test reward continues to very slightly increase with further training at a rate of 1.6 reward per 1,000 additional episodes trained. In Figure \ref{fig:all_q}, the average max Q overshoots the ideal maximum of 0 but drops with further training.
 \begin{figure}[H]
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_r.pdf}
 	\caption{Training and Test Reward} \label{fig:all_r}
@@ -855,11 +863,11 @@ Appendix \ref{appendix:angle_perf} provides additional plots for different numbe
 	\caption{Average Max Q} \label{fig:all_q}
 \end{figure}
 
-Appendix \ref{appendix:all_perf} contains additional plots for other episodes trained.
+Figure \ref{fig:all_perf} shows the singla actor response to eight various initial $x$, $y$, and $\theta$ values. Appendix \ref{appendix:all_perf} contains additional plots for other episodes trained. Although the actor does successfully bring the robot to the set point, it fails to reduce the action to 0. Instead, the actions exhibit limit cycles, oscillating to keep the net velocity at 0. 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=6in,  keepaspectratio]{figures/train_figs/all_transitions/3_17281.pdf}
+	\includegraphics[width=6in, keepaspectratio]{figures/train_figs/all_transitions/3_17281.pdf}
 	\caption{All Network Performance -- 17281 Episodes}\label{fig:all_perf}
 \end{figure}
 
-\subsection{Comparison of Three vs. One Actor}
+
