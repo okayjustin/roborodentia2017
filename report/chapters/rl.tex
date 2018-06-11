@@ -841,15 +841,15 @@ Figures \ref{fig:angle_actor_contour} and \ref{fig:angle_critic_contour} contain
 \end{figure}
 
 \subsection{Three Actors Combined}
-After the three networks were trained, the best iteration of each (determined as rapid settling time, low or no overshoot, and decaying action value) was combined to produce a full control system capable of simultaneously modulating the  Figure \ref{fig:three_actor_response} displays the combined, simultaneous response of the three actor networks. C
+After the three networks were trained, the best iteration of each (determined as rapid settling time, low or no overshoot, and decaying action value) was combined. At each time step, each actor produces its respective control component which merge together using Equations \ref{eq:mecanum_v0} through \ref{eq:mecanum_v3} as described previously. Figure \ref{fig:three_actor_response} displays the response to eight varied initial states. Although the robot reaches the desired $x$, $y$, and $\theta$ position, it takes longer than in the individual tests above since the robot's movement is now divided amongst the three directions $x$, $y$, and $\theta$. The actions still decay to 0. 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=6in, keepaspectratio]{figures/three_actor_response.pdf}
+	\includegraphics[width=6in, height=5in, keepaspectratio]{figures/three_actor_response.pdf}
 	\caption{Combined Response} \label{fig:three_actor_response}
 \end{figure}
 
 \subsection{Single Actor Network}
-The single actor approach required reduced learning rates to prevent learning instability so the network trained for substantially longer before achieving reasonable performance. Figures \ref{fig:all_r} and \ref{fig:all_rzoom} show that the learning "jump" lasts nearly 1,000 episodes versus 20-60 episodes in the three actor case. Notably, Figure \ref{fig:all_rzoom} shows that, on average, the test reward continues to very slightly increase with further training at a rate of 1.6 reward per 1,000 additional episodes trained. In Figure \ref{fig:all_q}, the average max Q overshoots the ideal maximum of 0 but drops with further training.
+Since single actor approach required reduced learning rates to prevent training instability, the network trained for substantially longer before achieving reasonable performance. Figures \ref{fig:all_r} and \ref{fig:all_rzoom} show that the learning "jump" lasts nearly 1,000 episodes versus 20-60 episodes in the three actor case. Notably, Figure \ref{fig:all_rzoom} shows that, on average, the test reward continues to very slightly increase with further training at a rate of 1.6 reward per 1,000 additional episodes trained. In Figure \ref{fig:all_q}, the average max Q overshoots the ideal maximum of 0 but settles to negative values with further training.
 \begin{figure}[H]
 	\includegraphics[width=6in, height=3.85in, keepaspectratio]{figures/train_figs/all_r.pdf}
 	\caption{Training and Test Reward} \label{fig:all_r}
@@ -863,11 +863,21 @@ The single actor approach required reduced learning rates to prevent learning in
 	\caption{Average Max Q} \label{fig:all_q}
 \end{figure}
 
-Figure \ref{fig:all_perf} shows the singla actor response to eight various initial $x$, $y$, and $\theta$ values. Appendix \ref{appendix:all_perf} contains additional plots for other episodes trained. Although the actor does successfully bring the robot to the set point, it fails to reduce the action to 0. Instead, the actions exhibit limit cycles, oscillating to keep the net velocity at 0. 
+Figure \ref{fig:all_perf} shows the single actor response to eight various initial $x$, $y$, and $\theta$ values. Appendix \ref{appendix:all_perf} contains additional plots for other episodes trained. Although the actor does successfully bring the robot to the set point, it fails to reduce the action to 0. Instead, the actions exhibit limit cycles, oscillating to keep the net velocity at 0. In this respect, the three actors approach provides the distinct advantage.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=6in, keepaspectratio]{figures/train_figs/all_transitions/3_17281.pdf}
 	\caption{All Network Performance -- 17281 Episodes}\label{fig:all_perf}
 \end{figure}
 
+\section{Conclusion}
+The deep deterministic policy gradient algorithm successfully solved position and orientation control of the robot using two different approaches. The three actors approach proved to be easier to tune, faster to converge, and better in performance versus the single actor case. Therefore, where possible, dividing a system by its orthogonal controls improves training convergence and hyper-parameter tuning and also allows partial retraining, a major advantage when obtaining experiences is costly. However, designers should consider the single actor method when processing speed is the limiting factor.
 
+\section{Future Work}
+The process of developing reward assignments for the environment could be improved by taking a more systemic approach than guess-and-check. Despite successfully achieving the goal of moving the robot to the desired position, it is unclear if the chosen reward calculations were anywhere near optimal. 
+
+Although DDPG does successfully solve varied environments, it still depends on proper reward assignment to achieve the desired policy. A heuristic algorithm for automatically scaling rewards would improve on the theme of generalization. 
+
+The simulation of the robot only accounts for some basic kinematics, but future designs could incorporate a much greater range of factors. The closer the simulation to reality, the easier it is to train the robot in simulation and expect similar performance when the learned network weights and biases are transferred to the real robot.
+
+Finally, training the network directly on the real robot would allow complete omission of the simulation altogether at the expense of time and effort. However, the resulting policy would most accurately conform to the conditions and environments of the application.
