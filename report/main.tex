@@ -33,6 +33,7 @@
 %\usepackage{longtable}
 %\usepackage{tabularx}
 \usepackage{ltxtable}
+\captionsetup[longtable]{labelfont=bf,textfont=bf}
 \usepackage{booktabs}
 \usepackage{ragged2e}  % for '\RaggedRight' macro (allows hyphenation)
 \newcolumntype{Y}{>{\RaggedRight\arraybackslash}X} 
@@ -205,38 +206,38 @@
 % Declarations for Front Matter
 \input{frontmatter}
 
-\maketitle
-
-\begin{frontmatter}
-
-% Custom made for Cal Poly (by Mark Barry, modified by Andrew Tsui).
-\copyrightpage
-
-% Custom made for Cal Poly (by Andrew Tsui).
-\committeemembershippage
-
-\begin{abstract}
-\input{abstract}
-\end{abstract}
-
-\begin{acknowledgements}
-\input{acknowledgements}
-\end{acknowledgements}
-
-\tableofcontents
-
-\listoftables
-
-\listoffigures
-
-\lstlistoflistings
-
-% Add CHAPTER into table of contents.
-\addtocontents{toc}{%
-   \noindent CHAPTER
-}
-
-\end{frontmatter}
+%\maketitle
+%
+%\begin{frontmatter}
+%
+%% Custom made for Cal Poly (by Mark Barry, modified by Andrew Tsui).
+%\copyrightpage
+%
+%% Custom made for Cal Poly (by Andrew Tsui).
+%\committeemembershippage
+%
+%\begin{abstract}
+%\input{abstract}
+%\end{abstract}
+%
+%\begin{acknowledgements}
+%\input{acknowledgements}
+%\end{acknowledgements}
+%
+%\tableofcontents
+%
+%\listoftables
+%
+%\listoffigures
+%
+%\lstlistoflistings
+%
+%% Add CHAPTER into table of contents.
+%\addtocontents{toc}{%
+%   \noindent CHAPTER
+%}
+%
+%\end{frontmatter}
 
 \pagestyle{plain}
 
